@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Endo To Every One - Intermediate Level 1</title>
+    
+    <!-- ============================================ -->
+    <!-- FIREBASE SDK -->
+    <!-- ============================================ -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDcIvbmqjEwJbJNqTUwx1J6Wkjd6xK-DE",
+            authDomain: "etoe-endo-to-every-one.firebaseapp.com",
+            projectId: "etoe-endo-to-every-one",
+            storageBucket: "etoe-endo-to-every-one.firebasestorage.app",
+            messagingSenderId: "511524282020",
+            appId: "1:511524282020:web:5a25c021fd84f026969031"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        console.log("✅ Firebase connected!");
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .game-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        body.dark .game-container { background: #1e1e2e; color: #eee; }
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        .header h1 { font-size: 1.8rem; }
+        .header p { opacity: 0.9; font-size: 0.85rem; }
+        .quiz-area, .result { padding: 30px 20px; text-align: center; }
+        .game-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 50px;
+            margin: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .game-btn:active { transform: scale(0.97); }
+        .game-btn-feedback {
+            background: linear-gradient(135deg, #ff9800, #f44336);
+        }
+        .question { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            background: #f0f2f5;
+            border: 2px solid #ddd;
+            padding: 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        body.dark .option { background: #2a2a3e; border-color: #444; }
+        .option.correct { background: #4caf50; color: white; }
+        .option.wrong { background: #f44336; color: white; }
+        .score { text-align: center; margin-bottom: 20px; font-weight: bold; }
+        .final-score { font-size: 2.5rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .next-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .flex-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+        .quiz-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: center; }
+        .quiz-actions button { background: #666; color: white; border: none; padding: 8px 18px; border-radius: 25px; cursor: pointer; }
+        .btn-menu { background: #ff9800 !important; }
+        .btn-reset { background: #2196f3 !important; }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .leaderboard-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            text-align: left;
+        }
+        body.dark .leaderboard-container { background: #2a2a3e; }
+        .leaderboard-title { font-weight: bold; margin-bottom: 10px; text-align: center; color: #ff9800; }
+        .leaderboard-list { margin-left: 20px; }
+        .leaderboard-list li { margin-bottom: 8px; }
+        .medal-gold { color: #ffd700; }
+        .medal-silver { color: #c0c0c0; }
+        .medal-bronze { color: #cd7f32; }
+    </style>
+</head>
+<body>
+    <div class="voice-indicator" id="voiceIndicator">🎙️ AI waiting</div>
+    <div class="game-container" id="gameContainer">
+        <div class="header">
+            <h1>🦷 ETEO</h1>
+            <p>Endo To Every One - Intermediate Level 1: Root Canal Treatment</p>
+        </div>
+        <div id="gameContent"></div>
+    </div>
+
+    <script>
+        // ============================================
+        // 25 QUESTIONS - INTERMEDIATE LEVEL 1
+        // ============================================
+        const questions = [
+            { question: "What is the first step of root canal treatment after anesthesia?", options: ["Obturation", "Irrigation", "Access cavity", "Final radiograph"], correct: 2, explanation: "Access cavity is the first step after anesthesia and isolation." },
+            { question: "Which instrument is used to locate canal orifices?", options: ["K-file #15", "Endodontic probe (DG16)", "Hedstrom file", "Gutta-percha"], correct: 1, explanation: "The DG16 probe is specifically designed to explore and locate canal orifices." },
+            { question: "What is the most commonly used concentration of sodium hypochlorite in endodontics?", options: ["0.5%", "2.5%", "5.25%", "10%"], correct: 1, explanation: "2.5-3% NaOCl is the most commonly used concentration, balancing effectiveness and safety." },
+            { question: "Which irrigant is used to remove the smear layer?", options: ["Sodium hypochlorite", "EDTA (17%)", "Chloroform", "Distilled water"], correct: 1, explanation: "17% EDTA chelates calcium ions and removes the smear layer." },
+            { question: "What does the acronym RCT stand for in endodontics?", options: ["Root Canal Treatment", "Radiographic Control Test", "Retrograde Canal Treatment", "Rotary Canal Technique"], correct: 0, explanation: "RCT = Root Canal Treatment." },
+            { question: "What is the ideal working length for apical preparation?", options: ["At the foramen", "0.5-1 mm short of the radiographic apex", "1-2 mm beyond the apex", "Mid-root"], correct: 1, explanation: "Apical preparation should end 0.5-1 mm before the radiographic apex." },
+            { question: "What is the recommended minimum apical preparation size for root canal treatment?", options: ["#15", "#20", "#25", "#30"], correct: 2, explanation: "A minimum #25 diameter is recommended for adequate apical cleaning." },
+            { question: "Which obturation technique uses a master cone and accessory cones?", options: ["Lateral condensation", "Vertical condensation", "Thermafil", "Gutta-percha injection"], correct: 0, explanation: "Lateral condensation uses a master cone and accessory cones laterally condensed." },
+            { question: "Which endodontic sealer is considered the gold standard for root canal obturation?", options: ["Zinc oxide eugenol", "AH Plus", "MTA", "Cortisomol"], correct: 1, explanation: "AH Plus is an epoxy resin sealer considered the gold standard." },
+            { question: "What is the main property sought in an endodontic irrigant?", options: ["Lubrication", "Tissue dissolution", "Coloration", "Drying"], correct: 1, explanation: "The ability to dissolve organic (necrotic) tissue is essential for an irrigant." },
+            { question: "What is the instrument of choice for curved canal instrumentation?", options: ["Stainless steel K-file", "Hedstrom file", "Ni-Ti rotary instrument", "Rigid K-file"], correct: 2, explanation: "Ni-Ti rotary instruments are more flexible and follow curved canals better." },
+            { question: "What does the acronym WL stand for in endodontics?", options: ["Working Length", "Wire Length", "Water Level", "Wax Layer"], correct: 0, explanation: "WL = Working Length." },
+            { question: "What is the softening temperature of gutta-percha?", options: ["40°C", "60°C", "80°C", "100°C"], correct: 1, explanation: "Gutta-percha softens between 60°C and 65°C (beta phase)." },
+            { question: "What is the main advantage of Ni-Ti rotary instruments over manual instruments?", options: ["Cheaper", "Faster and maintains anatomy", "More rigid", "Never breaks"], correct: 1, explanation: "Ni-Ti rotary instruments are faster and better maintain canal anatomy." },
+            { question: "What is the most accurate test for determining working length?", options: ["Radiograph", "Tactile sensation", "Electronic apex locator (EAL)", "Ruler"], correct: 2, explanation: "Electronic apex locators (EAL) are very accurate for determining working length." },
+            { question: "What is the recommended irrigation sequence before obturation?", options: ["NaOCl then EDTA", "EDTA then NaOCl", "NaOCl alone", "Distilled water"], correct: 0, explanation: "The sequence NaOCl then EDTA removes the smear layer." },
+            { question: "What is the 'master apical file' (MAF)?", options: ["The last file used apically", "The first file used", "The diagnostic file", "The calibration file"], correct: 0, explanation: "The MAF is the last file used for apical preparation." },
+            { question: "What is the size of an ISO #25 file?", options: ["0.20 mm", "0.25 mm", "0.30 mm", "0.35 mm"], correct: 1, explanation: "Tip diameter in mm = ISO number / 100, so #25 = 0.25 mm." },
+            { question: "What is the main risk of apical over-instrumentation?", options: ["Perforation", "Apical transportation", "Instrument fracture", "Cement extrusion"], correct: 1, explanation: "Over-instrumentation can deviate the canal axis (apical transportation)." },
+            { question: "Which obturation system uses a carrier and thermoplastic gutta-percha?", options: ["Thermafil", "Lateral condensation", "Vertical condensation", "Single cone"], correct: 0, explanation: "Thermafil is an obturation system using a central carrier with thermoplastic gutta-percha." },
+            { question: "What is the property of 2.5% sodium hypochlorite?", options: ["Antibacterial, tissue dissolution", "Lubricant only", "Coloration", "Desiccation"], correct: 0, explanation: "2.5% NaOCl is antibacterial and dissolves organic tissue." },
+            { question: "Which instrument is used for endodontic retreatment?", options: ["K-file", "Hedstrom file", "Gates Glidden", "Retreatment rotary file"], correct: 3, explanation: "Specific rotary files exist for endodontic retreatment." },
+            { question: "What is the most effective irrigation technique?", options: ["Syringe and needle", "Ultrasonics", "Manual agitation", "Simple washing"], correct: 1, explanation: "Ultrasonic activation of irrigant is the most effective for cleaning the canal system." },
+            { question: "What does 'recapitulation' mean in endodontics?", options: ["Re-entering with a small file", "Control radiograph", "Final obturation", "Complementary anesthesia"], correct: 0, explanation: "Recapitulation involves re-entering with a small file to maintain patency." },
+            { question: "What is the expected success rate of conventional root canal treatment?", options: ["50-60%", "70-80%", "85-95%", "100%"], correct: 2, explanation: "The success rate of conventional root canal treatment is 85-95%." }
+        ];
+
+        const LEVEL_ID = 'intermediate1';
+        const LEVEL_NAME = 'Intermediate Level 1';
+        const MAX_SCORE = questions.length * 10;
+        
+        // ============================================
+        // VOICE SYSTEM
+        // ============================================
+        let speechSynthesisObj = null;
+        let voiceActive = true;
+        let voiceReady = false;
+        
+        function initVoice() {
+            if ('speechSynthesis' in window) {
+                speechSynthesisObj = window.speechSynthesis;
+                voiceReady = true;
+                return true;
+            }
+            return false;
+        }
+        
+        function speak(text) {
+            if (!voiceActive || !speechSynthesisObj || !voiceReady) return;
+            try {
+                speechSynthesisObj.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                speechSynthesisObj.speak(utterance);
+            } catch(e) {}
+        }
+        
+        initVoice();
+        
+        // ============================================
+        // VOICE MESSAGES
+        // ============================================
+        
+        function startQuizWithVoice() {
+            speak("Welcome Doctor to ETEO, Endo To Every One. Intermediate Level 1, root canal treatment. Let's go!");
+            setTimeout(() => {
+                startQuiz();
+            }, 10000);
+        }
+        
+        function showLeaderboardWithVoice() {
+            speak("Here is the ETEO world leaderboard. Discover the best scores.");
+            setTimeout(() => {
+                showLeaderboard();
+            }, 4000);
+        }
+        
+        function giveFeedbackWithVoice() {
+            const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform";
+            window.open(googleFormLink, '_blank');
+            speak("Thank you Doctor, your feedback is valuable. It will help us improve ETEO.");
+        }
+        
+        function backToMenuWithVoice() {
+            speak("Returning to main menu.");
+            setTimeout(() => {
+                window.location.href = "menu_en.html";
+            }, 3000);
+        }
+        
+        // ============================================
+        // SHARE FUNCTION
+        // ============================================
+        function shareResult(score, maxScore, levelName, timeSeconds) {
+            const percentage = Math.round((score / maxScore) * 100);
+            const minutes = Math.floor(timeSeconds / 60);
+            const seconds = timeSeconds % 60;
+            
+            let emoji = "";
+            let messageText = "";
+            if (percentage >= 90) { emoji = "🏆👑"; messageText = "Perfect mastery!"; }
+            else if (percentage >= 75) { emoji = "🦷⭐"; messageText = "Very good mastery!"; }
+            else if (percentage >= 60) { emoji = "👍📚"; messageText = "Good level!"; }
+            else if (percentage >= 50) { emoji = "📖🤔"; messageText = "Improving!"; }
+            else { emoji = "💪😊"; messageText = "Getting better!"; }
+            
+            const message = `🦷 ETEO - Endo To Every One\n\n` +
+                            `📊 My score: ${score}/${maxScore} (${percentage}%)\n` +
+                            `⏱️ Time: ${minutes} min ${seconds} sec\n` +
+                            `🎯 Level: ${levelName}\n` +
+                            `${emoji} ${messageText}\n\n` +
+                            `🔥 Here is my score, try to beat it by downloading ETEO!\n` +
+                            `📲 #ETEO #EndoToEveryOne #Endodontics #DentalQuiz`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'ETEO - Endodontics Challenge',
+                    text: message,
+                    url: window.location.href
+                }).catch(() => {
+                    copyToClipboard(message);
+                });
+            } else {
+                copyToClipboard(message);
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert("✅ Score copied! Share it with your colleagues.");
+        }
+        
+        // ============================================
+        // FIREBASE SCORE SAVING
+        // ============================================
+        function saveScoreToFirebase(score, maxScore, timeSeconds, levelName) {
+            let playerName = localStorage.getItem('playerName');
+            if (!playerName) {
+                playerName = prompt("🏆 CONGRATULATIONS!\n\nEnter your name for the ETEO world leaderboard:", "Dr.");
+                if (playerName && playerName.trim() !== "") {
+                    localStorage.setItem('playerName', playerName);
+                } else {
+                    playerName = "Anonymous";
+                }
+            }
+            
+            if (db && playerName) {
+                db.collection("scores").add({
+                    name: playerName,
+                    score: score,
+                    maxScore: maxScore,
+                    timeSeconds: timeSeconds,
+                    level: levelName,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    console.log("✅ Score sent to ETEO world leaderboard!");
+                    alert(`✅ Thank you ${playerName}! Your score (${score}/${maxScore}) has been saved to the ETEO world leaderboard!`);
+                })
+                .catch((error) => {
+                    console.error("❌ Error saving:", error);
+                    alert("❌ Error saving. Please check your internet connection.");
+                });
+            }
+        }
+        
+        // ============================================
+        // SHOW LEADERBOARD
+        // ============================================
+        function showLeaderboard() {
+            const oldLeaderboard = document.getElementById('leaderboard');
+            if (oldLeaderboard) {
+                oldLeaderboard.remove();
+            }
+            
+            const leaderboardDiv = document.createElement('div');
+            leaderboardDiv.id = 'leaderboard';
+            leaderboardDiv.className = 'leaderboard-container';
+            
+            const gameContentDiv = document.getElementById('gameContent');
+            if (gameContentDiv) {
+                gameContentDiv.appendChild(leaderboardDiv);
+            } else {
+                alert("Unable to show leaderboard");
+                return;
+            }
+            
+            leaderboardDiv.innerHTML = '<div class="leaderboard-title">🏆 ETEO WORLD LEADERBOARD 🏆</div><div style="text-align:center;">Loading...</div>';
+            
+            db.collection("scores")
+                .orderBy("score", "desc")
+                .orderBy("timeSeconds", "asc")
+                .limit(10)
+                .get()
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        leaderboardDiv.innerHTML = '<div class="leaderboard-title">🏆 ETEO WORLD LEADERBOARD 🏆</div><div style="text-align:center;">📊 No scores recorded yet.<br>Be the first!</div><div style="text-align: center; margin-top: 15px;"><button class="game-btn" onclick="closeLeaderboard()" style="padding: 8px 20px; font-size: 0.8rem; background: #ff9800;">❌ Close</button></div>';
+                        return;
+                    }
+                    
+                    let html = '<div class="leaderboard-title">🏆 ETEO WORLD LEADERBOARD 🏆</div>';
+                    html += '<div style="font-size: 0.75rem; text-align: center; margin-bottom: 10px; color: #888;">Best scores - All levels</div>';
+                    html += '<ol class="leaderboard-list" style="margin-left: 20px;">';
+                    
+                    let rank = 1;
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const minutes = Math.floor(data.timeSeconds / 60);
+                        const seconds = data.timeSeconds % 60;
+                        let medalClass = '';
+                        let medalSymbol = '';
+                        if (rank === 1) { medalClass = 'medal-gold'; medalSymbol = '🥇 '; }
+                        else if (rank === 2) { medalClass = 'medal-silver'; medalSymbol = '🥈 '; }
+                        else if (rank === 3) { medalClass = 'medal-bronze'; medalSymbol = '🥉 '; }
+                        
+                        html += `<li class="${medalClass}" style="margin-bottom: 8px;">${medalSymbol}<strong>${data.name || 'Anonymous'}</strong> : ${data.score}/${data.maxScore} (${Math.round((data.score/data.maxScore)*100)}%) - ${minutes}:${seconds < 10 ? '0' : ''}${seconds} - ${data.level || '?'}</li>`;
+                        rank++;
+                    });
+                    html += '</ol>';
+                    html += '<div style="text-align: center; margin-top: 15px;"><button class="game-btn" onclick="showLeaderboard()" style="padding: 8px 20px; font-size: 0.8rem;">🔄 Refresh</button>';
+                    html += '<button class="game-btn" onclick="closeLeaderboard()" style="padding: 8px 20px; font-size: 0.8rem; background: #ff9800;">❌ Close</button></div>';
+                    
+                    leaderboardDiv.innerHTML = html;
+                })
+                .catch((error) => {
+                    console.error("Error loading leaderboard:", error);
+                    leaderboardDiv.innerHTML = '<div class="leaderboard-title">🏆 ETEO WORLD LEADERBOARD 🏆</div><div style="text-align:center; color: red;">❌ Error loading<br>Check your internet connection</div><div style="text-align: center; margin-top: 15px;"><button class="game-btn" onclick="closeLeaderboard()" style="padding: 8px 20px; font-size: 0.8rem; background: #ff9800;">❌ Close</button></div>';
+                });
+        }
+        
+        function closeLeaderboard() {
+            const leaderboardDiv = document.getElementById('leaderboard');
+            if (leaderboardDiv) {
+                leaderboardDiv.remove();
+            }
+        }
+        
+        // ============================================
+        // QUIZ LOGIC
+        // ============================================
+        let reviewMode = false;
+        let currentQuestion = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+        let quickAnswers = 0;
+        let timerInterval = null;
+        let inProgress = false;
+        let startTime = null;
+        let totalTime = 0;
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+        function resetQuiz() { stopTimer(); startQuiz(); }
+
+        function nextQuestion() {
+            if (inProgress) return;
+            inProgress = true;
+            stopTimer();
+            currentQuestion++;
+            if (currentQuestion < shuffledQuestions.length) {
+                displayQuestion();
+            } else {
+                totalTime = Math.floor((Date.now() - startTime) / 1000);
+                const percentage = (score / MAX_SCORE) * 100;
+                if (percentage >= 90) speak("Congratulations Doctor, you have mastered root canal treatment!");
+                else if (percentage >= 75) speak("Very good work Doctor!");
+                else if (percentage >= 60) speak("Well done Doctor, you can move to Intermediate Level 2!");
+                else speak("Keep reviewing Doctor");
+                
+                localStorage.setItem(`eteo_score_${LEVEL_ID}`, score);
+                
+                if (score > 0) {
+                    saveScoreToFirebase(score, MAX_SCORE, totalTime, LEVEL_NAME);
+                }
+                
+                if (percentage >= 60) {
+                    setTimeout(() => {
+                        window.location.href = `menu_en.html?unlocked=intermediate2&score=${score}`;
+                    }, 3000);
+                } else {
+                    showResult();
+                }
+            }
+            inProgress = false;
+        }
+
+        function displayQuestion() {
+            if (currentQuestion >= shuffledQuestions.length) { 
+                nextQuestion();
+                return; 
+            }
+            const q = shuffledQuestions[currentQuestion];
+            const progress = ((currentQuestion + 1) / shuffledQuestions.length) * 100;
+            let timeLeft = reviewMode ? 999 : 20;
+            if (!reviewMode && voiceActive) speak(`Question ${currentQuestion + 1}: ${q.question}`);
+            let html = `<div class="quiz-area"><div style="margin-bottom:15px;"><div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span class="score">🏆 Score: ${score}</span>${!reviewMode ? `<span id="timer" style="background:#f0f0f0;padding:5px 15px;border-radius:20px;">⏱️ ${timeLeft}s</span>` : '<span style="background:#4caf50;padding:5px 15px;border-radius:20px;">📚 Review Mode</span>'}<span>📋 ${currentQuestion + 1}/${shuffledQuestions.length}</span></div><div style="background:#e0e0e0;border-radius:10px;height:8px;"><div style="background:linear-gradient(135deg,#667eea,#764ba2);width:${progress}%;height:8px;border-radius:10px;"></div></div></div><div class="question">❓ ${q.question}</div><div class="options" id="options">`;
+            q.options.forEach((opt, idx) => { const letter = String.fromCharCode(65 + idx); html += `<button class="option" data-index="${idx}">${letter}. ${opt}</button>`; });
+            html += `</div><div id="feedback"></div><div class="quiz-actions"><button class="btn-menu" onclick="backToMenuWithVoice()">🏠 Main Menu</button><button class="btn-reset" onclick="resetQuiz()">🔄 Restart</button></div></div>`;
+            gameContent.innerHTML = html;
+            let answered = false;
+            function updateTimer() { const timerElement = document.getElementById('timer'); if (timerElement && !reviewMode) { timerElement.textContent = `⏱️ ${timeLeft}s`; if (timeLeft <= 5) timerElement.style.color = '#f44336'; else timerElement.style.color = '#333'; } }
+            if (!reviewMode) {
+                timerInterval = setInterval(() => {
+                    if (!answered) {
+                        timeLeft--;
+                        updateTimer();
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval); timerInterval = null;
+                            if (!answered) {
+                                answered = true;
+                                speak(`Time's up. The answer was ${q.options[q.correct]}`);
+                                const feedback = document.getElementById('feedback');
+                                if (feedback) feedback.innerHTML = `<p style="color:red;margin-top:15px;">⏰ Time's up!<br>📖 ${q.explanation}</p>`;
+                                const options = document.querySelectorAll('.option');
+                                options.forEach(btn => { btn.style.pointerEvents = 'none'; const idx = parseInt(btn.dataset.index); if (idx === q.correct) btn.classList.add('correct'); });
+                                addNextButton();
+                            }
+                        }
+                    }
+                }, 1000);
+                updateTimer();
+            }
+            const options = document.querySelectorAll('.option');
+            options.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (answered) return;
+                    const idx = parseInt(btn.dataset.index);
+                    let timeUsed = !reviewMode ? (20 - timeLeft) : 0;
+                    let speedBonus = 0;
+                    if (!reviewMode && timeUsed <= 5 && timeUsed >= 0) { speedBonus = 5; quickAnswers++; }
+                    answered = true;
+                    clearInterval(timerInterval); timerInterval = null;
+                    if (idx === q.correct) {
+                        score += 10 + speedBonus;
+                        btn.classList.add('correct');
+                        let message = `✅ Correct! +10 points`;
+                        if (speedBonus > 0) message += ` +${speedBonus} (fast!)`;
+                        if (reviewMode) message += `<br>📖 ${q.explanation}`;
+                        const feedback = document.getElementById('feedback');
+                        if (feedback) feedback.innerHTML = `<p style="color:green;margin-top:15px;">${message}</p>`;
+                        speak(`Correct answer. ${q.explanation.substring(0, 80)}`);
+                    } else {
+                        btn.classList.add('wrong');
+                        const feedback = document.getElementById('feedback');
+                        if (feedback) feedback.innerHTML = `<p style="color:red;margin-top:15px;">❌ Wrong! Answer: ${q.options[q.correct]}<br>📖 ${q.explanation}</p>`;
+                        options.forEach(b => { if (parseInt(b.dataset.index) === q.correct) b.classList.add('correct'); });
+                        speak(`Too bad. The correct answer was ${q.options[q.correct]}. ${q.explanation.substring(0, 80)}`);
+                    }
+                    options.forEach(opt => opt.style.pointerEvents = 'none');
+                    addNextButton();
+                });
+            });
+        }
+
+        function addNextButton() {
+            const optionsDiv = document.getElementById('options');
+            if (optionsDiv && !document.getElementById('nextBtnTemp')) {
+                const nextBtn = document.createElement('button');
+                nextBtn.id = 'nextBtnTemp';
+                nextBtn.className = 'next-btn';
+                nextBtn.textContent = '➡️ Next Question';
+                nextBtn.onclick = () => nextQuestion();
+                optionsDiv.parentElement.insertBefore(nextBtn, optionsDiv.parentElement.querySelector('.quiz-actions'));
+            }
+        }
+
+        function showResult() {
+            stopTimer();
+            const maxScore = MAX_SCORE;
+            const percentage = Math.round((score / maxScore) * 100);
+            let message = "", emoji = "";
+            if (percentage >= 90) { message = "Excellent! Root canal treatment mastered!"; emoji = "🏆👑"; }
+            else if (percentage >= 75) { message = "Very good! Intermediate Level 2 is waiting for you"; emoji = "🦷⭐"; }
+            else if (percentage >= 60) { message = "Good! You can move to Intermediate Level 2"; emoji = "👍📚"; }
+            else { message = "Review root canal treatment techniques"; emoji = "📖🤔"; }
+            
+            gameContent.innerHTML = `<div class="result">
+                <h2>🎉 ETEO Quiz Completed! ${emoji}</h2>
+                <div class="final-score">${score}/${maxScore}</div>
+                <p style="margin:20px;">${message}</p>
+                <p>📚 ${shuffledQuestions.length} questions - Intermediate Level 1</p>
+                ${quickAnswers > 0 ? `<p>⚡ ${quickAnswers} quick answers (+5 pts each)</p>` : ''}
+                <div class="flex-buttons">
+                    <button class="game-btn" onclick="startQuiz()">🔄 Play Again</button>
+                    <button class="game-btn" onclick="backToMenuWithVoice()">🏠 Menu</button>
+                    <button class="game-btn" onclick="shareResult(${score}, ${MAX_SCORE}, '${LEVEL_NAME}', ${totalTime})">📤 Share my score</button>
+                </div>
+            </div>`;
+            
+            setTimeout(() => {
+                showLeaderboard();
+            }, 500);
+        }
+
+        function startQuiz() {
+            startTime = Date.now();
+            stopTimer();
+            shuffledQuestions = shuffleArray([...questions]);
+            currentQuestion = 0;
+            score = 0;
+            quickAnswers = 0;
+            displayQuestion();
+        }
+        
+        function showWelcomeMenu() {
+            const savedScore = localStorage.getItem(`eteo_score_${LEVEL_ID}`);
+            const scoreText = savedScore ? `Score: ${savedScore}/${MAX_SCORE} (${Math.round((savedScore/MAX_SCORE)*100)}%)` : "Not started";
+            
+            gameContent.innerHTML = `<div class="quiz-area">
+                <h2>🦷 Welcome Doctor to ETEO!</h2>
+                <p style="margin: 20px 0;">Endo To Every One - Intermediate Level 1: Root Canal Treatment</p>
+                <p>📚 25 questions | Techniques, irrigation, instrumentation</p>
+                <p>⏱️ 20 seconds per question | ⚡ Speed bonus +5</p>
+                <p style="margin: 10px 0; color: #4caf50;">📊 ${scoreText}</p>
+                <div class="flex-buttons">
+                    <button class="game-btn" onclick="startQuizWithVoice()">🎯 Start Quiz</button>
+                    <button class="game-btn" onclick="backToMenuWithVoice()">🏠 Main Menu</button>
+                    <button class="game-btn" onclick="showLeaderboardWithVoice()">🏆 Leaderboard</button>
+                    <button class="game-btn game-btn-feedback" onclick="giveFeedbackWithVoice()">📝 Give Feedback</button>
+                </div>
+                <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">
+                    <p style="font-size: 0.7rem; color: #888;">
+                        ⚠️ For educational use only. In case of doubt, consult recent scientific literature.
+                    </p>
+                </div>
+            </div>`;
+        }
+
+        showWelcomeMenu();
+    </script>
+</body>
+</html>

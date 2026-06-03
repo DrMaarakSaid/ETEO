@@ -1,0 +1,25 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "ETEO - E-learning To Every One",
+  "orientation": "portrait",
+  "scope": "/",
+  "short_name": "ETEO",
+  "start_url": "/",
+  "theme_color": "#667eea",
+  "id": "ETEO Endodontics Quiz",
+  "description": "Quiz d'endodontie pour dentistes et étudiants",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

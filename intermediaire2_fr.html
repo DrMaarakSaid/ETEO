@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Endo To Every One - Intermédiaire Niveau 2</title>
+    
+    <!-- ============================================ -->
+    <!-- FIREBASE SDK -->
+    <!-- ============================================ -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDcIvbmqjEwJbJNqTUwx1J6Wkjd6xK-DE",
+            authDomain: "etoe-endo-to-every-one.firebaseapp.com",
+            projectId: "etoe-endo-to-every-one",
+            storageBucket: "etoe-endo-to-every-one.firebasestorage.app",
+            messagingSenderId: "511524282020",
+            appId: "1:511524282020:web:5a25c021fd84f026969031"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        console.log("✅ Firebase connecté !");
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .game-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        body.dark .game-container { background: #1e1e2e; color: #eee; }
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        .header h1 { font-size: 1.8rem; }
+        .header p { opacity: 0.9; font-size: 0.85rem; }
+        .quiz-area, .result { padding: 30px 20px; text-align: center; }
+        .game-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 50px;
+            margin: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .game-btn:active { transform: scale(0.97); }
+        .game-btn-feedback {
+            background: linear-gradient(135deg, #ff9800, #f44336);
+        }
+        .question { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            background: #f0f2f5;
+            border: 2px solid #ddd;
+            padding: 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        body.dark .option { background: #2a2a3e; border-color: #444; }
+        .option.correct { background: #4caf50; color: white; }
+        .option.wrong { background: #f44336; color: white; }
+        .score { text-align: center; margin-bottom: 20px; font-weight: bold; }
+        .final-score { font-size: 2.5rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .next-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .flex-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+        .quiz-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: center; }
+        .quiz-actions button { background: #666; color: white; border: none; padding: 8px 18px; border-radius: 25px; cursor: pointer; }
+        .btn-menu { background: #ff9800 !important; }
+        .btn-reset { background: #2196f3 !important; }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .classement-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            text-align: left;
+        }
+        body.dark .classement-container { background: #2a2a3e; }
+        .classement-titre { font-weight: bold; margin-bottom: 10px; text-align: center; color: #ff9800; }
+        .classement-liste { margin-left: 20px; }
+        .classement-liste li { margin-bottom: 8px; }
+        .medaille-or { color: #ffd700; }
+        .medaille-argent { color: #c0c0c0; }
+        .medaille-bronze { color: #cd7f32; }
+    </style>
+</head>
+<body>
+    <div class="voice-indicator" id="voiceIndicator">🎙️ IA en attente</div>
+    <div class="game-container" id="gameContainer">
+        <div class="header">
+            <h1>🦷 ETEO</h1>
+            <p>Endo To Every One - Intermédiaire Niveau 2 : Complications courantes</p>
+        </div>
+        <div id="gameContent"></div>
+    </div>
+
+    <script>
+        // ============================================
+        // 25 QUESTIONS - INTERMÉDIAIRE NIVEAU 2
+        // Complications, urgences, échecs, accidents
+        // ============================================
+        const questions = [
+            { question: "Quelle est la complication la plus fréquente lors de l'instrumentation canalaire ?", options: ["Perforation", "Fracture instrumentale", "Blocage apical (ledge)", "Transportation"], correct: 1, explanation: "La fracture instrumentale est l'une des complications les plus fréquentes, surtout avec les limes rotatives." },
+            { question: "Que faire en cas de fracture d'une lime dans le canal ?", options: ["Abandonner immédiatement", "Tenter de retirer ou contourner l'instrument", "Obturer sans rien faire", "Extraire la dent"], correct: 1, explanation: "Il faut d'abord tenter de retirer l'instrument, ou le contourner pour terminer le traitement." },
+            { question: "Quel est le signe clinique d'une perforation canalaire ?", options: ["Douleur spontanée", "Saignement au niveau de la perforation", "Fistule", "Mobilité dentaire"], correct: 1, explanation: "Un saignement vif et abondant au niveau d'un point précis évoque une perforation." },
+            { question: "Quel est le traitement de choix pour une perforation du plancher de la chambre pulpaire ?", options: ["Extraction", "MTA", "Ciment verre ionomère", "Amalgame"], correct: 1, explanation: "Le MTA est le matériau de choix pour les perforations du plancher." },
+            { question: "Qu'est-ce qu'une 'strip perforation' ?", options: ["Perforation de la couronne", "Perforation latérale dans une zone de danger", "Perforation apicale", "Fracture radiculaire"], correct: 1, explanation: "Une strip perforation est une perforation latérale survenant dans la zone de danger (partie concave de la racine)." },
+            { question: "Quel est le risque principal d'une extrusion d'hypochlorite de sodium ?", options: ["Coloration dentaire", "Douleur immédiate, œdème, ecchymose", "Fracture radiculaire", "Perte de l'implant"], correct: 1, explanation: "L'extrusion de NaOCl provoque une douleur immédiate, un œdème et des ecchymoses." },
+            { question: "Quel est le traitement de l'extrusion d'hypochlorite de sodium ?", options: ["Antibiotiques seuls", "Extraction", "Antalgiques, froid, surveillance", "Réopérer immédiatement"], correct: 2, explanation: "Le traitement est symptomatique : antalgiques, glace, surveillance." },
+            { question: "Quel est le facteur de risque majeur de fracture radiculaire verticale ?", options: ["Carie", "Traitement canalaire avec tenon", "Traumatisme", "Maladie parodontale"], correct: 1, explanation: "Les dents dévitalisées avec tenon ont un risque accru de fracture radiculaire verticale." },
+            { question: "Quel est le signe radiographique classique d'une perforation ?", options: ["Image radio-claire latérale", "Hypercémentose", "Sclérose osseuse", "Image radio-opaque"], correct: 0, explanation: "Une image radio-claire latérale sur le trajet attendu du canal évoque une perforation." },
+            { question: "Que faire en cas de transportation apicale ?", options: ["Extraire", "Ré-instrumenter avec une lime courbée", "Obturer avec un ciment", "Surveiller"], correct: 1, explanation: "On peut tenter de ré-instrumenter avec une lime pré-courbée pour retrouver le trajet initial." },
+            { question: "Quel est le pronostic d'une dent avec une fracture radiculaire verticale ?", options: ["Excellent", "Bon si stabilisée", "Réservé, souvent extraction", "Guérison spontanée"], correct: 2, explanation: "Le pronostic d'une fracture radiculaire verticale est très réservé, l'extraction est souvent nécessaire." },
+            { question: "Qu'est-ce qu'un 'ledging' (blocage apical) ?", options: ["Une perforation", "Une irrégularité créée sur la paroi canalaire", "Une fracture instrumentale", "Un overfill"], correct: 1, explanation: "Le ledge est une irrégularité ou un épaulement créé sur la paroi du canal." },
+            { question: "Comment éviter un ledge ?", options: ["Utiliser des limes rigides", "Pré-courber les limes", "Forcer en apical", "Ne pas irriguer"], correct: 1, explanation: "Pré-courber les limes permet de suivre l'anatomie et d'éviter les ledges." },
+            { question: "Quel est le traitement d'un overfill (dépassement de ciment) asymptomatique ?", options: ["Retraitement immédiat", "Extraction", "Surveillance", "Chirurgie apicale"], correct: 2, explanation: "Un overfill asymptomatique doit être surveillé." },
+            { question: "Quel est le risque d'un overfill symptomatique ?", options: ["Douleur persistante", "Nécrose", "Fracture", "Carcinome"], correct: 0, explanation: "Un overfill symptomatique peut provoquer une douleur persistante nécessitant un retraitement." },
+            { question: "Quelle est la cause la plus fréquente d'échec endodontique ?", options: ["Erreur technique", "Infection persistante", "Fracture instrumentale", "Perforation"], correct: 1, explanation: "L'infection bactérienne persistante est la principale cause d'échec endodontique." },
+            { question: "Quel examen d'imagerie est le plus sensible pour les fractures radiculaires ?", options: ["Rétro-alvéolaire", "Panoramique", "CBCT", "Scanner conventionnel"], correct: 2, explanation: "Le CBCT est l'examen de choix pour les fractures radiculaires." },
+            { question: "Que faire en cas de fracture coronaire non compliquée (sans exposition pulpaire) ?", options: ["Traitement canalaire", "Coiffage pulpaire", "Restaurer si pas de douleur", "Extraire"], correct: 2, explanation: "Si la pulpe n'est pas exposée et que la dent n'est pas douloureuse, une restauration simple suffit." },
+            { question: "Quel est le traitement d'une fracture coronaire compliquée (exposition pulpaire) ?", options: ["Traitement canalaire immédiat", "Coiffage pulpaire direct", "Pulpotomie", "Extraction"], correct: 2, explanation: "Une pulpotomie (voire une pulpectomie) est indiquée selon le délai." },
+            { question: "Quelle est la complication des dents traumatisées chez l'enfant ?", options: ["Ankylose", "Résorption radiculaire", "Nécrose", "Toutes ces réponses"], correct: 3, explanation: "Les dents traumatisées peuvent présenter ankylose, résorption ou nécrose." },
+            { question: "Que faire en cas de séparation d'un instrument dans le tiers coronaire ?", options: ["Abandonner", "Contourner", "Extraire", "Tenter de retirer avec des ultrasons"], correct: 3, explanation: "Un instrument dans le tiers coronaire est généralement accessible et peut être retiré par ultrasons." },
+            { question: "Que faire en cas de séparation d'un instrument dans le tiers apical ?", options: ["Tenter de retirer", "Contourner", "Obturer avec l'instrument", "Extraire si symptomatique"], correct: 3, explanation: "Un instrument apical asymptomatique peut être surveillé. S'il est symptomatique, l'extraction ou la chirurgie peut être indiquée." },
+            { question: "Quel matériau est utilisé pour la rétro-obturation en chirurgie apicale ?", options: ["Amalgame", "MTA", "Ciment verre ionomère", "Composite"], correct: 1, explanation: "Le MTA est le matériau de choix pour la rétro-obturation." },
+            { question: "Quel est le taux de succès de la chirurgie apicale ?", options: ["50-60%", "70-80%", "85-90%", "95-100%"], correct: 2, explanation: "Le taux de succès de la chirurgie apicale est d'environ 85-90%." },
+            { question: "Quelle est la contre-indication à la chirurgie apicale ?", options: ["Dent vitale", "Patient âgé", "Problème médical non contrôlé", "Dent non restaurée"], correct: 2, explanation: "Un problème médical non contrôlé (diabète, hypertension, etc.) peut être une contre-indication." }
+        ];
+
+        const LEVEL_ID = 'intermediaire2';
+        const LEVEL_NAME = 'Intermédiaire Niveau 2';
+        const MAX_SCORE = questions.length * 10;
+        
+        // ============================================
+        // VOICE SYSTEM
+        // ============================================
+        let speechSynthesisObj = null;
+        let voiceActive = true;
+        let voiceReady = false;
+        
+        function initVoice() {
+            if ('speechSynthesis' in window) {
+                speechSynthesisObj = window.speechSynthesis;
+                voiceReady = true;
+                return true;
+            }
+            return false;
+        }
+        
+        function speak(text) {
+            if (!voiceActive || !speechSynthesisObj || !voiceReady) return;
+            try {
+                speechSynthesisObj.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'fr-FR';
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                speechSynthesisObj.speak(utterance);
+            } catch(e) {}
+        }
+        
+        initVoice();
+        
+        // ============================================
+        // VOICE MESSAGES
+        // ============================================
+        
+        function demarrerQuizAvecVoix() {
+            speak("Bienvenue Docteur dans ETEO, Endo To Every One. Niveau Intermédiaire 2, complications courantes. C'est parti !");
+            setTimeout(() => {
+                startQuiz();
+            }, 10000);
+        }
+        
+        function afficherClassementAvecVoix() {
+            speak("Voici le classement mondial ETEO. Découvrez les meilleurs scores.");
+            setTimeout(() => {
+                afficherClassement();
+            }, 4000);
+        }
+        
+        function demanderAvisAvecVoix() {
+            const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform";
+            window.open(googleFormLink, '_blank');
+            speak("Merci Docteur, votre avis nous est précieux. Cela nous aidera à améliorer ETEO.");
+        }
+        
+        function retourMenuAvecVoix() {
+            speak("Retour au menu principal.");
+            setTimeout(() => {
+                window.location.href = "menu_fr.html";
+            }, 3000);
+        }
+        
+        // ============================================
+        // SHARE FUNCTION
+        // ============================================
+        function shareResult(score, maxScore, levelName, timeSeconds) {
+            const percentage = Math.round((score / maxScore) * 100);
+            const minutes = Math.floor(timeSeconds / 60);
+            const seconds = timeSeconds % 60;
+            
+            let emoji = "";
+            let messageText = "";
+            if (percentage >= 90) { emoji = "🏆👑"; messageText = "Maîtrise parfaite !"; }
+            else if (percentage >= 75) { emoji = "🦷⭐"; messageText = "Très bonne maîtrise !"; }
+            else if (percentage >= 60) { emoji = "👍📚"; messageText = "Bon niveau !"; }
+            else if (percentage >= 50) { emoji = "📖🤔"; messageText = "En progrès !"; }
+            else { emoji = "💪😊"; messageText = "Je m'améliore !"; }
+            
+            const message = `🦷 ETEO - Endo To Every One\n\n` +
+                            `📊 Mon score : ${score}/${maxScore} (${percentage}%)\n` +
+                            `⏱️ Temps : ${minutes} min ${seconds} sec\n` +
+                            `🎯 Niveau : ${levelName}\n` +
+                            `${emoji} ${messageText}\n\n` +
+                            `🔥 Voici mon score, essayez de faire mieux en téléchargeant l'application ETEO !\n` +
+                            `📲 #ETEO #EndoToEveryOne #Endodontie #QuizDentaire`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'ETEO - Défi endodontie',
+                    text: message,
+                    url: window.location.href
+                }).catch(() => {
+                    copyToClipboard(message);
+                });
+            } else {
+                copyToClipboard(message);
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert("✅ Score copié ! Partagez-le avec vos collègues.");
+        }
+        
+        // ============================================
+        // FIREBASE SCORE SAVING
+        // ============================================
+        function saveScoreToFirebase(score, maxScore, timeSeconds, levelName) {
+            let playerName = localStorage.getItem('playerName');
+            if (!playerName) {
+                playerName = prompt("🏆 FÉLICITATIONS !\n\nEntrez votre nom pour le classement mondial ETEO :", "Dr. Said");
+                if (playerName && playerName.trim() !== "") {
+                    localStorage.setItem('playerName', playerName);
+                } else {
+                    playerName = "Anonyme";
+                }
+            }
+            
+            if (db && playerName) {
+                db.collection("scores").add({
+                    name: playerName,
+                    score: score,
+                    maxScore: maxScore,
+                    timeSeconds: timeSeconds,
+                    level: levelName,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    console.log("✅ Score envoyé au classement mondial ETEO !");
+                    alert(`✅ Merci ${playerName} ! Votre score (${score}/${maxScore}) a été enregistré dans le classement mondial ETEO !`);
+                })
+                .catch((error) => {
+                    console.error("❌ Erreur d'envoi:", error);
+                    alert("❌ Erreur lors de l'enregistrement. Vérifiez votre connexion internet.");
+                });
+            }
+        }
+        
+        // ============================================
+        // SHOW LEADERBOARD
+        // ============================================
+        function afficherClassement() {
+            const oldClassement = document.getElementById('classement-mondial');
+            if (oldClassement) {
+                oldClassement.remove();
+            }
+            
+            const classementDiv = document.createElement('div');
+            classementDiv.id = 'classement-mondial';
+            classementDiv.className = 'classement-container';
+            
+            const gameContentDiv = document.getElementById('gameContent');
+            if (gameContentDiv) {
+                gameContentDiv.appendChild(classementDiv);
+            } else {
+                alert("Impossible d'afficher le classement");
+                return;
+            }
+            
+            classementDiv.innerHTML = '<div class="classement-titre">🏆 CLASSEMENT MONDIAL ETEO 🏆</div><div style="text-align:center;">Chargement...</div>';
+            
+            db.collection("scores")
+                .orderBy("score", "desc")
+                .orderBy("timeSeconds", "asc")
+                .limit(10)
+                .get()
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        classementDiv.innerHTML = '<div class="classement-titre">🏆 CLASSEMENT MONDIAL ETEO 🏆</div><div style="text-align:center;">📊 Aucun score enregistré.<br>Soyez le premier !</div><div style="text-align: center; margin-top: 15px;"><button class="game-btn" onclick="fermerClassement()" style="padding: 8px 20px; font-size: 0.8rem; background: #ff9800;">❌ Fermer</button></div>';
+                        return;
+                    }
+                    
+                    let html = '<div class="classement-titre">🏆 CLASSEMENT MONDIAL ETEO 🏆</div>';
+                    html += '<div style="font-size: 0.75rem; text-align: center; margin-bottom: 10px; color: #888;">Meilleurs scores - Tous niveaux</div>';
+                    html += '<ol class="classement-liste" style="margin-left: 20px;">';
+                    
+                    let rank = 1;
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const minutes = Math.floor(data.timeSeconds / 60);
+                        const seconds = data.timeSeconds % 60;
+                        let medalClass = '';
+                        let medalSymbol = '';
+                        if (rank === 1) { medalClass = 'medaille-or'; medalSymbol = '🥇 '; }
+                        else if (rank === 2) { medalClass = 'medaille-argent'; medalSymbol = '🥈 '; }
+                        else if (rank === 3) { medalClass = 'medaille-bronze'; medalSymbol = '🥉 '; }
+                        
+                        html += `<li class="${medalClass}" style="margin-bottom: 8px;">${medalSymbol}<strong>${data.name || 'Anonyme'}</strong> : ${data.score}/${data.maxScore} (${Math.round((data.score/data.maxScore)*100)}%) - ${minutes}:${seconds < 10 ? '0' : ''}${seconds} - ${data.level || '?'}</li>`;
+                        rank++;
+                    });
+                    html += '</ol>';
+                    html += '<div style="text-align: center; margin-top: 15px;"><button class="game-btn" onclick="afficherClassement()" style="padding: 8px 20px; font-size: 0.8rem;">🔄 Rafraîchir</button>';
+                    html += '<button class="game-btn" onclick="fermerClassement()" style="padding: 8px 20px; font-size: 0.8rem; background: #ff9800;">❌ Fermer</button></div>';
+                    
+                    classementDiv.innerHTML = html;
+                })
+                .catch((error) => {
+                    console.error("Erreur chargement classement:", error);
+                    classementDiv.innerHTML = '<div class="classement-titre">🏆 CLASSEMENT MONDIAL ETEO 🏆</div><div style="text-align:center; color: red;">❌ Erreur de chargement<br>Vérifiez votre connexion internet</div><div style="text-align: center; margin-top: 15px;"><button class="game-btn" onclick="fermerClassement()" style="padding: 8px 20px; font-size: 0.8rem; background: #ff9800;">❌ Fermer</button></div>';
+                });
+        }
+        
+        function fermerClassement() {
+            const classementDiv = document.getElementById('classement-mondial');
+            if (classementDiv) {
+                classementDiv.remove();
+            }
+        }
+        
+        // ============================================
+        // QUIZ LOGIC
+        // ============================================
+        let reviewMode = false;
+        let currentQuestion = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+        let quickAnswers = 0;
+        let timerInterval = null;
+        let inProgress = false;
+        let startTime = null;
+        let totalTime = 0;
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+        function resetQuiz() { stopTimer(); startQuiz(); }
+
+        function nextQuestion() {
+            if (inProgress) return;
+            inProgress = true;
+            stopTimer();
+            currentQuestion++;
+            if (currentQuestion < shuffledQuestions.length) {
+                displayQuestion();
+            } else {
+                totalTime = Math.floor((Date.now() - startTime) / 1000);
+                const percentage = (score / MAX_SCORE) * 100;
+                if (percentage >= 90) speak("Félicitations Docteur, vous maîtrisez les complications !");
+                else if (percentage >= 75) speak("Très bon travail Docteur !");
+                else if (percentage >= 60) speak("Bien joué Docteur, vous pouvez passer au niveau Expert 1 !");
+                else speak("Continuez vos révisions Docteur");
+                
+                localStorage.setItem(`eteo_score_${LEVEL_ID}`, score);
+                
+                if (score > 0) {
+                    saveScoreToFirebase(score, MAX_SCORE, totalTime, LEVEL_NAME);
+                }
+                
+                if (percentage >= 60) {
+                    setTimeout(() => {
+                        window.location.href = `menu_fr.html?unlocked=expert1&score=${score}`;
+                    }, 3000);
+                } else {
+                    showResult();
+                }
+            }
+            inProgress = false;
+        }
+
+        function displayQuestion() {
+            if (currentQuestion >= shuffledQuestions.length) { 
+                nextQuestion();
+                return; 
+            }
+            const q = shuffledQuestions[currentQuestion];
+            const progress = ((currentQuestion + 1) / shuffledQuestions.length) * 100;
+            let timeLeft = reviewMode ? 999 : 20;
+            if (!reviewMode && voiceActive) speak(`Question ${currentQuestion + 1}: ${q.question}`);
+            let html = `<div class="quiz-area"><div style="margin-bottom:15px;"><div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span class="score">🏆 Score: ${score}</span>${!reviewMode ? `<span id="timer" style="background:#f0f0f0;padding:5px 15px;border-radius:20px;">⏱️ ${timeLeft}s</span>` : '<span style="background:#4caf50;padding:5px 15px;border-radius:20px;">📚 Mode Révision</span>'}<span>📋 ${currentQuestion + 1}/${shuffledQuestions.length}</span></div><div style="background:#e0e0e0;border-radius:10px;height:8px;"><div style="background:linear-gradient(135deg,#667eea,#764ba2);width:${progress}%;height:8px;border-radius:10px;"></div></div></div><div class="question">❓ ${q.question}</div><div class="options" id="options">`;
+            q.options.forEach((opt, idx) => { const letter = String.fromCharCode(65 + idx); html += `<button class="option" data-index="${idx}">${letter}. ${opt}</button>`; });
+            html += `</div><div id="feedback"></div><div class="quiz-actions"><button class="btn-menu" onclick="retourMenuAvecVoix()">🏠 Menu principal</button><button class="btn-reset" onclick="resetQuiz()">🔄 Recommencer</button></div></div>`;
+            gameContent.innerHTML = html;
+            let answered = false;
+            function updateTimer() { const timerElement = document.getElementById('timer'); if (timerElement && !reviewMode) { timerElement.textContent = `⏱️ ${timeLeft}s`; if (timeLeft <= 5) timerElement.style.color = '#f44336'; else timerElement.style.color = '#333'; } }
+            if (!reviewMode) {
+                timerInterval = setInterval(() => {
+                    if (!answered) {
+                        timeLeft--;
+                        updateTimer();
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval); timerInterval = null;
+                            if (!answered) {
+                                answered = true;
+                                speak(`Temps écoulé. La réponse était ${q.options[q.correct]}`);
+                                const feedback = document.getElementById('feedback');
+                                if (feedback) feedback.innerHTML = `<p style="color:red;margin-top:15px;">⏰ Temps écoulé !<br>📖 ${q.explanation}</p>`;
+                                const options = document.querySelectorAll('.option');
+                                options.forEach(btn => { btn.style.pointerEvents = 'none'; const idx = parseInt(btn.dataset.index); if (idx === q.correct) btn.classList.add('correct'); });
+                                addNextButton();
+                            }
+                        }
+                    }
+                }, 1000);
+                updateTimer();
+            }
+            const options = document.querySelectorAll('.option');
+            options.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (answered) return;
+                    const idx = parseInt(btn.dataset.index);
+                    let timeUsed = !reviewMode ? (20 - timeLeft) : 0;
+                    let speedBonus = 0;
+                    if (!reviewMode && timeUsed <= 5 && timeUsed >= 0) { speedBonus = 5; quickAnswers++; }
+                    answered = true;
+                    clearInterval(timerInterval); timerInterval = null;
+                    if (idx === q.correct) {
+                        score += 10 + speedBonus;
+                        btn.classList.add('correct');
+                        let message = `✅ Correct ! +10 points`;
+                        if (speedBonus > 0) message += ` +${speedBonus} (rapide !)`;
+                        if (reviewMode) message += `<br>📖 ${q.explanation}`;
+                        const feedback = document.getElementById('feedback');
+                        if (feedback) feedback.innerHTML = `<p style="color:green;margin-top:15px;">${message}</p>`;
+                        speak(`Bonne réponse. ${q.explanation.substring(0, 80)}`);
+                    } else {
+                        btn.classList.add('wrong');
+                        const feedback = document.getElementById('feedback');
+                        if (feedback) feedback.innerHTML = `<p style="color:red;margin-top:15px;">❌ Faux ! Réponse: ${q.options[q.correct]}<br>📖 ${q.explanation}</p>`;
+                        options.forEach(b => { if (parseInt(b.dataset.index) === q.correct) b.classList.add('correct'); });
+                        speak(`Dommage. La bonne réponse était ${q.options[q.correct]}. ${q.explanation.substring(0, 80)}`);
+                    }
+                    options.forEach(opt => opt.style.pointerEvents = 'none');
+                    addNextButton();
+                });
+            });
+        }
+
+        function addNextButton() {
+            const optionsDiv = document.getElementById('options');
+            if (optionsDiv && !document.getElementById('nextBtnTemp')) {
+                const nextBtn = document.createElement('button');
+                nextBtn.id = 'nextBtnTemp';
+                nextBtn.className = 'next-btn';
+                nextBtn.textContent = '➡️ Question suivante';
+                nextBtn.onclick = () => nextQuestion();
+                optionsDiv.parentElement.insertBefore(nextBtn, optionsDiv.parentElement.querySelector('.quiz-actions'));
+            }
+        }
+
+        function showResult() {
+            stopTimer();
+            const maxScore = MAX_SCORE;
+            const percentage = Math.round((score / maxScore) * 100);
+            let message = "", emoji = "";
+            if (percentage >= 90) { message = "Excellent ! Complications maîtrisées !"; emoji = "🏆👑"; }
+            else if (percentage >= 75) { message = "Très bien ! Niveau Expert 1 vous attend"; emoji = "🦷⭐"; }
+            else if (percentage >= 60) { message = "Bien ! Vous pouvez passer au niveau Expert 1"; emoji = "👍📚"; }
+            else { message = "Revoyez la gestion des complications"; emoji = "📖🤔"; }
+            
+            gameContent.innerHTML = `<div class="result">
+                <h2>🎉 Quiz ETEO Terminé ! ${emoji}</h2>
+                <div class="final-score">${score}/${maxScore}</div>
+                <p style="margin:20px;">${message}</p>
+                <p>📚 ${shuffledQuestions.length} questions - Intermédiaire Niveau 2</p>
+                ${quickAnswers > 0 ? `<p>⚡ ${quickAnswers} réponses rapides (+5 pts chacune)</p>` : ''}
+                <div class="flex-buttons">
+                    <button class="game-btn" onclick="startQuiz()">🔄 Rejouer</button>
+                    <button class="game-btn" onclick="retourMenuAvecVoix()">🏠 Menu</button>
+                    <button class="game-btn" onclick="shareResult(${score}, ${MAX_SCORE}, '${LEVEL_NAME}', ${totalTime})">📤 Partager mon score</button>
+                </div>
+            </div>`;
+            
+            setTimeout(() => {
+                afficherClassement();
+            }, 500);
+        }
+
+        function startQuiz() {
+            startTime = Date.now();
+            stopTimer();
+            shuffledQuestions = shuffleArray([...questions]);
+            currentQuestion = 0;
+            score = 0;
+            quickAnswers = 0;
+            displayQuestion();
+        }
+        
+        function showWelcomeMenu() {
+            const savedScore = localStorage.getItem(`eteo_score_${LEVEL_ID}`);
+            const scoreText = savedScore ? `Score: ${savedScore}/${MAX_SCORE} (${Math.round((savedScore/MAX_SCORE)*100)}%)` : "Non commencé";
+            
+            gameContent.innerHTML = `<div class="quiz-area">
+                <h2>🦷 Bienvenue Docteur dans ETEO !</h2>
+                <p style="margin: 20px 0;">Endo To Every One - Intermédiaire Niveau 2 : Complications courantes</p>
+                <p>📚 25 questions | Urgences, échecs, accidents</p>
+                <p>⏱️ 20 secondes par question | ⚡ Bonus rapidité +5</p>
+                <p style="margin: 10px 0; color: #4caf50;">📊 ${scoreText}</p>
+                <div class="flex-buttons">
+                    <button class="game-btn" onclick="demarrerQuizAvecVoix()">🎯 Commencer le quiz</button>
+                    <button class="game-btn" onclick="retourMenuAvecVoix()">🏠 Menu principal</button>
+                    <button class="game-btn" onclick="afficherClassementAvecVoix()">🏆 Voir le classement</button>
+                    <button class="game-btn game-btn-feedback" onclick="demanderAvisAvecVoix()">📝 Donner mon avis</button>
+                </div>
+                <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">
+                    <p style="font-size: 0.7rem; color: #888;">
+                        ⚠️ À usage éducatif uniquement. En cas de doute, consultez la littérature scientifique récente.
+                    </p>
+                </div>
+            </div>`;
+        }
+
+        showWelcomeMenu();
+    </script>
+</body>
+</html>

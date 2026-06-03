@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Endo To Every One</title>
+    
+    <!-- LIAISON DU MANIFESTE (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <!-- ICONE POUR IOS (APPLE) -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        body.dark .container {
+            background: #1e1e2e;
+            color: #eee;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 40px;
+        }
+
+        body.dark .header p {
+            color: #aaa;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 18px 20px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            color: white;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-fr {
+            background: linear-gradient(135deg, #0055A4, #EF4135);
+        }
+
+        .btn-en {
+            background: linear-gradient(135deg, #00247D, #CF142B);
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        .theme-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        body.dark .theme-btn {
+            color: #eee;
+        }
+
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <div class="voice-indicator" id="voiceIndicator">🎙️ IA en attente</div>
+    
+    <div class="container">
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+        
+        <div class="header">
+            <h1>🦷 ETEO</h1>
+            <p>Endo To Every One</p>
+        </div>
+
+        <button class="btn btn-fr" onclick="startFrenchWithVoice()">🇫🇷 Français</button>
+        <button class="btn btn-en" onclick="startEnglishWithVoice()">🇬🇧 English</button>
+
+        <div class="footer">
+            <p>🎙️ Assistant vocal IA | ⏱️ 20 secondes par question</p>
+            <p>⚡ Bonus rapidité +5 points | 📖 Explications détaillées</p>
+            <p>📤 Partagez vos scores | 🏆 Débloquez tous les niveaux</p>
+            <p>© 2026 - Dr. SAID MAARAK 🇲🇦</p>
+        </div>
+    </div>
+
+    <script>
+        // === SYSTÈME VOCAL ===
+        let speechSynthesisObj = null;
+        let voiceActive = true;
+        let voiceReady = false;
+        
+        function initVoice() {
+            if ('speechSynthesis' in window) {
+                speechSynthesisObj = window.speechSynthesis;
+                voiceReady = true;
+                return true;
+            }
+            return false;
+        }
+        
+        function speak(text, lang) {
+            if (!voiceActive || !speechSynthesisObj || !voiceReady) return;
+            try {
+                speechSynthesisObj.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                speechSynthesisObj.speak(utterance);
+            } catch(e) {}
+        }
+        
+        let voiceActivated = false;
+        function activateVoice() {
+            if (!voiceActivated) {
+                initVoice();
+                voiceActivated = true;
+                const indicator = document.getElementById('voiceIndicator');
+                if (indicator) {
+                    indicator.textContent = "🎙️ IA activée";
+                    indicator.style.background = "#4caf50";
+                    setTimeout(() => { indicator.style.opacity = "0.5"; }, 2000);
+                }
+            }
+        }
+        
+        function startFrenchWithVoice() {
+            activateVoice();
+            speak("Bienvenue Docteur dans ETEO, Endo To Every One. Bonne chance !", "fr-FR");
+            setTimeout(() => { window.location.href = "menu_fr.html"; }, 19000);
+        }
+        
+        function startEnglishWithVoice() {
+            activateVoice();
+            speak("Welcome Doctor to ETEO, Endo To Every One. Good luck !", "en-US");
+            setTimeout(() => { window.location.href = "menu_en.html"; }, 20000);
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+        }
+        
+        document.body.addEventListener('click', function firstClick() {
+            activateVoice();
+            document.body.removeEventListener('click', firstClick);
+        });
+
+        // === ENREGISTREMENT DU SERVICE WORKER (PWA) ===
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('Service Worker enregistré avec succès'))
+                    .catch((err) => console.log('Erreur Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>

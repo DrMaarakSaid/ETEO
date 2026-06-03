@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Menu des niveaux</title>
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        }
+
+        .container {
+            max-width: 550px;
+            width: 100%;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+            padding: 30px 25px;
+        }
+
+        body.dark .container {
+            background: #1e1e2e;
+            color: #eee;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        body.dark .header p {
+            color: #aaa;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .level-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        body.dark .level-card {
+            background: #2a2a3e;
+        }
+
+        .level-info {
+            flex: 2;
+        }
+
+        .level-name {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .level-questions {
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .level-score {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #4caf50;
+        }
+
+        .level-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .level-btn:active {
+            transform: scale(0.95);
+        }
+
+        .level-btn.locked {
+            background: #999;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .global-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .global-btn {
+            background: linear-gradient(135deg, #ff9800, #f44336);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+
+        .global-btn.secondary {
+            background: linear-gradient(135deg, #2196f3, #0d47a1);
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 0.65rem;
+            color: #888;
+            text-align: center;
+        }
+
+        .theme-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            float: right;
+        }
+
+        body.dark .theme-btn {
+            color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+        
+        <div class="header">
+            <h1>🦷 ETEO</h1>
+            <p>Endo To Every One - Menu des niveaux</p>
+        </div>
+
+        <!-- DÉBUTANT NIVEAU 1 -->
+        <div class="section">
+            <div class="section-title">🔰 Débutant</div>
+            <div class="level-card">
+                <div class="level-info">
+                    <div class="level-name">Niveau 1 - Bases fondamentales</div>
+                    <div class="level-questions">25 questions | Anatomie, terminologie</div>
+                    <div class="level-score" id="debutant1-score"></div>
+                </div>
+                <button class="level-btn" id="debutant1-btn" onclick="startLevel('debutant1')">🎯 Commencer</button>
+            </div>
+        </div>
+
+        <!-- DÉBUTANT NIVEAU 2 -->
+        <div class="section">
+            <div class="level-card">
+                <div class="level-info">
+                    <div class="level-name">Niveau 2 - Diagnostic initial</div>
+                    <div class="level-questions">25 questions | Tests, symptômes</div>
+                    <div class="level-score" id="debutant2-score"></div>
+                </div>
+                <button class="level-btn" id="debutant2-btn" onclick="startLevel('debutant2')" disabled>🔒 Verrouillé</button>
+            </div>
+        </div>
+
+        <!-- INTERMÉDIAIRE NIVEAU 1 -->
+        <div class="section">
+            <div class="section-title">⚡ Intermédiaire</div>
+            <div class="level-card">
+                <div class="level-info">
+                    <div class="level-name">Niveau 1 - Traitement canalaire</div>
+                    <div class="level-questions">25 questions | Techniques, irrigation</div>
+                    <div class="level-score" id="intermediaire1-score"></div>
+                </div>
+                <button class="level-btn" id="intermediaire1-btn" onclick="startLevel('intermediaire1')" disabled>🔒 Verrouillé</button>
+            </div>
+        </div>
+
+        <!-- INTERMÉDIAIRE NIVEAU 2 -->
+        <div class="section">
+            <div class="level-card">
+                <div class="level-info">
+                    <div class="level-name">Niveau 2 - Complications courantes</div>
+                    <div class="level-questions">25 questions | Urgences, échecs</div>
+                    <div class="level-score" id="intermediaire2-score"></div>
+                </div>
+                <button class="level-btn" id="intermediaire2-btn" onclick="startLevel('intermediaire2')" disabled>🔒 Verrouillé</button>
+            </div>
+        </div>
+
+        <!-- EXPERT NIVEAU 1 -->
+        <div class="section">
+            <div class="section-title">🏆 Expert</div>
+            <div class="level-card">
+                <div class="level-info">
+                    <div class="level-name">Niveau 1 - Cas complexes</div>
+                    <div class="level-questions">25 questions | Chirurgie, retraitements</div>
+                    <div class="level-score" id="expert1-score"></div>
+                </div>
+                <button class="level-btn" id="expert1-btn" onclick="startLevel('expert1')" disabled>🔒 Verrouillé</button>
+            </div>
+        </div>
+
+        <!-- EXPERT NIVEAU 2 -->
+        <div class="section">
+            <div class="level-card">
+                <div class="level-info">
+                    <div class="level-name">Niveau 2 - Maîtrise avancée</div>
+                    <div class="level-questions">25 questions | Perforations, fractures</div>
+                    <div class="level-score" id="expert2-score"></div>
+                </div>
+                <button class="level-btn" id="expert2-btn" onclick="startLevel('expert2')" disabled>🔒 Verrouillé</button>
+            </div>
+        </div>
+
+        <!-- BOUTONS GLOBAUX -->
+        <div class="global-buttons">
+            <button class="global-btn" onclick="showLeaderboardWithVoice()">🏆 Classement mondial</button>
+            <button class="global-btn secondary" onclick="giveFeedbackWithVoice()">📝 Donner mon avis</button>
+        </div>
+
+        <div class="footer">
+            <p>🎙️ Assistant vocal IA | ⏱️ 20 secondes par question | ⚡ Bonus +5</p>
+            <p>📤 Partagez vos scores | 🔓 Débloquez les niveaux avec un score ≥ 60%</p>
+            <p>© 2026 - Dr. SAID MAARAK 🇲🇦</p>
+        </div>
+    </div>
+
+    <div id="leaderboard" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:20px; max-width:90%; z-index:1000;"></div>
+
+    <script>
+        // ============================================
+        // VOICE SYSTEM POUR MENU
+        // ============================================
+        let speechSynthesisMenu = null;
+        let voiceMenuActive = true;
+
+        function initMenuVoice() {
+            if ('speechSynthesis' in window) {
+                speechSynthesisMenu = window.speechSynthesis;
+                return true;
+            }
+            return false;
+        }
+
+        function speakMenu(text, lang) {
+            if (!voiceMenuActive || !speechSynthesisMenu) return;
+            try {
+                speechSynthesisMenu.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                speechSynthesisMenu.speak(utterance);
+            } catch(e) {}
+        }
+
+        initMenuVoice();
+
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDcIvbmqjEwJbJNqTUwx1J6Wkjd6xK-DE",
+            authDomain: "etoe-endo-to-every-one.firebaseapp.com",
+            projectId: "etoe-endo-to-every-one",
+            storageBucket: "etoe-endo-to-every-one.firebasestorage.app",
+            messagingSenderId: "511524282020",
+            appId: "1:511524282020:web:5a25c021fd84f026969031"
+        };
+
+        // Initialiser Firebase
+        if (!window.firebaseInitialized) {
+            firebase.initializeApp(firebaseConfig);
+            window.firebaseInitialized = true;
+        }
+        const db = firebase.firestore();
+
+        // ============================================
+        // CONFIGURATION DES NIVEAUX
+        // ============================================
+        const MAX_SCORE = 250;
+        
+        const STORAGE_KEYS = {
+            debutant1: 'eteo_score_debutant1',
+            debutant2: 'eteo_score_debutant2',
+            intermediaire1: 'eteo_score_intermediaire1',
+            intermediaire2: 'eteo_score_intermediaire2',
+            expert1: 'eteo_score_expert1',
+            expert2: 'eteo_score_expert2'
+        };
+        
+        const LEVEL_FILES = {
+            debutant1: 'debutant1_fr.html',
+            debutant2: 'debutant2_fr.html',
+            intermediaire1: 'intermediaire1_fr.html',
+            intermediaire2: 'intermediaire2_fr.html',
+            expert1: 'expert1_fr.html',
+            expert2: 'expert2_fr.html'
+        };
+
+        // ============================================
+        // AFFICHAGE DES SCORES ET VERROUILLAGE
+        // ============================================
+        function loadScores() {
+            for (const [level, key] of Object.entries(STORAGE_KEYS)) {
+                const score = localStorage.getItem(key);
+                const scoreElement = document.getElementById(`${level}-score`);
+                if (scoreElement) {
+                    if (score) {
+                        const scoreNum = parseInt(score);
+                        const percentage = Math.round((scoreNum / MAX_SCORE) * 100);
+                        scoreElement.innerHTML = `📊 ${scoreNum}/${MAX_SCORE} (${percentage}%)`;
+                        scoreElement.style.color = percentage >= 60 ? '#4caf50' : '#ff9800';
+                    } else {
+                        scoreElement.innerHTML = `📊 Non commencé`;
+                        scoreElement.style.color = '#888';
+                    }
+                }
+            }
+        }
+        
+        function updateLocks() {
+            const debutant1Score = localStorage.getItem(STORAGE_KEYS.debutant1);
+            const debutant1Passed = debutant1Score && (parseInt(debutant1Score) / MAX_SCORE) >= 0.6;
+            
+            const debutant2Score = localStorage.getItem(STORAGE_KEYS.debutant2);
+            const debutant2Passed = debutant2Score && (parseInt(debutant2Score) / MAX_SCORE) >= 0.6;
+            
+            const intermediaire1Score = localStorage.getItem(STORAGE_KEYS.intermediaire1);
+            const intermediaire1Passed = intermediaire1Score && (parseInt(intermediaire1Score) / MAX_SCORE) >= 0.6;
+            
+            const intermediaire2Score = localStorage.getItem(STORAGE_KEYS.intermediaire2);
+            const intermediaire2Passed = intermediaire2Score && (parseInt(intermediaire2Score) / MAX_SCORE) >= 0.6;
+            
+            const expert1Score = localStorage.getItem(STORAGE_KEYS.expert1);
+            const expert1Passed = expert1Score && (parseInt(expert1Score) / MAX_SCORE) >= 0.6;
+            
+            updateButton('debutant2-btn', debutant1Passed);
+            updateButton('intermediaire1-btn', debutant2Passed);
+            updateButton('intermediaire2-btn', intermediaire1Passed);
+            updateButton('expert1-btn', intermediaire2Passed);
+            updateButton('expert2-btn', expert1Passed);
+        }
+        
+        function updateButton(buttonId, isUnlocked) {
+            const btn = document.getElementById(buttonId);
+            if (btn) {
+                if (isUnlocked) {
+                    btn.disabled = false;
+                    btn.classList.remove('locked');
+                    btn.innerHTML = '🎯 Commencer';
+                } else {
+                    btn.disabled = true;
+                    btn.classList.add('locked');
+                    btn.innerHTML = '🔒 Verrouillé';
+                }
+            }
+        }
+        
+        function startLevel(level) {
+            const file = LEVEL_FILES[level];
+            if (file) {
+                const isUnlocked = checkIfUnlocked(level);
+                if (!isUnlocked) {
+                    alert("🔒 Ce niveau est verrouillé. Complétez le niveau précédent avec un score ≥ 60% pour le débloquer.");
+                    return;
+                }
+                window.location.href = file;
+            }
+        }
+        
+        function checkIfUnlocked(level) {
+            const conditions = {
+                debutant1: true,
+                debutant2: () => {
+                    const score = localStorage.getItem(STORAGE_KEYS.debutant1);
+                    return score && (parseInt(score) / MAX_SCORE) >= 0.6;
+                },
+                intermediaire1: () => {
+                    const score = localStorage.getItem(STORAGE_KEYS.debutant2);
+                    return score && (parseInt(score) / MAX_SCORE) >= 0.6;
+                },
+                intermediaire2: () => {
+                    const score = localStorage.getItem(STORAGE_KEYS.intermediaire1);
+                    return score && (parseInt(score) / MAX_SCORE) >= 0.6;
+                },
+                expert1: () => {
+                    const score = localStorage.getItem(STORAGE_KEYS.intermediaire2);
+                    return score && (parseInt(score) / MAX_SCORE) >= 0.6;
+                },
+                expert2: () => {
+                    const score = localStorage.getItem(STORAGE_KEYS.expert1);
+                    return score && (parseInt(score) / MAX_SCORE) >= 0.6;
+                }
+            };
+            const condition = conditions[level];
+            return typeof condition === 'function' ? condition() : condition;
+        }
+
+        // ============================================
+        // LEADERBOARD AVEC VOIX
+        // ============================================
+        async function showLeaderboardWithVoice() {
+            speakMenu("Voici le classement mondial ETEO.", "fr-FR");
+            setTimeout(() => {
+                showLeaderboard();
+            }, 2000);
+        }
+        
+        async function showLeaderboard() {
+            const leaderboardDiv = document.getElementById('leaderboard');
+            leaderboardDiv.style.display = 'block';
+            leaderboardDiv.innerHTML = '<div style="text-align:center;">🏆 CHARGEMENT... 🏆</div>';
+            
+            try {
+                const snapshot = await db.collection("scores")
+                    .orderBy("score", "desc")
+                    .orderBy("timeSeconds", "asc")
+                    .limit(10)
+                    .get();
+                
+                if (snapshot.empty) {
+                    leaderboardDiv.innerHTML = '<div style="text-align:center;">📊 Aucun score enregistré.<br>Soyez le premier !<br><br><button onclick="closeLeaderboard()">❌ Fermer</button></div>';
+                    return;
+                }
+                
+                let html = '<h3 style="text-align:center;">🏆 CLASSEMENT MONDIAL 🏆</h3><ol>';
+                let rank = 1;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const minutes = Math.floor(data.timeSeconds / 60);
+                    const seconds = data.timeSeconds % 60;
+                    html += `<li><strong>${data.name || 'Anonyme'}</strong> : ${data.score}/${data.maxScore} (${Math.round((data.score/data.maxScore)*100)}%) - ${minutes}:${seconds<10?'0'+seconds:seconds} - ${data.level || '?'}</li>`;
+                    rank++;
+                });
+                html += '</ol><div style="text-align:center;"><button onclick="closeLeaderboard()">❌ Fermer</button></div>';
+                leaderboardDiv.innerHTML = html;
+            } catch(e) {
+                console.error("Erreur leaderboard:", e);
+                leaderboardDiv.innerHTML = '<div style="text-align:center;">❌ Erreur de chargement<br><button onclick="closeLeaderboard()">❌ Fermer</button></div>';
+            }
+        }
+        
+        function closeLeaderboard() {
+            document.getElementById('leaderboard').style.display = 'none';
+        }
+        
+        // ============================================
+        // FEEDBACK AVEC VOIX
+        // ============================================
+        function giveFeedbackWithVoice() {
+            speakMenu("Merci Docteur, votre avis nous est précieux.", "fr-FR");
+            setTimeout(() => {
+                window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank');
+            }, 2000);
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+        }
+        
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        loadScores();
+        updateLocks();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const unlocked = urlParams.get('unlocked');
+        if (unlocked) {
+            alert(`🎉 Félicitations ! ${unlocked} est maintenant débloqué !`);
+        }
+    </script>
+</body>
+</html>
