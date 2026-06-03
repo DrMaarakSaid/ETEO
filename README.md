@@ -1,2 +1,2 @@
 # ETEO
-Application PWA éducative pour l'endodontie
+E-learning To Every One
