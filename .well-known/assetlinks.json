@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.eteo.endo",
+    "sha256_cert_fingerprints": ["FD:EB:9E:CF:E3:E3:15:11:DE:62:56:18:6B:33:3F:84:EC:A2:49:6D:05:35:A9:E3:48:CF:8F:AF:2E:0A:E5:14"]
+  }
+}]
