@@ -1,6 +1,6 @@
 // ============================================
 // =========== TTS MANAGER ====================
-// =========== Version Mobile Telegram =======
+// =========== Version avec Google TTS =======
 // ============================================
 
 window.ETEO = window.ETEO || {};
@@ -74,13 +74,10 @@ window.ETEO.TTS = {
         if (this.audioUnlocked) return true;
         
         try {
-            // Créer un contexte audio
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             if (audioContext.state === 'suspended') {
                 audioContext.resume();
             }
-            
-            // Jouer un silence pour "réveiller" l'audio
             const buffer = audioContext.createBuffer(1, 1, 22050);
             const source = audioContext.createBufferSource();
             source.buffer = buffer;
@@ -104,18 +101,26 @@ window.ETEO.TTS = {
 
         console.log(`🔊 [TTS] Lecture via ${this.engine} : "${text}"`);
 
+        // ⭐ NOUVEAU : Si c'est Capacitor, l'utiliser
         if (this.engine === 'capacitor') {
             return this.capacitorSpeak(text, lang);
-        } else if (this.engine === 'web') {
-            // ⭐ NOUVEAU : Déverrouillage audio automatique sur mobile
-            if (this.isMobile) {
-                this.unlockAudio();
-            }
-            return this.webSpeak(text, lang);
-        } else {
-            console.error("❌ [TTS] Aucun moteur disponible");
-            return Promise.reject(new Error('Aucun moteur TTS disponible'));
         }
+
+        // ⭐ NOUVEAU : Si c'est mobile ET que c'est Telegram, utiliser Google TTS
+        if (this.isMobile && window.Telegram && window.Telegram.WebApp) {
+            console.log("📱 [TTS] Mobile Telegram détecté - Utilisation de Google TTS");
+            return this.googleSpeak(text, lang);
+        }
+
+        // ⭐ NOUVEAU : Si c'est un ordinateur, utiliser Web Speech
+        if (this.engine === 'web' && !this.isMobile) {
+            console.log("💻 [TTS] Ordinateur - Utilisation de Web Speech");
+            return this.webSpeak(text, lang);
+        }
+
+        // ⭐ NOUVEAU : Fallback - Essayer Google TTS pour tout le monde
+        console.log("🔄 [TTS] Fallback vers Google TTS");
+        return this.googleSpeak(text, lang);
     },
 
     // ============================================
@@ -138,34 +143,88 @@ window.ETEO.TTS = {
             }
         } catch (error) {
             console.error("❌ [TTS] Erreur Capacitor:", error);
-            console.log("🔄 [TTS] Fallback vers Web Speech");
-            return this.webSpeak(text, lang);
+            console.log("🔄 [TTS] Fallback vers Google TTS");
+            return this.googleSpeak(text, lang);
         }
     },
 
     // ============================================
-    // =========== WEB SPEECH AMÉLIORÉE ==========
-    // =========== (Gère le blocage mobile) ======
+    // =========== GOOGLE TTS (MOBILE) ===========
+    // =========== FONCTIONNE SUR TELEGRAM ======
+    // ============================================
+    googleSpeak: function(text, lang) {
+        return new Promise((resolve, reject) => {
+            try {
+                // Extraire la langue (ex: fr-FR -> fr)
+                const langCode = lang.split('-')[0];
+                
+                // URL de Google Translate TTS (gratuit)
+                const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${langCode}&client=tw-ob`;
+                
+                console.log(`📥 [TTS] Chargement audio depuis Google: ${url}`);
+                
+                // Créer un élément audio
+                const audio = new Audio(url);
+                
+                // Gérer le succès
+                audio.onended = function() {
+                    console.log("✅ [TTS] Google TTS - Lecture terminée");
+                    resolve(true);
+                };
+                
+                // Gérer les erreurs
+                audio.onerror = function(error) {
+                    console.error("❌ [TTS] Erreur Google TTS:", error);
+                    
+                    // Fallback: Essayer Web Speech
+                    if (window.speechSynthesis) {
+                        console.log("🔄 [TTS] Fallback vers Web Speech");
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = lang;
+                        utterance.onend = () => resolve(true);
+                        utterance.onerror = (e) => reject(e);
+                        window.speechSynthesis.speak(utterance);
+                    } else {
+                        reject(new Error('Google TTS et Web Speech indisponibles'));
+                    }
+                };
+                
+                // Jouer l'audio
+                audio.play().catch((error) => {
+                    console.error("❌ [TTS] Erreur lecture audio:", error);
+                    reject(error);
+                });
+                
+                // Timeout de sécurité
+                setTimeout(() => {
+                    if (!audio.ended) {
+                        console.warn("⏱️ [TTS] Timeout Google TTS");
+                        audio.pause();
+                        reject(new Error('Timeout - La lecture a pris trop de temps'));
+                    }
+                }, 30000);
+                
+            } catch (error) {
+                console.error("❌ [TTS] Erreur Google TTS:", error);
+                reject(error);
+            }
+        });
+    },
+
+    // ============================================
+    // =========== WEB SPEECH (ORDINATEUR) =======
     // ============================================
     webSpeak: function(text, lang) {
         return new Promise((resolve, reject) => {
-            // Vérification de l'API
             if (!('speechSynthesis' in window)) {
                 reject(new Error('Web Speech API non supportée'));
                 return;
             }
 
-            // Annuler toute synthèse en cours
             window.speechSynthesis.cancel();
-
-            // ⭐ NOUVEAU : Déverrouillage audio pour mobile
-            if (this.isMobile) {
-                this.unlockAudio();
-            }
 
             const utterance = new SpeechSynthesisUtterance(text);
             
-            // Sélectionner une voix appropriée
             const voices = window.speechSynthesis.getVoices();
             if (voices.length > 0) {
                 const langPrefix = lang.split('-')[0];
@@ -199,22 +258,13 @@ window.ETEO.TTS = {
             utterance.onerror = function(event) {
                 console.error("❌ [TTS] Erreur Web Speech:", event);
                 
-                // ⭐ NOUVEAU : Gestion de l'erreur "not-allowed" sur mobile
                 if (event.error === 'not-allowed' || event.error === 'synthesis-failed') {
                     console.log("🔄 [TTS] Tentative de déverrouillage audio...");
-                    
                     try {
                         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                         if (audioCtx.state === 'suspended') {
                             audioCtx.resume();
                         }
-                        const buffer = audioCtx.createBuffer(1, 1, 22050);
-                        const source = audioCtx.createBufferSource();
-                        source.buffer = buffer;
-                        source.connect(audioCtx.destination);
-                        source.start(0);
-                        
-                        console.log("🔓 [TTS] Audio débloqué, nouvelle tentative...");
                         setTimeout(() => {
                             window.speechSynthesis.speak(utterance);
                         }, 300);
@@ -230,7 +280,6 @@ window.ETEO.TTS = {
                 }
             };
 
-            // Lancer la lecture
             try {
                 window.speechSynthesis.speak(utterance);
                 console.log("🗣️ [TTS] Web Speech - Lecture lancée");
@@ -241,7 +290,6 @@ window.ETEO.TTS = {
                 }
             }
 
-            // Timeout de sécurité (30 secondes max)
             setTimeout(() => {
                 if (!isResolved) {
                     isResolved = true;
