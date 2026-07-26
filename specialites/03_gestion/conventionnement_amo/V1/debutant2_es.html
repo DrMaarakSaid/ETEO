@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Convenio AMO (Marruecos) - Principiante 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ IA en espera</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de clasificación -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 SU POSICIÓN</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Cargando clasificación...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURACIÓN FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID PARA ESTE QUIZ
+    // ============================================
+    const LEVEL_ID = "conventionnement_amo_v1_debutant2_es";
+
+
+    // ============================================
+    // =========== 1. SISTEMA DE VOZ ==============
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            
+            // 🔥 CORRECCIÓN PARA ESPAÑOL - Dr. → Doctor / Dra. → Doctora
+            let correctedText = text;
+            if (lang === 'es-ES' || lang === 'es') {
+                correctedText = correctedText.replace(/Dr\.?\s+/g, 'Doctor ');
+                correctedText = correctedText.replace(/Dra\.?\s+/g, 'Doctora ');
+                correctedText = correctedText.replace(/\bDr\b/g, 'Doctor');
+                correctedText = correctedText.replace(/\bDra\b/g, 'Doctora');
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(correctedText);
+            utterance.lang = lang || 'es-ES';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            
+            // 🔥 SELECCIÓN DINÁMICA DE LA MEJOR VOZ ESPAÑOLA
+            const voices = speechSynthesisObj.getVoices();
+            
+            // Priorité 1 : Voix locale espagnole (meilleure qualité)
+            let selectedVoice = voices.find(v => 
+                v.lang.startsWith('es') && v.localService === true
+            );
+            
+            // Priorité 2 : N'importe quelle voix espagnole
+            if (!selectedVoice) {
+                selectedVoice = voices.find(v => v.lang.startsWith('es'));
+            }
+            
+            // Priorité 3 : On laisse le navigateur choisir
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+            
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ IA activada";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. INFORMACIÓN USUARIO ========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "ES"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anónimo" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>🏥 Convenio AMO (Marruecos) - Principiante Nivel 2</h1><p>¡Bienvenido Doctor!</p></div>
+                <div class="input-group">
+                    <label>👤 Su nombre (opcional) :</label>
+                    <input type="text" id="userName" placeholder="Ej: Dr. Martínez" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Su país (obligatorio) :</label>
+                    <select id="userCountry">
+                        <option value="ES">🇪🇸 España</option>
+                        <option value="MX">🇲🇽 México</option>
+                        <option value="AR">🇦🇷 Argentina</option>
+                        <option value="CO">🇨🇴 Colombia</option>
+                        <option value="PE">🇵🇪 Perú</option>
+                        <option value="CL">🇨🇱 Chile</option>
+                        <option value="VE">🇻🇪 Venezuela</option>
+                        <option value="EC">🇪🇨 Ecuador</option>
+                        <option value="GT">🇬🇹 Guatemala</option>
+                        <option value="CU">🇨🇺 Cuba</option>
+                        <option value="DO">🇩🇴 República Dominicana</option>
+                        <option value="PR">🇵🇷 Puerto Rico</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="MA">🇲🇦 Marruecos</option>
+                        <option value="TR">🇹🇷 Turquía</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">o</div>
+                    <input type="text" id="otherCountry" placeholder="Ingrese su país (ej: Brasil, Japón, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Comenzar el quiz</button>
+                <div class="note">
+                    ⚠️ Regla: 60% mínimo (225/375 puntos) para desbloquear el nivel <strong>Intermedio 1</strong>.<br>
+                    🎁 Bono de rapidez: +5 puntos si responde antes del final del temporizador.<br>
+                    📊 Puntuación máxima posible con bono: 375 puntos (25 preguntas × 15 puntos)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ENVÍO PUNTUACIÓN FIREBASE ==
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "ES";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Puntuación enviada a Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Error Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. PREGUNTAS (25) =============
+    // ============================================
+    const questions = [
+    {
+        question: "Según el artículo 1 de la ley 65-00, ¿sobre qué principio fundamental se basa el seguro de enfermedad obligatorio?",
+        options: [
+            "El principio contributivo y la mutualización de riesgos",
+            "El principio de asistencia social y solidaridad nacional",
+            "El principio de gratuidad total de los cuidados para todos",
+            "El principio de selección médica y prevención"
+        ],
+        correct: 0,
+        explanation: "El AMO se fundamenta en el principio contributivo y en el de la mutualización de los riesgos."
+    },
+    {
+        question: "Según el artículo 2, ¿a qué categorías de personas se aplica el seguro de enfermedad obligatorio de base?",
+        options: [
+            "A funcionarios, asalariados, pensionistas, trabajadores autónomos y estudiantes",
+            "Únicamente a los asalariados del sector privado y sus derechohabientes",
+            "Exclusivamente a los funcionarios del Estado y de las colectividades locales",
+            "A los únicos titulares de pensión de los sectores público y privado"
+        ],
+        correct: 0,
+        explanation: "El AMO se aplica a todas estas categorías: funcionarios, asalariados, pensionistas, autónomos, liberales, estudiantes y antiguos resistentes."
+    },
+    {
+        question: "Según el artículo 3, ¿a quién se dirige el régimen de asistencia médica (RAMED)?",
+        options: [
+            "A las personas económicamente débiles no sujetas al AMO",
+            "A los funcionarios y agentes del Estado en actividad",
+            "A los trabajadores autónomos que ejercen una profesión liberal",
+            "A los estudiantes de la enseñanza superior pública"
+        ],
+        correct: 0,
+        explanation: "El RAMED está destinado a las personas económicamente débiles que no se benefician de ningún régimen de AMO."
+    },
+    {
+        question: "Conforme al artículo 5, ¿quiénes son los derechohabientes cubiertos por el seguro de enfermedad obligatorio?",
+        options: [
+            "El cónyuge, los hijos menores de 21 años y los hijos discapacitados",
+            "El cónyuge únicamente y los padres de primer grado",
+            "Los hijos hasta 18 años y los nietos a cargo",
+            "El conjunto de ascendientes y descendientes sin límite de edad"
+        ],
+        correct: 0,
+        explanation: "El artículo 5 define como derechohabientes: el cónyuge, los hijos menores de 21 años (26 años para los estudiantes), y los hijos discapacitados sin límite de edad."
+    },
+    {
+        question: "Según el artículo 5, ¿hasta qué edad un hijo no casado que sigue estudios superiores está cubierto?",
+        options: [
+            "Hasta los 26 años con justificación de los estudios",
+            "Hasta los 21 años sin condición particular",
+            "Hasta los 30 años para los estudios superiores",
+            "Hasta la obtención del título sin límite de edad"
+        ],
+        correct: 0,
+        explanation: "El límite de edad se prorroga hasta los 26 años para los hijos no casados que siguen estudios superiores, con justificación."
+    },
+    {
+        question: "Según el artículo 5, ¿puede el asegurado solicitar la extensión del beneficio del AMO a sus padres?",
+        options: [
+            "Sí, a condición de asumir su cotización",
+            "No, los padres nunca están cubiertos por el AMO",
+            "Sí, automáticamente sin cotización adicional",
+            "Sí, únicamente si los padres son mayores de 70 años"
+        ],
+        correct: 0,
+        explanation: "El asegurado puede solicitar la extensión a su padre y a su madre, a condición de asumir su cotización."
+    },
+    {
+        question: "Según el artículo 7, ¿qué tipos de cuidados están garantizados por el seguro de enfermedad obligatorio?",
+        options: [
+            "Cuidados curativos, preventivos, rehabilitación, maternidad y bucodentales",
+            "Únicamente los cuidados curativos y la hospitalización",
+            "Los cuidados estéticos y las curas termales",
+            "Exclusivamente los medicamentos y los análisis de biología"
+        ],
+        correct: 0,
+        explanation: "El artículo 7 enumera: cuidados preventivos, curativos, rehabilitación, maternidad, bucodentales, ortodoncia para niños, etc."
+    },
+    {
+        question: "Según el artículo 8, ¿qué prestaciones están excluidas del campo del seguro de enfermedad obligatorio?",
+        options: [
+            "La cirugía estética y las medicinas alternativas",
+            "Los actos de cirugía reparadora y los implantes",
+            "Los cuidados bucodentales y la ortodoncia",
+            "Los análisis de biología médica y la radiología"
+        ],
+        correct: 0,
+        explanation: "El artículo 8 excluye: cirugía estética, curas termales, acupuntura, mesoterapia, talasoterapia, homeopatía y medicina alternativa."
+    },
+    {
+        question: "Según el artículo 9, ¿cuál es la regla sobre la parte que queda a cargo del asegurado?",
+        options: [
+            "El asegurado conserva la libertad de suscribir un seguro complementario",
+            "El asegurado no puede suscribir un seguro complementario",
+            "La parte restante es siempre asumida por el Estado",
+            "El ticket moderador está prohibido por la ley"
+        ],
+        correct: 0,
+        explanation: "El artículo 9 precisa que el asegurado conserva la libertad de suscribir un seguro complementario."
+    },
+    {
+        question: "Según el artículo 9, ¿qué prevé la ley en caso de enfermedad grave o invalidante?",
+        options: [
+            "Una exoneración total o parcial del ticket moderador",
+            "Un aumento del tipo de cotización del asegurado",
+            "Una exclusión automática del régimen de seguro",
+            "Un reembolso forfetario sin condición"
+        ],
+        correct: 0,
+        explanation: "En caso de enfermedad grave o invalidante que necesite cuidados de larga duración, la parte restante es exonerada total o parcialmente."
+    },
+    {
+        question: "Conforme al artículo 10, ¿bajo qué forma pueden reembolsarse ciertos artículos como los aparatos?",
+        options: [
+            "Bajo forma de forfait definido por vía reglamentaria",
+            "Bajo forma de reembolso integral sin límite",
+            "Únicamente bajo forma de reembolso por acto",
+            "Bajo forma de reembolso variable según el paciente"
+        ],
+        correct: 0,
+        explanation: "El artículo 10 precisa que ciertos artículos, especialmente los aparatos y dispositivos médicos, son objeto de reembolso bajo forma de forfait."
+    },
+    {
+        question: "Según el artículo 11, ¿cuáles son las modalidades de reembolso previstas por la ley?",
+        options: [
+            "Por acto, por patología, por dotación global o por capitación",
+            "Únicamente por acto con presentación de facturas",
+            "Exclusivamente por forfait por grupo homogéneo de enfermedades",
+            "Solamente por capitación con un médico referente"
+        ],
+        correct: 0,
+        explanation: "El artículo 11 prevé: reembolso por acto, forfait por patología, dotación global, prepago o capitación."
+    },
+    {
+        question: "Según el artículo 13, ¿pueden reembolsarse las prestaciones si se dispensan en el extranjero?",
+        options: [
+            "Sí, en caso de enfermedad inopinada o de ausencia de cuidados apropiados en Marruecos",
+            "No, solo las prestaciones en el territorio nacional son reembolsables",
+            "Sí, automáticamente sin ninguna condición previa",
+            "Sí, únicamente si el paciente está en viaje de negocios"
+        ],
+        correct: 0,
+        explanation: "Las prestaciones en el extranjero se admiten en caso de enfermedad inopinada durante una estancia, o cuando los cuidados no pueden dispensarse en Marruecos, con acuerdo previo."
+    },
+    {
+        question: "Según el artículo 14, ¿qué derecho fundamental conserva el beneficiario del AMO?",
+        options: [
+            "La libre elección del profesional y del establecimiento de salud",
+            "La obligación de consultar al médico tratante designado",
+            "El derecho de elegir únicamente en el sector público",
+            "La prohibición de cambiar de médico tratante"
+        ],
+        correct: 0,
+        explanation: "El artículo 14 garantiza al beneficiario la libre elección del profesional, del establecimiento de salud, del farmacéutico y del paramédico."
+    },
+    {
+        question: "Según el artículo 18, ¿quién conduce las negociaciones para los convenios nacionales?",
+        options: [
+            "La Agencia nacional del seguro de enfermedad (ANAM)",
+            "El Ministerio de Salud directamente",
+            "Los organismos gestores solos",
+            "El Consejo de la competencia"
+        ],
+        correct: 0,
+        explanation: "Los convenios se concluyen por iniciativa y bajo la dirección de la ANAM."
+    },
+    {
+        question: "Según el artículo 19, ¿con quién se concluyen los convenios nacionales para el sector privado?",
+        options: [
+            "Con los consejos nacionales de los colegios profesionales",
+            "Con los sindicatos de pacientes",
+            "Con las compañías de seguros privadas",
+            "Con el Banco central de Marruecos"
+        ],
+        correct: 0,
+        explanation: "Los convenios se concluyen entre los organismos gestores y los consejos nacionales de los colegios profesionales correspondientes."
+    },
+    {
+        question: "Según el artículo 24, ¿qué sanciones pueden imponerse a un prestador por incumplimiento del convenio?",
+        options: [
+            "La exclusión del convenio por un período determinado",
+            "Una multa forfetaria de 10.000 dirhams",
+            "La suspensión definitiva de su ejercicio profesional",
+            "Una simple advertencia sin consecuencia"
+        ],
+        correct: 0,
+        explanation: "La ANAM puede decidir excluir a un prestador del convenio por incumplimiento de los términos del convenio."
+    },
+    {
+        question: "Según el artículo 26, ¿cuál es el objeto del control médico ejercido por los organismos gestores?",
+        options: [
+            "Verificar la conformidad de las prescripciones y constatar los abusos",
+            "Controlar la calidad de los equipos del consultorio",
+            "Verificar el número de pacientes tratados por día",
+            "Controlar las cuentas bancarias de los prestadores"
+        ],
+        correct: 0,
+        explanation: "El control tiene como objetivo verificar la conformidad de las prescripciones, la validez de las prestaciones y constatar los abusos y fraudes."
+    },
+    {
+        question: "Según el artículo 32, ¿a qué condición está subordinada la apertura del derecho a las prestaciones?",
+        options: [
+            "Al pago previo de las cotizaciones debidas",
+            "A la aprobación de un médico consejo",
+            "Al acuerdo previo del ministerio de salud",
+            "A un período de espera de seis meses automático"
+        ],
+        correct: 0,
+        explanation: "La apertura del derecho está subordinada al pago previo de las cotizaciones."
+    },
+    {
+        question: "Según el artículo 34, ¿cuánto tiempo conserva una persona sus derechos después de haber dejado de cumplir las condiciones?",
+        options: [
+            "Un período máximo de seis meses",
+            "Un período de dos años completos",
+            "Un período de un mes solamente",
+            "Ningún período de mantenimiento de derechos"
+        ],
+        correct: 0,
+        explanation: "Las personas que dejan de cumplir las condiciones se benefician del mantenimiento de sus derechos durante un período máximo de seis meses."
+    },
+    {
+        question: "Según el artículo 35, ¿durante cuánto tiempo los derechohabientes de un asegurado fallecido continúan beneficiándose de las prestaciones?",
+        options: [
+            "Durante un período de dos años",
+            "Durante un período de seis meses",
+            "Durante un período de cinco años",
+            "Hasta el fin de la vida de los derechohabientes"
+        ],
+        correct: 0,
+        explanation: "Los derechohabientes del asegurado fallecido continúan beneficiándose de las prestaciones durante un período de dos años."
+    },
+    {
+        question: "Según el artículo 44, ¿qué está prohibido a los organismos gestores del AMO?",
+        options: [
+            "Acumular la gestión del seguro con la gestión de establecimientos de cuidados",
+            "Ejercer el control médico sobre los prestadores",
+            "Concluir convenios con los profesionales de salud",
+            "Percibir cotizaciones de los empleadores"
+        ],
+        correct: 0,
+        explanation: "Los organismos gestores no pueden acumular la gestión del AMO con la gestión de establecimientos de cuidados o de suministro de material médico."
+    },
+    {
+        question: "Según el artículo 130, ¿qué multa incurre un empleador que no procede a su afiliación?",
+        options: [
+            "Una multa de 5.000 a 50.000 dirhams",
+            "Una multa de 1.000 a 5.000 dirhams",
+            "Una multa de 50.000 a 100.000 dirhams",
+            "Una pena de prisión de 6 meses a 2 años"
+        ],
+        correct: 0,
+        explanation: "El artículo 130 prevé una multa de 5.000 a 50.000 dirhams para el empleador que no procede a su afiliación."
+    },
+    {
+        question: "Según el artículo 131, ¿cuál es la sanción en caso de no afiliación de un asalariado?",
+        options: [
+            "Una multa de 1.000 dirhams por cada asalariado afectado",
+            "Una multa de 5.000 dirhams forfetaria",
+            "Una suspensión del derecho de contratar",
+            "Una pena de prisión de 3 meses a 1 año"
+        ],
+        correct: 0,
+        explanation: "El artículo 131 prevé una multa de 1.000 dirhams por cada asalariado no afiliado."
+    },
+    {
+        question: "Según el artículo 135, ¿qué está penado con una multa de 1.000 a 5.000 dirhams?",
+        options: [
+            "El fraude o la falsa declaración para obtener prestaciones indebidas",
+            "El rechazo al control médico por un prestador",
+            "El no pago de las cotizaciones por el empleador",
+            "La selección de riesgos por un organismo gestor"
+        ],
+        correct: 0,
+        explanation: "El artículo 135 penaliza el fraude o falsa declaración para obtener prestaciones no debidas."
+    }
+];
+
+    // ============================================
+    // =========== SCORE MAX CORREGIDO ============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10; // 250 puntos (sin bono)
+    const MAX_SCORE_WITH_BONUS = questions.length * 15; // 375 puntos (con bono)
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("conventionnement_amo_v1_debutant2_es", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== DESBLOQUEAR NIVEL INTERMEDIO 1 ==
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("conventionnement_amo_v1_intermediaire1_es_unlocked", "true");
+            localStorage.setItem("conventionnement_amo_v1_debutant2_es_score", percentage.toFixed(1));
+            console.log("✅ Nivel Intermedio 1 DESBLOQUEADO ! Puntuación: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("conventionnement_amo_v1_intermediaire1_es_unlocked", "false");
+            console.log("❌ Nivel Intermedio 1 BLOQUEADO. Puntuación: " + percentage.toFixed(1) + "% (mín " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 GUARDAR VALIDACIÓN PARA PROGRESION.HTML (CORREGIDO)
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            // 1. Guardar en eteo_validation
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            // 2. 🔥 Actualizar eteo_progression
+            const progression = JSON.parse(localStorage.getItem('eteo_progression')) || {};
+            const key = specialite + '_' + niveau;
+            progression[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progression));
+            
+            console.log('✅ Validación guardada para progresion.html');
+        }
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("¡Tiempo agotado! Pasamos a la siguiente pregunta.", "es-ES");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Pregunta ${currentQuestion + 1} : ${questions[currentQuestion].question}`, "es-ES");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>🏥 Convenio AMO (Marruecos) - Principiante Nivel 2</h1><p>Pregunta ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explicación :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Tiempo restante : <span id="timer">${timeLeft}</span> segundos</div>
+                <div class="score">🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonar</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Siguiente →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`¡Respuesta correcta! +${pointsEarned} puntos.`, "es-ES");
+        } else {
+            speak(`Respuesta incorrecta. La respuesta correcta era : ${shuffledOptions[currentCorrectIndex]}.`, "es-ES");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Respuesta correcta : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Por favor, seleccione una respuesta.", "es-ES"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 20;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVEGACIÓN =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_es.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz CORREGIDO ==============
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        // === VERSIÓN BETA : El siguiente nivel está bloqueado ===
+        const isUnlocked = false; // Siempre false en BETA
+        // =================================
+        
+        // 🔥 Guardar validación para progresion.html
+        sauvegarderValidation('Convenio_AMO', 'principiante2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 ¡Quiz finalizado!</h1>
+                <div class="final-score">Puntuación : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Porcentaje : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${percentage >= 60 ?
+                        `<div class="unlock-badge">✅ ¡Nivel Principiante 2 validado! 🎊</div>
+                         <div class="locked-badge">🔒 BETA : La continuación (Intermedio & Experto) llegará tras 6 meses de evaluación.</div>` :
+                        `<div class="locked-badge">⚠️ Puntuación insuficiente (mínimo 60% requerido para validar el nivel)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${percentage >= 60 ?
+                        '📚 Has validado los dos niveles Principiantes. ¡Gracias por tu participación!' :
+                        `💪 Te falta un ${(60 - percentage).toFixed(1)}% para validar el nivel. ¡Vuelve a intentarlo!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Compartir mi puntuación</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Dar mi opinión</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Menú principal</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Clasificación mundial</button>
+                </div>
+            </div>
+        `;
+        
+        if (percentage >= 60) {
+            speak(`¡Felicidades! Has validado el nivel Principiante 2 con una puntuación de ${percentage.toFixed(1)}%. La continuación estará disponible en la versión final.`, "es-ES");
+            
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Su puntuación es de ${percentage.toFixed(1)}%. Debe alcanzar el 60% para validar el nivel.`, "es-ES");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== POPUP CLASIFICACIÓN MODAL =====
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No hay puntuaciones registradas para este nivel por el momento.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Su clasificación</div>
+                        <div class="rank-number">${userRank}ª posición</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} puntos (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Todavía no estás en la clasificación de este nivel</div>
+                        <div>¡Vuelve a hacer el quiz para aparecer!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Convenio AMO (Marruecos) Principiante 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anónimo"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No hay puntuaciones para este nivel</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Error Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ No se puede cargar la clasificación.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Error desconocido'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== BETA EVALUATION POPUP ==========
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 30px; width: 90%; max-width: 500px; padding: 35px 25px; text-align: center; animation: slideUp 0.3s ease; position: relative;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉🏆🎉</div>
+                <h2 style="color: #667eea; margin-bottom: 5px;">¡Felicidades ${userName}!</h2>
+                <p style="margin-bottom: 20px; font-size: 1rem;">
+                    Has validado los <strong>dos niveles Principiantes</strong> con éxito.<br>
+                    ¡Qué recorrido tan impresionante!
+                </p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Evalúa la versión BETA 🌟</p>
+                    <div id="starRating" style="display: flex; justify-content: center; gap: 12px; font-size: 3rem; cursor: pointer;">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p id="ratingMessage" style="margin-top: 10px; font-size: 0.85rem; color: #888;"></p>
+                </div>
+                
+                <div style="background: #f0f8ff; padding: 15px; border-radius: 20px; margin: 15px 0; border-left: 4px solid #667eea;">
+                    <p style="color: #ff5722; font-size: 0.95rem; margin: 0;">
+                        🚀 <strong>La continuación (Intermedio & Experto)</strong> llegará tras <strong>6 meses de evaluación</strong> de esta versión Beta.<br><br>
+                        Tu opinión nos ayuda a mejorar ETEO. ¡Gracias por tu confianza, <strong>${userName}</strong>!
+                    </p>
+                </div>
+                
+                <button onclick="closeBetaPopup()" style="background: #4caf50; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 15px;">
+                    Volver al menú
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ ¡Gracias por tu evaluación! Tu opinión ha sido registrada.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "ES";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'es',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Evaluación Beta enviada !");
+        } catch (error) {
+            console.error("❌ Error evaluación Beta:", error);
+        }
+    }
+
+    // ============================================
+    // =========== OTRAS FUNCIONES ===============
+    // ============================================
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("conventionnement_amo_v1_debutant2_es", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        // BETA : el siguiente nivel está bloqueado
+        // unlockLevel3(partialPercentage); // Desactivado en BETA
+
+        // 🔥 Guardar validación incluso en caso de abandono (si score ≥ 60%)
+        sauvegarderValidation('Convenio_AMO', 'principiante2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Quiz abandonado</h1><div class="final-score">Puntuación parcial : ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Porcentaje : ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 Esta puntuación ha sido registrada en la clasificación.</div><button class="menu-btn" onclick="goToMenu()">🏠 Volver al menú</button></div>`;
+        speak(`Quiz abandonado. Puntuación parcial : ${score} sobre ${MAX_SCORE_WITH_BONUS}.`, "es-ES");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Convenio AMO (Marruecos)\nMi puntuación en el nivel Principiante 2 : ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\n¡Desafíame en ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ ¡Puntuación copiada al portapapeles!");
+            }).catch(() => {
+                alert("📋 Para compartir, copia este texto :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    document.body.addEventListener('click', function firstClick() { 
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>

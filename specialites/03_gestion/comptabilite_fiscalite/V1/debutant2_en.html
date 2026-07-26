@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Accounting & Taxation - Beginner 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ AI waiting</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de classement -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 YOUR POSITION</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Loading ranking...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURATION FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID POUR CE QUIZ
+    // ============================================
+    const LEVEL_ID = "compta_fiscalite_v1_debutant2_en";
+
+
+    // ============================================
+    // =========== 1. VOICE SYSTEM ===============
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ AI activated";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. USER INFO ==================
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "FR"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anonymous" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>💰 Accounting & Taxation - Beginner Level 2</h1><p>Welcome Doctor!</p></div>
+                <div class="input-group">
+                    <label>👤 Your name (optional):</label>
+                    <input type="text" id="userName" placeholder="Ex: Dr. Smith" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Your country (required):</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="MA">🇲🇦 Morocco</option>
+                        <option value="CH">🇨🇭 Switzerland</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="BE">🇧🇪 Belgium</option>
+                        <option value="SN">🇸🇳 Senegal</option>
+                        <option value="CI">🇨🇮 Ivory Coast</option>
+                        <option value="CM">🇨🇲 Cameroon</option>
+                        <option value="DZ">🇩🇿 Algeria</option>
+                        <option value="TN">🇹🇳 Tunisia</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="ES">🇪🇸 Spain</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turkiye</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">or</div>
+                    <input type="text" id="otherCountry" placeholder="Enter your country (e.g., Brazil, Japan...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Start Quiz</button>
+                <div class="note">
+                    ⚠️ Rule: 60% minimum (225/375 points) to unlock <strong>Intermediate Level 1</strong>.<br>
+                    🎁 Speed bonus: +5 points if you answer before the timer ends.<br>
+                    📊 Maximum possible score with bonus: 375 points (25 questions × 15 points)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. FIREBASE SCORE =============
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score sent to Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Firebase error:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. QUESTIONS (25) =============
+    // ============================================
+   const questions = [
+    {
+        question: "Dr. Afif, a dental surgeon, practices as a professional civil company (SCP). According to Article 1 of Law 9-88, is his structure subject to accounting obligations?",
+        options: [
+            "No, SCPs are exempt from accounting",
+            "Yes, because any legal entity with merchant status is subject to it",
+            "Only if its turnover exceeds 5 million DH",
+            "No, only public limited companies are concerned by this obligation"
+        ],
+        correct: 1,
+        explanation: "Art. 1: Any natural or legal person having merchant status is required to keep accounts. An SCP engaging in lucrative activity falls within this scope."
+    },
+    {
+        question: "Dr. Touzani, practicing as a sole proprietor, generates a turnover of 2.3 million DH. Can he benefit from the simplifications provided for in Article 1?",
+        options: [
+            "Yes, because the threshold is 3 million DH for liberal professions",
+            "No, because his turnover exceeds the threshold of 2 million DH",
+            "Yes, provided he maintains a detailed general ledger",
+            "No, dentists are excluded from the benefit of simplifications"
+        ],
+        correct: 1,
+        explanation: "Art. 1, para. 5: The threshold of 2,000,000 DH applies to natural persons. Above this, simplifications are no longer accessible."
+    },
+    {
+        question: "Dr. Afif, whose turnover is 1.2 million DH, can he record his expenses on the basis of internal supporting documents?",
+        options: [
+            "No, all expenses must be justified by supplier invoices",
+            "Yes, provided they are signed by himself",
+            "No, only equipment purchases can be documented internally",
+            "Yes, but only for expenses below 500 DH"
+        ],
+        correct: 1,
+        explanation: "Art. 1, last bullet: Small traders can record petty expenses on the basis of internal supporting documents signed by the trader."
+    },
+    {
+        question: "According to Article 2, what types of accounts must the dental practice's chart of accounts include?",
+        options: [
+            "Only balance sheet accounts",
+            "Statement accounts, management accounts and special accounts",
+            "Only customer and supplier accounts",
+            "Only cash and fixed asset accounts"
+        ],
+        correct: 1,
+        explanation: "Art. 2, para. 3: The chart of accounts must include statement accounts, management accounts and special accounts."
+    },
+    {
+        question: "Dr. Touzani, whose turnover is 1.5 million DH, is he exempt from the general ledger according to Article 2?",
+        options: [
+            "Yes, because all companies are exempt from it",
+            "Yes, if the account balance can be established directly from the journal book",
+            "No, the general ledger is mandatory for medical professions",
+            "No, only companies can benefit from this exemption"
+        ],
+        correct: 1,
+        explanation: "Art. 2, last para.: Natural persons referred to in Art. 1, para. 5 are exempt from the general ledger if the balance can be established directly from the journal book."
+    },
+    {
+        question: "Dr. Afif uses auxiliary journals for his purchase and sales operations. According to Article 3, how often must he centralize these entries?",
+        options: [
+            "Once a week for purchase operations",
+            "Once a month, as required by law",
+            "Once a quarter with court clerk authorization",
+            "Once a year at the close of the financial year"
+        ],
+        correct: 1,
+        explanation: "Art. 3, para. 2: Entries recorded in auxiliary journals are centralized once a month in the journal book and general ledger."
+    },
+    {
+        question: "Dr. Touzani (turnover ≤ 2M DH) can he centralize his auxiliary journals at a different frequency from that provided for in Article 3?",
+        options: [
+            "No, monthly centralization is mandatory for everyone",
+            "Yes, he can centralize once per financial year at its closing",
+            "Yes, provided he obtains administrative approval",
+            "No, liberal professions have more stringent specific rules"
+        ],
+        correct: 1,
+        explanation: "Art. 3, last para.: Small traders are authorized to centralize entries once per financial year at its closing."
+    },
+    {
+        question: "Dr. Afif's practice, constituted as a company, generates a turnover of 8 million DH. What obligation does Article 4 impose on him?",
+        options: [
+            "The appointment of a statutory auditor",
+            "None, the threshold of 10 million DH has not been reached",
+            "The establishment of an accounting organization manual",
+            "The annual publication of accounts in a newspaper"
+        ],
+        correct: 1,
+        explanation: "Art. 4: The obligation of an accounting organization manual only applies to companies whose turnover exceeds 10,000,000 DH."
+    },
+    {
+        question: "According to Article 5, when must Dr. Touzani carry out the inventory of his assets and liabilities?",
+        options: [
+            "At the end of each semester",
+            "At least once per financial year, at its end",
+            "Only when selling his practice",
+            "Only upon request of the tax administration"
+        ],
+        correct: 1,
+        explanation: "Art. 5: Inventory must be carried out at least once per financial year, at its end."
+    },
+    {
+        question: "Dr. Afif purchases a CBCT scanner for his practice. According to Article 14, at what value must he record it?",
+        options: [
+            "At its estimated replacement value",
+            "At its acquisition cost, including incidental expenses",
+            "At its resale value on the second-hand market",
+            "At the supplier's catalog price excluding tax"
+        ],
+        correct: 1,
+        explanation: "Art. 14, para. 1: Assets acquired for valuable consideration are recorded at their acquisition cost (purchase price + incidental expenses)."
+    },
+    {
+        question: "Dr. Touzani wishes to value his stock of dental consumables. According to Article 14, which methods can he use?",
+        options: [
+            "Only the selling price method",
+            "The average acquisition cost or the FIFO method",
+            "The LIFO method only",
+            "The last known purchase price method"
+        ],
+        correct: 1,
+        explanation: "Art. 14, para. 9: Fungible goods are valued either at their average acquisition cost or according to the FIFO principle (first in, first out)."
+    },
+    {
+        question: "Dr. Afif (turnover ≤ 2M DH) can he benefit from a simplified method to value his inventory?",
+        options: [
+            "Yes, by estimating the purchase cost or based on the selling price with a discount",
+            "No, simplified valuation is not permitted by law",
+            "Yes, but only for prosthetic inventory",
+            "No, only companies can use simplified methods"
+        ],
+        correct: 0,
+        explanation: "Art. 14, last para., 1st bullet: Small traders may carry out a simplified valuation of inventory by estimating the purchase cost or based on the selling price with a discount."
+    },
+    {
+        question: "Dr. Touzani carries out a revaluation of his fixed assets. According to Article 14, how must he treat the revaluation surplus?",
+        options: [
+            "He may use it to offset the year's losses",
+            "He must record it separately in the liabilities side of the balance sheet",
+            "He must record it as exceptional income",
+            "He must submit it for approval by the Order of Dentists"
+        ],
+        correct: 1,
+        explanation: "Art. 14, para. 8: The revaluation surplus cannot be used to offset losses; it is recorded separately in the liabilities side of the balance sheet."
+    },
+    {
+        question: "According to Article 9, when must a dental practice constituted as a company prepare its financial statements?",
+        options: [
+            "Upon request of the tax administration",
+            "At the close of each financial year, based on accounting records and inventory",
+            "Every two years for liberal professions",
+            "Only when amending the articles of association"
+        ],
+        correct: 1,
+        explanation: "Art. 9: Financial statements are prepared at the close of the financial year based on accounting records and inventory."
+    },
+    {
+        question: "Dr. Afif finds that applying accounting rules does not give a true and fair view of his situation. What does Article 19 provide?",
+        options: [
+            "He may derogate from the rules by justifying it in the supplementary information statement",
+            "He must strictly follow the rules without any exception possible",
+            "He must refer the matter to the court of first instance",
+            "He may modify his presentation without justification"
+        ],
+        correct: 0,
+        explanation: "Art. 19: Due to specific situations, derogation from prescriptions is allowed if they do not give a true and fair view, provided it is mentioned and justified in the supplementary information statement."
+    },
+    {
+        question: "Dr. Touzani wishes to change the closing date of his financial year. What does Article 19 require of him?",
+        options: [
+            "Prior authorization from the court clerk",
+            "Simple notification to his chartered accountant",
+            "Justification in the supplementary information statement",
+            "Approval from the National Order of Dentists"
+        ],
+        correct: 2,
+        explanation: "Art. 19, last para.: The change of the closing date must be duly justified in the supplementary information statement."
+    },
+    {
+        question: "Dr. Afif's practice (turnover 9 million DH) is exempt from which financial statements according to Article 21?",
+        options: [
+            "The balance sheet and income statement",
+            "The management balance sheet, financing table and supplementary information statement",
+            "Only the financing table",
+            "Only the supplementary information statement"
+        ],
+        correct: 1,
+        explanation: "Art. 21: Companies whose turnover is less than or equal to 10,000,000 DH are exempt from the management balance sheet, financing table and supplementary information statement."
+    },
+    {
+        question: "Dr. Touzani (turnover 1.8 million DH) can he use the simplified balance sheet and income statement model according to Article 21?",
+        options: [
+            "No, the simplified model is not provided for by law",
+            "Yes, because his turnover is less than 10 million DH",
+            "Yes, but only for the balance sheet, not the income statement",
+            "No, because dentists are excluded from the benefit of the simplified model"
+        ],
+        correct: 1,
+        explanation: "Art. 21, para. 2: The persons referred to in the previous paragraph are authorized to adopt the accounting framework according to the simplified model annexed to the law."
+    },
+    {
+        question: "According to Article 22, must Dr. Afif keep his supporting documents in national currency?",
+        options: [
+            "No, he may keep them in euros",
+            "Yes, all accounting documents are prepared in national currency",
+            "Yes, but only for invoices exceeding 1,000 DH",
+            "No, the law does not specify the currency of documents"
+        ],
+        correct: 1,
+        explanation: "Art. 22, para. 1: Accounting documents are prepared in national currency."
+    },
+    {
+        question: "According to Article 22, how long must Dr. Touzani keep his purchase invoices for dental equipment?",
+        options: [
+            "5 years",
+            "10 years",
+            "15 years",
+            "Until cessation of activity"
+        ],
+        correct: 1,
+        explanation: "Art. 22, para. 2: Accounting documents and supporting documents must be kept for ten years."
+    },
+    {
+        question: "If the tax administration considers that Dr. Afif's accounting is irregular, what can it do according to Article 23?",
+        options: [
+            "It may reject the accounting and proceed to a reassessment",
+            "It must accept it if taxes have been paid",
+            "It may impose a suspension of activity",
+            "It must refer the matter to the National Order of Dentists"
+        ],
+        correct: 0,
+        explanation: "Art. 23: The tax administration may reject accounting records that are not kept in the forms prescribed by law."
+    },
+    {
+        question: "Dr. Touzani entrusts his accounting to a chartered accountant. According to Article 24, what does the law require of them?",
+        options: [
+            "He must comply with a specific specification for dentists",
+            "He is required to comply with the provisions of Law 9-88",
+            "He must obtain special approval from the Ministry of Health",
+            "He may apply international IFRS standards"
+        ],
+        correct: 1,
+        explanation: "Art. 24: Chartered accountants and approved accountants are required to comply with the provisions of Law 9-88 for the bookkeeping of the companies they are responsible for."
+    },
+    {
+        question: "According to Article 10, what does the management balance sheet that a dental practice must prepare describe?",
+        options: [
+            "The formation of net income and that of self-financing",
+            "Available cash at the end of the financial year",
+            "The number of patients treated per month",
+            "The amount of prosthetic fees billed"
+        ],
+        correct: 0,
+        explanation: "Art. 10, para. 3: The management balance sheet describes the formation of net income and that of self-financing."
+    },
+    {
+        question: "Dr. Afif (SCP, turnover 12 million DH) must prepare an accounting organization manual. According to Article 4, what is the purpose of this manual?",
+        options: [
+            "To describe the accounting organization of the company",
+            "To list the practice's approved suppliers",
+            "To detail the medical procedures performed",
+            "To present the fees charged by the practice"
+        ],
+        correct: 0,
+        explanation: "Art. 4: The manual aims to describe the accounting organization of the company."
+    },
+    {
+        question: "Dr. Touzani finds that several of his patients have not paid their fees. According to Article 16, how should he treat these doubtful receivables?",
+        options: [
+            "He must maintain them at their nominal value without provision",
+            "He must take into account the risks and set up provisions if necessary",
+            "He may simply write them off",
+            "He must declare them to the Order of Dentists"
+        ],
+        correct: 1,
+        explanation: "Art. 16: Account must be taken of risks and charges arising during the financial year. Doubtful receivables must be subject to impairment provisions."
+    }
+];
+
+    // ============================================
+    // =========== SCORE MAX CORRIGÉ =============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10; // 250 points (sans bonus)
+    const MAX_SCORE_WITH_BONUS = questions.length * 15; // 375 points (avec bonus)
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("compta_fiscalite_v1_debutant2_en", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== UNLOCK INTERMEDIATE LEVEL 1 ====
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("compta_fiscalite_v1_intermediaire1_en_unlocked", "true");
+            localStorage.setItem("compta_fiscalite_v1_debutant2_en_score", percentage.toFixed(1));
+            console.log("✅ Intermediate Level 1 UNLOCKED! Score: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("compta_fiscalite_v1_intermediaire1_en_unlocked", "false");
+            console.log("❌ Intermediate Level 1 LOCKED. Score: " + percentage.toFixed(1) + "% (min " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 SAUVEGARDER LA VALIDATION POUR PROGRESSION.HTML (CORRIGÉ)
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            // 1. Sauvegarder dans eteo_validation
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            // 2. 🔥 AJOUT : Sauvegarder dans eteo_progression
+            const progressionData = JSON.parse(localStorage.getItem('eteo_progression') || '{}');
+            const key = specialite + '_' + niveau;
+            progressionData[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progressionData));
+            
+            console.log('✅ Validation sauvegardée pour progression.html');
+        }
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("Time's up! Moving to next question.", "en-US");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Question ${currentQuestion + 1}: ${questions[currentQuestion].question}`, "en-US");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>💰 Accounting & Taxation - Beginner Level 2</h1><p>Question ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explanation:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Time left: <span id="timer">${timeLeft}</span> seconds</div>
+                <div class="score">🏆 Current score: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandon</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Next →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`Correct! +${pointsEarned} points.`, "en-US");
+        } else {
+            speak(`Wrong answer. The correct answer was: ${shuffledOptions[currentCorrectIndex]}.`, "en-US");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Correct answer: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Current score: ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Please select an answer.", "en-US"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 20;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVIGATION =====================
+    // ============================================
+    
+    function goToMenu() {
+        // 🔥 AVEC TIMESTAMP POUR EVITER LE CACHE
+        window.location.href = "menu_en.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz CORRIGÉ ================
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        // === VERSION BETA : Le niveau suivant est verrouillé ===
+        // Le déblocage du niveau Intermédiaire 1 est désactivé en BETA.
+        // Les utilisateurs pourront débloquer les niveaux supérieurs dans la version finale (6 mois).
+        // const isUnlocked = unlockLevel3(percentage); // DÉSACTIVÉ EN BETA
+        const isUnlocked = false; // Toujours false en BETA pour les niveaux > Débutant 2
+        // =================================
+        
+        // 🔥 Sauvegarder la validation pour progression.html - NOM CORRIGÉ
+        sauvegarderValidation('Accounting & Taxation', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Quiz completed!</h1>
+                <div class="final-score">Score: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Percentage: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${percentage >= 60 ?
+                        `<div class="unlock-badge">✅ Beginner Level 2 validated! 🎊</div>
+                         <div class="locked-badge">🔒 BETA: The next levels (Intermediate & Expert) will arrive after 6 months of evaluation.</div>` :
+                        `<div class="locked-badge">⚠️ Insufficient score (minimum 60% required to validate the level)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${percentage >= 60 ?
+                        '📚 You have validated both Beginner levels. Thank you for your participation!' :
+                        `💪 You need ${(60 - percentage).toFixed(1)}% more to validate the level. Try again!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Share my score</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Give feedback</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Main menu</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 World ranking</button>
+                </div>
+            </div>
+        `;
+        
+        if (percentage >= 60) {
+            speak(`Congratulations! You validated Beginner Level 2 with a score of ${percentage.toFixed(1)}%. The rest will be available in the final version.`, "en-US");
+            
+            // Popup BETA après 2 secondes
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Your score is ${percentage.toFixed(1)}%. You need 60% to validate the level.`, "en-US");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== POPUP RANKING MODAL ============
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No scores recorded for this level yet.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Your ranking</div>
+                        <div class="rank-number">${userRank}e position</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} points (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 You are not yet in the ranking for this level</div>
+                        <div>Take the quiz to appear!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Accounting & Taxation Beginner 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anonymous"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No scores for this level</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Firestore error:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Unable to load ranking.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Unknown error'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== BETA EVALUATION POPUP ==========
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 30px; width: 90%; max-width: 500px; padding: 35px 25px; text-align: center; animation: slideUp 0.3s ease; position: relative;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉🏆🎉</div>
+                <h2 style="color: #667eea; margin-bottom: 5px;">Congratulations ${userName}!</h2>
+                <p style="margin-bottom: 20px; font-size: 1rem;">
+                    You have successfully completed <strong>both Beginner levels</strong>.<br>
+                    What an impressive journey!
+                </p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Rate the BETA version 🌟</p>
+                    <div id="starRating" style="display: flex; justify-content: center; gap: 12px; font-size: 3rem; cursor: pointer;">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p id="ratingMessage" style="margin-top: 10px; font-size: 0.85rem; color: #888;"></p>
+                </div>
+                
+                <div style="background: #f0f8ff; padding: 15px; border-radius: 20px; margin: 15px 0; border-left: 4px solid #667eea;">
+                    <p style="color: #ff5722; font-size: 0.95rem; margin: 0;">
+                        🚀 <strong>Intermediate & Expert</strong> will arrive after <strong>6 months of evaluation</strong> of this Beta version.<br><br>
+                        Your feedback helps us improve ETEO. Thank you for your trust, <strong>${userName}</strong>!
+                    </p>
+                </div>
+                
+                <button onclick="closeBetaPopup()" style="background: #4caf50; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 15px;">
+                    Back to menu
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ Thank you for your rating! Your feedback has been recorded.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'en',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Beta evaluation sent!");
+        } catch (error) {
+            console.error("❌ Beta evaluation error:", error);
+        }
+    }
+
+    // ============================================
+    // =========== OTHER FUNCTIONS ================
+    // ============================================
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("compta_fiscalite_v1_debutant2_en", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        // BETA : le niveau suivant est verrouillé
+        // unlockLevel3(partialPercentage); // Désactivé en BETA
+
+        // 🔥 Sauvegarder la validation même en cas d'abandon - NOM CORRIGÉ
+        sauvegarderValidation('Accounting & Taxation', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Quiz abandoned</h1><div class="final-score">Partial score: ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Percentage: ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 This score has been recorded in the ranking.</div><button class="menu-btn" onclick="goToMenu()">🏠 Back to menu</button></div>`;
+        speak(`Quiz abandoned. Partial score: ${score} out of ${MAX_SCORE_WITH_BONUS}.`, "en-US");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Accounting & Taxation Beginner 2\nMy score: ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\nChallenge me on ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Score copied to clipboard!");
+            }).catch(() => {
+                alert("📋 To share, copy this text:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    document.body.addEventListener('click', function firstClick() { 
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
