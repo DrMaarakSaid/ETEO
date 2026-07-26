@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Code de déontologie - Débutant 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT DU PLUGIN VOIX ========== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        window.TextToSpeech = TextToSpeech;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        console.log('✅ Plugin TextToSpeech chargé !');
+        console.log('📱 Mode mobile :', window.isMobile);
+    </script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .unlock-badge {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .locked-badge {
+            background: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        /* ===== STYLES VOCAUX AJOUTÉS ===== */
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+        
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #888;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        /* ===== FIN STYLES VOCAUX ===== */
+        
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== INDICATEUR VOCAL MODIFIÉ ===== -->
+<div class="voice-indicator inactive" id="voiceIndicator">🔇 IA inactive</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de classement -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 VOTRE POSITION</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Chargement du classement...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Fermer</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURATION FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID POUR CE QUIZ
+    // ============================================
+    const LEVEL_ID = "code_deontologie_v1_debutant2_fr";
+
+    // ============================================
+    // =========== 1. SYSTÈME VOCAL AVANCÉ =======
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+
+    // ============================================
+    // 🔥 FONCTION : RÉACTIVER TOUS LES BOUTONS
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Réactivation de tous les boutons");
+        
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Lire la question';
+            console.log("✅ voiceQuestionBtn réactivé");
+        }
+        
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Réécouter le retour';
+            console.log("✅ voiceFeedbackBtn réactivé");
+        }
+        
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Lire l\'explication';
+            console.log("✅ voiceExplanationBtn réactivé");
+        }
+        
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Écouter votre résultat';
+            console.log("✅ voiceResultBtn réactivé");
+        }
+        
+        isSpeaking = false;
+        updateVoiceIndicator('active');
+        console.log("✅ Tous les boutons vocaux sont ACTIFS !");
+    }
+
+    // ============================================
+    // 🔥 FONCTION : ARRÊTER LA PAROLE
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() appelé");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Arrêt Android exécuté");
+            }
+        } catch(e) { console.log("⚠️ Erreur arrêt Android:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Arrêt Web Speech exécuté");
+            }
+        } catch(e) { console.log("⚠️ Erreur arrêt Web Speech:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking réinitialisé à false");
+        
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 FONCTION : FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() appelé");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech non disponible");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'fr-FR';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const frenchVoice = voices.find(v => v.lang.startsWith('fr'));
+            if (frenchVoice) utterance.voice = frenchVoice;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Callback Web Speech exécuté");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech terminé (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Erreur Web Speech:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Forçage du callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Erreur dans fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FONCTION : PARLER (avec Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() appelé avec:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Texte vide, callback immédiat");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() exécuté");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Utilisation du plugin Capacitor TTS sur Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'fr-FR', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS terminé");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Erreur Capacitor TTS:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback vers Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Forçage du callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Utilisation de Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+            } else {
+                console.error("❌ Aucun moteur TTS disponible");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERREUR dans speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ACTIVATION DE LA VOIX
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() appelé");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            if (isAndroid) {
+                if (window.Capacitor?.Plugins?.TextToSpeech) {
+                    console.log("✅ Capacitor TTS disponible sur Android");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    updateVoiceIndicator('active');
+                } else {
+                    console.warn("⚠️ Capacitor TTS non trouvé sur Android");
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback vers Web Speech");
+                        voiceReady = true;
+                        voiceActivated = true;
+                        window.speechSynthesis.getVoices();
+                        updateVoiceIndicator('active');
+                    }
+                }
+            } else {
+                if (window.speechSynthesis) {
+                    console.log("✅ Web Speech disponible sur PC");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    window.speechSynthesis.getVoices();
+                    updateVoiceIndicator('active');
+                }
+            }
+            console.log("✅ Voix activée, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Voix déjà activée");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        if (indicator) {
+            if (status === 'active') {
+                indicator.textContent = '🎙️ IA active';
+                indicator.className = 'voice-indicator active';
+            } else if (status === 'speaking') {
+                indicator.textContent = '🎙️ Parle...';
+                indicator.className = 'voice-indicator speaking';
+            } else {
+                indicator.textContent = '🔇 IA inactive';
+                indicator.className = 'voice-indicator inactive';
+            }
+        }
+    }
+
+    // ============================================
+    // =========== FONCTIONS VOCALES ==============
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() appelé");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Question ${currentQuestion + 1} sur ${questions.length}: ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture...';
+            console.log("🔇 voiceQuestionBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakQuestionOnly() terminé");
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() appelé");
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `Bonne réponse ! C'est la bonne réponse ! +${lastPointsEarned} points.`;
+        } else {
+            text = `Désolé, ce n'est pas la bonne réponse. La bonne réponse était : ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture...';
+            console.log("🔇 voiceFeedbackBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakFeedback() terminé");
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() appelé");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Explication : ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture...';
+            console.log("🔇 voiceExplanationBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakExplanation() terminé");
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() appelé");
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Votre score final est de ${score} sur ${MAX_SCORE}, ce qui fait ${percentage.toFixed(1)} pourcent. `;
+        if (isUnlocked) {
+            text += "Félicitations ! Vous avez validé le niveau Débutant 2. Bravo !";
+        } else {
+            text += `Il vous manque ${(60 - percentage).toFixed(1)} pourcent pour valider le niveau. Continuez à vous entraîner !`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture...';
+            console.log("🔇 voiceResultBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakFinalResult() terminé");
+        });
+    }
+
+    // ============================================
+    // =========== ATTACHER LES ÉVÉNEMENTS ========
+    // ============================================
+    function attachVoiceEvents() {
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Événement attaché pour voiceQuestionBtn");
+        }
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Événement attaché pour voiceExplanationBtn");
+        }
+    }
+
+    // ============================================
+    // =========== 2. INFOS UTILISATEUR ==========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "MA"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anonyme" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    // ============================================
+    // =========== UNLOCK LEVEL 3 (BETA DISABLED) =
+    // ============================================
+    function unlockLevel3(percentage) {
+        // ⚠️ VERSION BETA : Le niveau suivant est verrouillé
+        // Les utilisateurs pourront débloquer les niveaux supérieurs dans la version finale (6 mois).
+        return false; // Toujours false en BETA pour les niveaux > Débutant 2
+    }
+
+    // ================================================================
+    // 🔥 SAUVEGARDER LA VALIDATION POUR PROGRESSION.HTML (CORRIGÉ)
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            // 1. Sauvegarder dans eteo_validation
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            // 2. 🔥 AJOUT : Sauvegarder dans eteo_progression
+            const progressionData = JSON.parse(localStorage.getItem('eteo_progression') || '{}');
+            const key = specialite + '_' + niveau;
+            progressionData[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progressionData));
+            
+            console.log('✅ Validation sauvegardée pour progression.html');
+        }
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen" style="text-align:center">
+                <div class="header"><h1>⚖️ Code de déontologie - Débutant 2</h1><p>Bienvenue Docteur !</p></div>
+                <div class="input-group" style="margin-bottom:20px; text-align:left">
+                    <label>👤 Votre nom (optionnel) :</label>
+                    <input type="text" id="userName" placeholder="Ex: Dr. Martin" value="${getUserName()}" style="width:100%; padding:12px; border-radius:10px">
+                </div>
+                <div class="input-group" style="margin-bottom:20px; text-align:left">
+                    <label>🌍 Votre pays (obligatoire) :</label>
+                    <select id="userCountry" style="width:100%; padding:12px; border-radius:10px">
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="MA" selected>🇲🇦 Maroc</option>
+                        <option value="CH">🇨🇭 Suisse</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="BE">🇧🇪 Belgique</option>
+                        <option value="SN">🇸🇳 Sénégal</option>
+                        <option value="CI">🇨🇮 Côte d'Ivoire</option>
+                        <option value="CM">🇨🇲 Cameroun</option>
+                        <option value="DZ">🇩🇿 Algérie</option>
+                        <option value="TN">🇹🇳 Tunisie</option>
+                        <option value="US">🇺🇸 États-Unis</option>
+                        <option value="GB">🇬🇧 Royaume-Uni</option>
+                        <option value="DE">🇩🇪 Allemagne</option>
+                        <option value="ES">🇪🇸 Espagne</option>
+                        <option value="IT">🇮🇹 Italie</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turquie</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">ou</div>
+                    <input type="text" id="otherCountry" placeholder="Entrez votre pays (ex: Brésil, Japon...)" style="width:100%; padding:12px; border-radius:10px; margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()" style="background:#4caf50; color:white; border:none; padding:12px 25px; border-radius:30px; cursor:pointer">🚀 Commencer le quiz</button>
+                <div class="note" style="margin-top:15px">⚠️ Règle : 60% minimum (225/375 points) pour valider le niveau.<br>🎁 Bonus de rapidité : +5 points si vous répondez avant la fin du minuteur.</div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ENVOI SCORE FIREBASE =======
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonyme";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score envoyé à Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Erreur Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. QUESTIONS (25) =============
+    // ============================================
+   const questions = [
+    {
+        question: "Le Dr Mourad, jeune diplômé, souhaite associer son cabinet avec un confrère. Selon l'article 59 du Code de déontologie, quelle est la condition préalable à tout contrat d'association ?",
+        options: [
+            "Un accord verbal entre les associés",
+            "Un contrat écrit respectant l'indépendance professionnelle de chaque praticien",
+            "Une simple déclaration au conseil de l'ordre",
+            "Un accord avec le propriétaire du local"
+        ],
+        correct: 1,
+        explanation: "L'article 59 stipule qu'il ne peut y avoir d'exercice conjoint de la profession sans contrat écrit qui doit respecter l'indépendance professionnelle de chaque médecin-dentiste."
+    },
+    {
+        question: "Le Dr Manal, dentiste expérimentée, est sollicitée par le Dr Mourad pour un avis sur son projet d'association. Selon l'article 59, quel organe doit vérifier la conformité du contrat d'association ?",
+        options: [
+            "Le tribunal de commerce",
+            "Le conseil national de l'ordre",
+            "Le ministère de la Santé",
+            "Le secrétariat général du gouvernement"
+        ],
+        correct: 1,
+        explanation: "L'article 59 prévoit que les projets de contrats d'association doivent être soumis au conseil national de l'ordre qui vérifie leur conformité avec les principes du code."
+    },
+    {
+        question: "Selon l'article 38, le Dr Mourad est approché par une mutuelle pour une convention d'exercice en cabinet. Quelle est sa première démarche obligatoire ?",
+        options: [
+            "Signer la convention immédiatement",
+            "Soumettre le projet de convention à l'avis préalable du conseil national de l'ordre",
+            "Demander l'accord du conseil régional",
+            "Envoyer la convention au ministère de la Santé"
+        ],
+        correct: 1,
+        explanation: "L'article 38 précise que tout projet de convention avec une mutuelle ou institution de droit privé doit être préalablement soumis pour avis au conseil national de l'ordre."
+    },
+    {
+        question: "Le Dr Manal est appelée en tant que médecin-dentiste expert dans une affaire judiciaire. Selon l'article 47, que doit-elle faire si les questions posées sont étrangères à la technique proprement médicale ?",
+        options: [
+            "Répondre quand même aux questions",
+            "Se récuser",
+            "Demander un délai pour se renseigner",
+            "Consulter un confrère spécialiste"
+        ],
+        correct: 1,
+        explanation: "L'article 47 impose au médecin-dentiste expert de se récuser s'il estime que les questions qui lui sont posées sont étrangères à la technique proprement médicale."
+    },
+    {
+        question: "Selon l'article 47, dans la rédaction de son rapport d'expertise, le Dr Manal ne doit révéler que :",
+        options: [
+            "Tous les éléments qu'elle a appris",
+            "Les éléments de nature à fournir les réponses aux questions posées",
+            "Un résumé succinct de l'affaire",
+            "Son opinion personnelle sur le patient"
+        ],
+        correct: 1,
+        explanation: "L'article 47 précise que le médecin-dentiste expert ne doit révéler que les éléments de nature à fournir les réponses aux questions posées dans la décision qui l'a nommée."
+    },
+    {
+        question: "Le Dr Mourad est consulté par un patient qui est déjà en traitement chez un confrère. Selon l'article 53, quelle est la première attitude recommandée ?",
+        options: [
+            "Accepter le patient immédiatement",
+            "Proposer au malade une consultation commune avec le premier praticien",
+            "Prendre le patient en charge sans prévenir le confrère",
+            "Refuser le patient"
+        ],
+        correct: 1,
+        explanation: "L'article 53 prévoit que si le malade, sans renoncer aux soins du premier médecin-dentiste, demande un simple avis, le second praticien doit d'abord proposer au malade une consultation commune."
+    },
+    {
+        question: "Selon l'article 53, si le patient fait appel à un second dentiste en l'absence de son dentiste habituel, quelles sont les obligations du second ?",
+        options: [
+            "Ne pas toucher au patient",
+            "Assurer les soins nécessaires pendant l'absence et informer le confrère à son retour",
+            "Prendre définitivement le patient en charge",
+            "Refuser le patient"
+        ],
+        correct: 1,
+        explanation: "L'article 53 précise que le second médecin-dentiste peut assurer les soins nécessaires pendant l'absence et doit donner à son confrère, dès son retour, toutes les informations qu'il juge utiles."
+    },
+    {
+        question: "Le Dr Manal, en tant que dentiste consultant, reçoit un patient envoyé par un confrère pour un avis. Selon l'article 56, peut-elle poursuivre les soins après sa consultation ?",
+        options: [
+            "Oui, c'est son droit",
+            "Non, sauf à la demande expresse du patient",
+            "Oui, si elle juge les soins du confrère insuffisants",
+            "Oui, avec l'accord du confrère"
+        ],
+        correct: 1,
+        explanation: "L'article 56 stipule que le médecin-dentiste consultant ne doit pas, sauf à la demande expresse du patient, poursuivre les soins exigés par l'état de ce dernier lorsque ces soins sont de la compétence du médecin-dentiste traitant."
+    },
+    {
+        question: "Selon l'article 57, en cas de divergence de vue importante entre le Dr Mourad (traitant) et le consultant, que peut faire le Dr Mourad ?",
+        options: [
+            "Imposer son traitement",
+            "Décliner toute responsabilité et refuser d'appliquer le traitement préconisé",
+            "Suivre aveuglément l'avis du consultant",
+            "Abandonner immédiatement le patient"
+        ],
+        correct: 1,
+        explanation: "L'article 57 prévoit qu'en cas de divergence de vue importante et irréductible, le médecin-dentiste traitant est en droit de décliner toute responsabilité et de refuser d'appliquer le traitement préconisé par le consultant."
+    },
+    {
+        question: "Le Dr Mourad est sollicité pour remplacer un confrère. Selon l'article 63, quelles sont ses obligations concernant les feuilles d'assurance maladie ?",
+        options: [
+            "Les signer au nom du confrère remplacé",
+            "Les signer obligatoirement lui-même",
+            "Utiliser le cachet du confrère",
+            "Ne pas les signer"
+        ],
+        correct: 1,
+        explanation: "L'article 63 dispose que le remplaçant doit signer obligatoirement lui-même les feuilles d'assurance maladie des patients qu'il soigne."
+    },
+    {
+        question: "Selon l'article 63, un étudiant remplaçant doit-il avoir un cachet pour exercer son remplacement ?",
+        options: [
+            "Oui, c'est obligatoire",
+            "Non, on ne peut lui faire obligation d'avoir un cachet",
+            "Oui, s'il est en dernière année",
+            "Non, s'il est remplaçant d'un confrère du secteur privé"
+        ],
+        correct: 1,
+        explanation: "L'article 63 précise qu'on ne peut faire obligation à l'étudiant remplaçant d'avoir un cachet, mais il est tenu de mentionner son nom suivi de 'le remplaçant'."
+    },
+    {
+        question: "Le Dr Manal constate une infraction au code de déontologie par un confrère. Selon l'article 64, dans quel délai une demande de réformation ou d'annulation doit-elle être présentée ?",
+        options: [
+            "1 mois",
+            "2 mois",
+            "3 mois",
+            "6 mois"
+        ],
+        correct: 1,
+        explanation: "L'article 64 prévoit que la demande de réformation ou d'annulation doit être présentée devant le conseil supérieur de l'ordre dans les deux mois de la notification de la décision."
+    },
+    {
+        question: "Selon l'article 65, quelle est l'obligation du Dr Mourad lors de son inscription au tableau de l'ordre ?",
+        options: [
+            "Payer une cotisation annuelle",
+            "Affirmer avoir eu connaissance du code et s'engager par serment à le respecter",
+            "Présenter ses diplômes originaux",
+            "Fournir un certificat de stage"
+        ],
+        correct: 1,
+        explanation: "L'article 65 impose à tout médecin-dentiste, lors de son inscription au tableau, d'affirmer qu'il a eu connaissance du code et s'engage, sous serment et par écrit, à le respecter."
+    },
+    {
+        question: "Selon l'article 65, le Dr Manal doit-elle informer le conseil national de l'ordre en cas de modification de sa situation professionnelle ?",
+        options: [
+            "Non, ce n'est pas nécessaire",
+            "Oui, elle doit informer le conseil national de toute modification",
+            "Oui, mais seulement en cas de changement de cabinet",
+            "Non, seule l'installation initiale est concernée"
+        ],
+        correct: 1,
+        explanation: "L'article 65 précise que le médecin-dentiste doit informer le conseil national de l'ordre de toute modification survenant dans sa situation professionnelle."
+    },
+    {
+        question: "Le Dr Mourad, nouveau dentiste, souhaite faire une communication sur l'ouverture de son cabinet. Selon l'article 14, qui doit apprécier la fréquence, la rédaction et la présentation de cette communication ?",
+        options: [
+            "Le conseil régional de l'ordre",
+            "Le conseil supérieur de l'ordre",
+            "Le ministère de la Santé",
+            "La Chambre de commerce"
+        ],
+        correct: 1,
+        explanation: "L'article 14 prévoit que les communiqués concernant l'ouverture, la fermeture ou le transfert de cabinet sont obligatoirement soumis à l'agrément préalable du conseil supérieur de l'ordre qui apprécie leur fréquence, leur rédaction et leur présentation."
+    },
+    {
+        question: "Selon l'article 38, quel est le rôle du conseil national de l'ordre dans la conclusion des conventions avec les organismes de droit privé ?",
+        options: [
+            "Il signe la convention à la place du dentiste",
+            "Il vérifie la conformité de la convention avec les prescriptions du code",
+            "Il impose ses propres clauses",
+            "Il refuse toute convention individuelle"
+        ],
+        correct: 1,
+        explanation: "L'article 38 précise que le conseil national de l'ordre vérifie la conformité des conventions avec les prescriptions du code de déontologie."
+    },
+    {
+        question: "Le Dr Manal est consultée par un patient gravement malade. Selon l'article 29, comment doit-elle aborder la question du pronostic fatal ?",
+        options: [
+            "Le révéler immédiatement au patient",
+            "Le révéler avec la plus grande circonspection au patient et en prévenir généralement les proches",
+            "Le cacher totalement au patient",
+            "Le révéler uniquement aux proches"
+        ],
+        correct: 1,
+        explanation: "L'article 29 dispose qu'un pronostic fatal ne doit être révélé au patient qu'avec la plus grande circonspection, mais les proches doivent généralement en être prévenus, à moins que le patient n'ait interdit cette révélation."
+    },
+    {
+        question: "Selon l'article 29, que doit faire le Dr Mourad si le patient a préalablement interdit la révélation du pronostic à ses proches ?",
+        options: [
+            "Ignorer l'interdiction du patient",
+            "Respecter l'interdiction du patient",
+            "Informer uniquement les proches",
+            "Ne pas informer le patient non plus"
+        ],
+        correct: 1,
+        explanation: "L'article 29 prévoit que les proches doivent généralement être prévenus, à moins que le patient n'ait préalablement interdit cette révélation."
+    },
+    {
+        question: "Selon l'article 40, le Dr Mourad, qui assure une consultation publique de dépistage, doit-il donner des soins aux patients qu'il dépiste ?",
+        options: [
+            "Oui, il doit donner des soins gratuitement",
+            "Non, il doit renvoyer le patient à un médecin-dentiste traitant",
+            "Oui, s'il s'agit d'une urgence",
+            "Oui, si le patient le demande"
+        ],
+        correct: 1,
+        explanation: "L'article 40 précise qu'un dentiste qui assure une consultation publique de dépistage n'a pas le droit d'y donner des soins. Il doit renvoyer la personne reconnue malade à un médecin-dentiste traitant."
+    },
+    {
+        question: "Selon l'article 41, un dentiste peut-il être à la fois médecin-dentiste exerçant un contrôle et médecin-dentiste traitant pour les mêmes patients ?",
+        options: [
+            "Oui, c'est autorisé",
+            "Non, sauf cas d'urgence",
+            "Oui, avec l'accord du patient",
+            "Oui, s'il s'agit d'une petite structure"
+        ],
+        correct: 1,
+        explanation: "L'article 41 stipule que nul ne peut être à la fois, sauf cas d'urgence, médecin-dentiste exerçant un contrôle et médecin-dentiste traitant à l'égard des adhérents d'une même collectivité."
+    },
+    {
+        question: "Selon l'article 42, le Dr Manal, en tant que médecin-dentiste exerçant un contrôle, que doit-elle faire si elle est en désaccord avec le traitement de son confrère ?",
+        options: [
+            "Informer immédiatement le patient",
+            "Signaler confidentiellement et confraternellement son désaccord à son confrère",
+            "Modifier le traitement sans prévenir",
+            "Rédiger un rapport au conseil de l'ordre"
+        ],
+        correct: 1,
+        explanation: "L'article 42 précise que si le médecin-dentiste exerçant un contrôle se trouve en désaccord avec son confrère, il doit le lui signaler confidentiellement et confraternellement."
+    },
+    {
+        question: "Selon l'article 43, comment le dentiste exerçant un contrôle doit-il se présenter au patient ?",
+        options: [
+            "Se présenter comme un simple dentiste",
+            "Faire connaître qu'il examine le patient en tant que médecin-dentiste contrôleur",
+            "Ne pas se présenter",
+            "Se présenter comme un patient"
+        ],
+        correct: 1,
+        explanation: "L'article 43 impose au dentiste exerçant un contrôle de faire connaître au patient qu'il l'examine en tant que médecin-dentiste contrôleur."
+    },
+    {
+        question: "Selon l'article 44, quelle est la règle concernant les conclusions fournies par le dentiste contrôleur à l'administration ?",
+        options: [
+            "Elles doivent être d'ordre médical détaillé",
+            "Elles doivent être uniquement d'ordre administratif sans indiquer les raisons d'ordre médical",
+            "Elles doivent être confidentielles",
+            "Elles doivent être partagées avec le patient"
+        ],
+        correct: 1,
+        explanation: "L'article 44 précise que les conclusions fournies par le dentiste contrôleur à l'administration ne doivent être que d'ordre administratif sans indiquer les raisons d'ordre médical qui les motivent."
+    },
+    {
+        question: "Selon l'article 45, le Dr Mourad peut-il être à la fois médecin-dentiste-expert et médecin-dentiste traitant d'un même malade ?",
+        options: [
+            "Oui, c'est possible",
+            "Non, c'est interdit",
+            "Oui, avec l'accord du patient",
+            "Oui, si l'expertise est demandée par le patient"
+        ],
+        correct: 1,
+        explanation: "L'article 45 interdit formellement d'être à la fois médecin-dentiste-expert et médecin-dentiste traitant d'un même malade."
+    },
+    {
+        question: "Selon l'article 46, quelle est l'obligation du Dr Manal avant d'entreprendre une expertise ?",
+        options: [
+            "Demander une autorisation au conseil de l'ordre",
+            "Informer la personne qu'elle doit examiner de sa mission",
+            "Signer un contrat avec le patient",
+            "Obtenir un accord écrit du patient"
+        ],
+        correct: 1,
+        explanation: "L'article 46 impose au médecin-dentiste-expert d'informer, avant d'entreprendre toute opération d'expertise, la personne qu'il doit examiner de sa mission."
+    },
+    {
+        question: "Selon l'article 22, le Dr Mourad, qui a été élu conseiller municipal, peut-il utiliser cette fonction pour accroître sa clientèle ?",
+        options: [
+            "Oui, c'est un avantage légitime",
+            "Non, c'est interdit",
+            "Oui, si ses patients le lui demandent",
+            "Oui, s'il mentionne sa fonction sur ses plaques"
+        ],
+        correct: 1,
+        explanation: "L'article 22 interdit au médecin-dentiste qui remplit un mandat électif ou une fonction administrative d'en user pour accroître sa clientèle."
+    }
+];
+    // ============================================
+    // =========== CORRECTION CRUCIALE ============
+    // ============================================
+    const MAX_SCORE = questions.length * 15; // 375 points
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("code_deontologie_v1_debutant2_fr", JSON.stringify({ score: finalScore, maxScore, percentage, date: new Date().toISOString() }));
+        return percentage;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    // === MODIFICATION VOCALE ===
+                    speak("Temps écoulé ! Passage à la question suivante.", "fr-FR");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // === SUPPRIMÉ : speakCurrentQuestion() (remplacé par speakQuestionOnly) ===
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>⚖️ Code de déontologie - Débutant 2</h1><p>Question ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <!-- ===== BOUTON VOCAL QUESTION AJOUTÉ ===== -->
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Lire la question</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <!-- ===== FEEDBACK CONTAINER AJOUTÉ ===== -->
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explication :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    
+                    <!-- ===== BOUTON VOCAL EXPLICATION AJOUTÉ ===== -->
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Lire l'explication</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Temps restant : <span id="timer">${timeLeft}</span> secondes</div>
+                <div class="score">🏆 Score actuel : ${score}/${MAX_SCORE}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonner</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Suivant →</button>
+                </div>
+            </div>
+        `;
+        
+        // ===== ATTACHER LES ÉVÉNEMENTS VOCAUX =====
+        attachVoiceEvents();
+        
+        answerLocked = false;
+        startTimer();
+        
+        // ===== LECTURE AUTO DE LA QUESTION =====
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 1500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        // === MODIFICATION VOCALE ===
+        stopSpeaking();
+        
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        // === VARIABLES POUR LE FEEDBACK VOCAL ===
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        // ===== FEEDBACK CONTAINER DYNAMIQUE =====
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} points</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 point)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ Bonne réponse !' : '❌ Mauvaise réponse'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Réécouter le retour</button>
+                </div>
+            `;
+            
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Événement attaché pour voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Bonne réponse : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        // ===== AFFICHER LE BOUTON EXPLICATION =====
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Score actuel : ${score}/${MAX_SCORE}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        // ===== LECTURE AUTO DU FEEDBACK =====
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `Bonne réponse ! +${pointsEarned} points.`;
+        } else {
+            feedbackText = `Mauvaise réponse. La bonne réponse était : ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Lecture auto du feedback");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "fr-FR", function() {
+            console.log("✅ Auto-feedback terminé");
+        });
+    }
+
+    function nextQuestion() {
+        // === MODIFICATION VOCALE ===
+        if (!answerLocked) { 
+            speak("Veuillez sélectionner une réponse.", "fr-FR"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 20;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== POPUP CLASSEMENT MODAL ========
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anonyme";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 Aucun score enregistré pour ce niveau pour le moment.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Votre classement</div>
+                        <div class="rank-number">${userRank}e position</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} points (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Vous n'êtes pas encore dans le classement de ce niveau</div>
+                        <div>Refaites le quiz pour apparaître !</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Code de déontologie Débutant 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anonyme"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 Aucun score pour ce niveau</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Erreur Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Impossible de charger le classement.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Erreur inconnue'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== endQuiz CORRIGÉ ================
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const percentage = (score / MAX_SCORE) * 100;
+        saveScore(score, MAX_SCORE);
+        
+        // === VERSION BETA : Le niveau suivant est verrouillé ===
+        const isUnlocked = unlockLevel3(percentage); // Toujours false en BETA
+        
+        // 🔥 Sauvegarder la validation pour progression.html - NOM CORRIGÉ
+        sauvegarderValidation('Code_de_déontologie', 'debutant2', score, MAX_SCORE);
+        
+        sendScoreToFirebase(score, MAX_SCORE, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Quiz terminé !</h1>
+                <div class="final-score">Score : ${score}/${MAX_SCORE}</div>
+                <div>Pourcentage : ${percentage.toFixed(1)}%</div>
+                
+                <!-- ===== BOUTON VOCAL RÉSULTAT AJOUTÉ ===== -->
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Écouter votre résultat</button>
+                </div>
+                
+                <div style="margin:20px 0;">
+                    ${percentage >= 60 ?
+                        `<div class="unlock-badge">✅ Niveau Débutant 2 validé ! 🎊</div>
+                         <div class="locked-badge">🔒 BETA : La suite (Intermédiaire & Expert) arrivera après 6 mois d'évaluation.</div>` :
+                        `<div class="locked-badge">⚠️ Score insuffisant (minimum 60% requis pour valider le niveau)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${percentage >= 60 ?
+                        '📚 Vous avez validé les deux niveaux Débutants. Merci pour votre participation !' :
+                        `💪 Il vous manque ${(60 - percentage).toFixed(1)}% pour valider le niveau. Réessayez !`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Partager mon score</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Donner mon avis</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Menu principal</button>
+                    <button class="ranking-btn" onclick="openRankingModal()">🏆 Classement mondial</button>
+                </div>
+            </div>
+        `;
+        
+        // ===== ATTACHER ÉVÉNEMENT BOUTON RÉSULTAT =====
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Événement attaché pour voiceResultBtn");
+        }
+        
+        // ===== LECTURE AUTO DU RÉSULTAT =====
+        if (percentage >= 60) {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+            
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== BETA EVALUATION POPUP ==========
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        const userName = localStorage.getItem("eteo_userName") || "Docteur";
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:10002; animation:fadeIn 0.3s ease;`;
+        modal.innerHTML = `<div style="background:white; border-radius:30px; width:90%; max-width:500px; padding:35px 25px; text-align:center; animation:slideUp 0.3s ease;">
+            <div style="font-size:4rem;">🎉🏆🎉</div>
+            <h2 style="color:#667eea;">Félicitations ${userName} !</h2>
+            <p>Vous avez validé les deux niveaux Débutants avec succès.</p>
+            <div style="margin:25px 0;">
+                <p style="font-weight:bold;">🌟 Évaluez la version BETA 🌟</p>
+                <div id="starRating" style="display:flex; justify-content:center; gap:12px; font-size:3rem; cursor:pointer;">
+                    <span data-rating="1">☆</span><span data-rating="2">☆</span><span data-rating="3">☆</span><span data-rating="4">☆</span><span data-rating="5">☆</span>
+                </div>
+                <p id="ratingMessage" style="margin-top:10px; font-size:0.85rem; color:#888;"></p>
+            </div>
+            <div style="background:#f0f8ff; padding:15px; border-radius:20px;">
+                <p style="color:#ff5722;">🚀 La suite (Intermédiaire & Expert) arrivera après 6 mois d'évaluation.</p>
+            </div>
+            <button onclick="closeBetaPopup()" style="background:#4caf50; color:white; border:none; padding:12px 30px; border-radius:50px; cursor:pointer; margin-top:15px;">Retour au menu</button>
+        </div>`;
+        document.body.appendChild(modal);
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                stars.forEach((s, idx) => { s.innerHTML = idx < rating ? '★' : '☆'; s.style.color = idx < rating ? '#ffc107' : '#ccc'; });
+                document.getElementById('ratingMessage').innerHTML = '✅ Merci pour votre évaluation !';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonyme";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName, pays: userCountry, note: rating, langue: 'fr',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Évaluation BETA envoyée !");
+        } catch(error) { console.error("Erreur Beta:", error); }
+    }
+
+    // ============================================
+    // =========== ABANDON CORRIGÉ ================
+    // ============================================
+    function abandonQuiz() {
+        // === MODIFICATION VOCALE ===
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE) * 100;
+        localStorage.setItem("code_deontologie_v1_debutant2_fr", JSON.stringify({ score, maxScore: MAX_SCORE, percentage: partialPercentage, date: new Date().toISOString(), abandoned: true }));
+        
+        // 🔥 Sauvegarder la validation même en cas d'abandon - NOM CORRIGÉ
+        sauvegarderValidation('Code_de_déontologie', 'debutant2', score, MAX_SCORE);
+        
+        sendScoreToFirebase(score, MAX_SCORE, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Quiz abandonné</h1><div class="final-score">Score partiel : ${score}/${MAX_SCORE}</div><div>Pourcentage : ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 Ce score a été enregistré dans le classement.</div><button class="menu-btn" onclick="goToMenu()">🏠 Retour au menu</button></div>`;
+        speak(`Quiz abandonné. Score partiel : ${score} sur ${MAX_SCORE}.`, "fr-FR");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE) * 100;
+        const text = `🎓 ETEO - Code de déontologie\nMon score au niveau Débutant 2 : ${score}/${MAX_SCORE} (${percentage.toFixed(1)}%)\nDéfie-moi sur ETEO !`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Score copié dans le presse-papier !");
+            }).catch(() => {
+                alert("📋 Pour partager, copiez ce texte :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    // ============================================
+    // =========== goToMenu AVEC TIMESTAMP ========
+    // ============================================
+    function goToMenu() { 
+        window.location.href = "menu_fr.html?t=" + Date.now(); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        // === ACTIVATION DE LA VOIX ===
+        console.log("🔊 Activation de la voix...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Quiz démarré");
+    }
+
+    // ===== PREMIER CLIC POUR ACTIVER LA VOIX =====
+    document.body.addEventListener('click', function firstClick() { 
+        console.log("🖱️ Premier clic - Activation de la voix");
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
