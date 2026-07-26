@@ -1,12 +1,12 @@
 // ============================================
-// =========== TTS MANAGER COMPLET ============
-// =========== Version Telegram Mini App ======
+// =========== TTS MANAGER ====================
+// =========== Version Mobile Telegram =======
 // ============================================
 
 window.ETEO = window.ETEO || {};
 
 window.ETEO.TTS = {
-    engine: null, // Sera 'capacitor', 'web', ou null
+    engine: null,
     initialized: false,
     audioUnlocked: false,
 
@@ -21,15 +21,12 @@ window.ETEO.TTS = {
         console.log("Plugins:", window.Capacitor?.Plugins);
         console.log("TextToSpeech plugin:", window.Capacitor?.Plugins?.TextToSpeech);
 
-        // Détection intelligente et paresseuse
         if (window.Capacitor?.Plugins?.TextToSpeech) {
             this.engine = 'capacitor';
             console.log("✅ [ETEO TTS] Moteur choisi : Capacitor");
         } else if ('speechSynthesis' in window) {
             this.engine = 'web';
             console.log("⚠️ [ETEO TTS] Moteur choisi : Web Speech API (Fallback)");
-            
-            // ⭐ NOUVEAU : Charger les voix disponibles
             this.loadVoices();
         } else {
             console.error("❌ [ETEO TTS] Aucun moteur disponible !");
@@ -37,8 +34,6 @@ window.ETEO.TTS = {
         }
         
         this.initialized = true;
-        
-        // ⭐ NOUVEAU : Détection mobile
         this.detectMobile();
         
         return this;
@@ -76,27 +71,24 @@ window.ETEO.TTS = {
     // =========== DÉVERROUILLAGE AUDIO ==========
     // ============================================
     unlockAudio: function() {
+        if (this.audioUnlocked) return true;
+        
         try {
-            // Pour Telegram sur mobile
-            if (this.isMobile && window.Telegram && window.Telegram.WebApp) {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-                
-                // Jouer un silence pour "réveiller" l'audio
-                const buffer = audioContext.createBuffer(1, 1, 22050);
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.connect(audioContext.destination);
-                source.start(0);
-                
-                this.audioUnlocked = true;
-                console.log("🔓 [TTS] Audio débloqué pour mobile");
-            } else {
-                // Pour ordinateur, déjà débloqué
-                this.audioUnlocked = true;
+            // Créer un contexte audio
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
             }
+            
+            // Jouer un silence pour "réveiller" l'audio
+            const buffer = audioContext.createBuffer(1, 1, 22050);
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioContext.destination);
+            source.start(0);
+            
+            this.audioUnlocked = true;
+            console.log("🔓 [TTS] Audio débloqué pour mobile");
         } catch (e) {
             console.log("⚠️ [TTS] Audio déjà débloqué ou erreur:", e);
             this.audioUnlocked = true;
@@ -105,22 +97,20 @@ window.ETEO.TTS = {
     },
 
     // ============================================
-    // =========== MÉTHODE SPEAK =================
+    // =========== MÉTHODE SPEAK PRINCIPALE ======
     // ============================================
     speak: async function(text, lang = 'fr-FR') {
-        // Initialisation à la demande (Lazy loading)
         if (!this.initialized) this.init();
-
-        // ⭐ NOUVEAU : Déverrouiller l'audio sur mobile
-        if (this.isMobile && !this.audioUnlocked) {
-            this.unlockAudio();
-        }
 
         console.log(`🔊 [TTS] Lecture via ${this.engine} : "${text}"`);
 
         if (this.engine === 'capacitor') {
             return this.capacitorSpeak(text, lang);
         } else if (this.engine === 'web') {
+            // ⭐ NOUVEAU : Déverrouillage audio automatique sur mobile
+            if (this.isMobile) {
+                this.unlockAudio();
+            }
             return this.webSpeak(text, lang);
         } else {
             console.error("❌ [TTS] Aucun moteur disponible");
@@ -148,26 +138,27 @@ window.ETEO.TTS = {
             }
         } catch (error) {
             console.error("❌ [TTS] Erreur Capacitor:", error);
-            // Fallback vers Web Speech
             console.log("🔄 [TTS] Fallback vers Web Speech");
             return this.webSpeak(text, lang);
         }
     },
 
     // ============================================
-    // =========== WEB SPEECH (Mobile & Desktop) ==
+    // =========== WEB SPEECH AMÉLIORÉE ==========
+    // =========== (Gère le blocage mobile) ======
     // ============================================
     webSpeak: function(text, lang) {
         return new Promise((resolve, reject) => {
+            // Vérification de l'API
             if (!('speechSynthesis' in window)) {
                 reject(new Error('Web Speech API non supportée'));
                 return;
             }
 
-            // ⭐ NOUVEAU : Annuler toute synthèse en cours
+            // Annuler toute synthèse en cours
             window.speechSynthesis.cancel();
 
-            // ⭐ NOUVEAU : Déverrouiller l'audio sur mobile
+            // ⭐ NOUVEAU : Déverrouillage audio pour mobile
             if (this.isMobile) {
                 this.unlockAudio();
             }
@@ -177,19 +168,17 @@ window.ETEO.TTS = {
             // Sélectionner une voix appropriée
             const voices = window.speechSynthesis.getVoices();
             if (voices.length > 0) {
-                // Chercher une voix pour la langue
                 const langPrefix = lang.split('-')[0];
                 const voice = voices.find(v => v.lang.startsWith(langPrefix)) || 
                              voices.find(v => v.lang.startsWith('fr')) ||
                              voices[0];
                 if (voice) {
                     utterance.voice = voice;
-                    console.log(`🗣️ [TTS] Voix sélectionnée: ${voice.name} (${voice.lang})`);
                 }
             }
             
             utterance.lang = lang;
-            utterance.rate = 0.9;  // Légèrement plus lent pour mobile
+            utterance.rate = 0.9;
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
@@ -210,16 +199,28 @@ window.ETEO.TTS = {
             utterance.onerror = function(event) {
                 console.error("❌ [TTS] Erreur Web Speech:", event);
                 
-                // ⭐ NOUVEAU : Réessayer sur erreur (mobile)
+                // ⭐ NOUVEAU : Gestion de l'erreur "not-allowed" sur mobile
                 if (event.error === 'not-allowed' || event.error === 'synthesis-failed') {
-                    console.log("🔄 [TTS] Réessai avec audio débloqué...");
-                    if (window.ETEO.TTS) {
-                        window.ETEO.TTS.unlockAudio();
+                    console.log("🔄 [TTS] Tentative de déverrouillage audio...");
+                    
+                    try {
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        if (audioCtx.state === 'suspended') {
+                            audioCtx.resume();
+                        }
+                        const buffer = audioCtx.createBuffer(1, 1, 22050);
+                        const source = audioCtx.createBufferSource();
+                        source.buffer = buffer;
+                        source.connect(audioCtx.destination);
+                        source.start(0);
+                        
+                        console.log("🔓 [TTS] Audio débloqué, nouvelle tentative...");
                         setTimeout(() => {
                             window.speechSynthesis.speak(utterance);
                         }, 300);
-                        // Ne pas résoudre/rejeter immédiatement
                         return;
+                    } catch (e) {
+                        console.error("❌ Échec du déverrouillage:", e);
                     }
                 }
                 
@@ -229,7 +230,7 @@ window.ETEO.TTS = {
                 }
             };
 
-            // Lancer la synthèse
+            // Lancer la lecture
             try {
                 window.speechSynthesis.speak(utterance);
                 console.log("🗣️ [TTS] Web Speech - Lecture lancée");
@@ -240,7 +241,7 @@ window.ETEO.TTS = {
                 }
             }
 
-            // ⭐ NOUVEAU : Timeout pour mobile
+            // Timeout de sécurité (30 secondes max)
             setTimeout(() => {
                 if (!isResolved) {
                     isResolved = true;
@@ -248,7 +249,7 @@ window.ETEO.TTS = {
                     window.speechSynthesis.cancel();
                     reject(new Error('Timeout - La synthèse a pris trop de temps'));
                 }
-            }, 30000); // 30 secondes maximum
+            }, 30000);
         });
     },
 
@@ -289,7 +290,6 @@ window.ETEO.TTS = {
         return false;
     },
 
-    // ⭐ NOUVEAU : Vérifier si le son est disponible
     isAudioAvailable: function() {
         if (this.engine === 'capacitor') {
             return !!window.Capacitor?.Plugins?.TextToSpeech;
@@ -301,9 +301,8 @@ window.ETEO.TTS = {
 };
 
 // ============================================
-// =========== EXPORT =========================
+// =========== AUTO-INITIALISATION ============
 // ============================================
-// Initialiser automatiquement
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         window.ETEO.TTS.init();
