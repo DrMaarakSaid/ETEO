@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - À propos & Conditions</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        body.dark .container {
+            background: #1e1e2e;
+            color: #eee;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .header p {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        body.dark .header p {
+            color: #aaa;
+        }
+
+        .back-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 15px;
+        }
+
+        body.dark .section {
+            background: #2a2a3e;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-left: 4px solid #667eea;
+            padding-left: 12px;
+        }
+
+        .section h3 {
+            color: #4caf50;
+            margin: 15px 0 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .section ul, .section p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .section li {
+            margin-left: 20px;
+            margin-bottom: 5px;
+        }
+
+        .references-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .ref-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 3px solid #667eea;
+        }
+
+        body.dark .ref-card {
+            background: #1e1e2e;
+            border-left-color: #667eea;
+        }
+
+        .ref-card strong {
+            color: #667eea;
+        }
+
+        .ref-card em {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        body.dark .ref-card em {
+            color: #aaa;
+        }
+
+        .rule-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        body.dark .form-group label {
+            color: #eee;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        body.dark .form-group input {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #555;
+        }
+
+        .register-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .register-btn:hover {
+            background: #45a049;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        body.dark .footer {
+            border-top-color: #333;
+        }
+
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+
+        .badge-new {
+            background: #ff9800;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ IA en attente</div>
+
+<div class="container">
+    <button class="back-btn" onclick="goBack()">← Retour à l'accueil</button>
+    
+    <div class="header">
+        <h1>📚 À propos d'ETEO</h1>
+        <p>E-learning To Every One – Formation médicale dentaire d'excellence</p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== 0. INTRODUCTION MONDIALE ======= -->
+    <!-- ============================================ -->
+    <div class="section">
+        <h2>🌍 ETEO – Une plateforme mondiale, avec une base marocaine</h2>
+        <p>La majorité des connaissances cliniques et scientifiques partagées sont <strong>universelles</strong> (anatomie, pathologie, thérapeutique, matériaux, radiologie, etc.).</p>
+        <p>Cependant, certaines briques d'ETEO – notamment celles liées aux <strong>aspects juridiques, fiscaux, sociaux, conventionnels et administratifs</strong> – peuvent varier d'un pays à l'autre.</p>
+        <ul>
+            <li>🔹 <strong>ETEO s'appuie par défaut sur le cadre MAROCAIN</strong> (Code de la santé publique marocain, Code de déontologie de l'ONCD, AMO, CNSS, DGI, Code du travail marocain, etc.) pour ces modules spécifiques.</li>
+            <li>🔹 Une adaptation locale est en cours de déploiement pour les autres pays (France, Belgique, Suisse, Canada, Tunisie, Algérie, Sénégal, Côte d'Ivoire, Cameroun, États-Unis, etc.).</li>
+            <li>🔹 Les praticiens des autres pays sont invités à se référer à leur législation nationale et à nous contacter pour contribuer à l'adaptation locale.</li>
+        </ul>
+        <p style="margin-top: 15px; font-style: italic;">📧 Contact : Prochainement<br>🌐 Site web : Prochainement</p>
+        <p style="margin-top: 10px; font-weight: bold;">Dr. SAID MAARAK – ETEO – E-learning To Every One<br>La connaissance dentaire sans frontières, enracinée au Maroc 🇲🇦</p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== 1. INSCRIPTION GRATUITE ======== -->
+    <!-- ============================================ -->
+    <div class="section">
+        <h2>🔐 Inscription gratuite</h2>
+        <p>Créez un compte gratuit pour sauvegarder votre progression sur tous vos appareils et participer au classement mondial.</p>
+        
+        <div id="successMessage" class="success-message">
+            ✅ Inscription réussie ! Vous pouvez maintenant vous connecter sur n'importe quel appareil.
+        </div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label>📧 Email</label>
+                <input type="email" id="email" placeholder="exemple@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>👤 Nom</label>
+                <input type="text" id="lastName" placeholder="Votre nom" required>
+            </div>
+            <div class="form-group">
+                <label>👤 Prénom</label>
+                <input type="text" id="firstName" placeholder="Votre prénom" required>
+            </div>
+            <button type="submit" class="register-btn">🎓 S'inscrire gratuitement</button>
+        </form>
+        <p style="margin-top: 10px; font-size: 0.7rem; color: #888;">🔒 Aucune donnée bancaire demandée. Vous pouvez utiliser ETEO sans inscription.</p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== 2. RÈGLES DES QUIZ ============ -->
+    <!-- ============================================ -->
+    <div class="section">
+        <h2>🎯 Règles de progression</h2>
+        <ul>
+            <li><span class="rule-badge">📊 Score</span> Chaque bonne réponse rapporte 10 points.</li>
+            <li><span class="rule-badge">⚡ Bonus rapidité</span> Si vous répondez avant la fin du timer (20s), vous gagnez <strong>+5 points</strong> supplémentaires.</li>
+            <li><span class="rule-badge">🔓 Déblocage</span> Pour passer au niveau suivant, vous devez obtenir <strong>au moins 60%</strong> (soit 150/250 points).</li>
+            <li><span class="rule-badge">🎙️ IA vocale</span> L'assistant vocal lit chaque question et l'explication. En mode "Conduite", répondez à voix haute (A, B, C, D).</li>
+            <li><span class="rule-badge">❌ Abandon</span> Vous pouvez abandonner à tout moment. Le score partiel est sauvegardé.</li>
+            <li><span class="rule-badge">🌍 Classement mondial</span> Vos scores sont envoyés à GitHub pour établir un classement mondial (pays obligatoire, nom facultatif).</li>
+        </ul>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== 3. SOURCES SCIENTIFIQUES ====== -->
+    <!-- ============================================ -->
+    <div class="section">
+        <h2>📖 Sources scientifiques</h2>
+        <p>Toutes les questions d'ETEO sont basées sur des références académiques internationales reconnues :</p>
+        
+        <p style="background: #e8f5e9; padding: 12px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #4caf50;">
+            🔄 <strong>Mise à jour automatique et continue</strong><br>
+            Les références scientifiques d'ETEO sont <strong>régulièrement vérifiées et enrichies</strong> dès la publication de nouvelles recommandations par les instances internationales (WHO, ADA, AAPD, FDI, etc.). 
+            Notre comité scientifique veille à l'intégration rapide des évolutions des consensus médicaux, garantissant ainsi une <strong>fiabilité maximale</strong> et une <strong>confiance durable</strong> pour tous nos utilisateurs.
+        </p>
+
+        <!-- =========== MODULES CLINIQUES (UNIVERSELLES) =========== -->
+        <h3>🦷 Endodontie</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Torabinejad M., Walton R.E.</strong><br><em>Endodontics: Principles and Practice</em>, 6th ed., Elsevier</div>
+            <div class="ref-card"><strong>Hargreaves K.M., Cohen S.</strong><br><em>Cohen's Pathways of the Pulp</em>, 11th ed., Elsevier</div>
+            <div class="ref-card"><strong>Ingle J.I., Bakland L.K., Baumgartner J.C.</strong><br><em>Ingle's Endodontics</em>, 6th ed., PMPH</div>
+            <div class="ref-card"><strong>Vertucci F.J.</strong><br><em>Root Canal Morphology and Its Relationship to Endodontic Procedures</em>, Endodontic Topics</div>
+            <div class="ref-card"><strong>Schilder H.</strong><br><em>Cleaning and Shaping the Root Canal System</em>, Dental Clinics of North America</div>
+        </div>
+
+        <h3>🦷 Soins conservateurs</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Lasfargues J.J., Colon P.</strong><br><em>Odontologie conservatrice et restauratrice</em>, Tome 1, Éd. CdP, 2009</div>
+            <div class="ref-card"><strong>Ritter A.V.</strong><br><em>Sturdevant's Art and Science of Operative Dentistry</em>, 8th ed., Elsevier, 2025</div>
+            <div class="ref-card"><strong>Colon P., Franquin J.C.</strong><br><em>Chirurgie dentaire et biomatériaux</em>, Springer</div>
+            <div class="ref-card"><strong>Mount G.J., Hume W.R.</strong><br><em>Preservation and Restoration of Tooth Structure</em>, 3rd ed., Wiley</div>
+            <div class="ref-card"><strong>Hickel R., Roulet J.F.</strong><br><em>Direct Posterior Restorations</em>, Quintessence Publishing</div>
+        </div>
+
+        <h3>🦷 Chirurgie bucco-dentaire</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Swennen G.R.J.</strong><br><em>Illustrated Manual of Orthognathic Surgery</em>, Springer, 2023</div>
+            <div class="ref-card"><strong>Piezosurgery (Collection JPIO)</strong><br><em>La chirurgie orthognathique par piézoélectricité</em>, 2013</div>
+            <div class="ref-card"><strong>Euvrard E., Gleizal A.</strong><br><em>Extractions dentaires et chirurgie alvéolaire</em>, Elsevier Masson</div>
+            <div class="ref-card"><strong>Peterson L.J., Ellis E., Hupp J.R.</strong><br><em>Contemporary Oral and Maxillofacial Surgery</em>, 7th ed., Elsevier</div>
+            <div class="ref-card"><strong>Fonseca R.J.</strong><br><em>Oral and Maxillofacial Surgery</em>, 3rd ed., Elsevier</div>
+        </div>
+
+        <h3>🦷 Implantologie</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Brånemark P.I.</strong><br><em>Intra-osseous anchorage of dental prostheses</em>, 1969/1977</div>
+            <div class="ref-card"><strong>Misch C.E.</strong><br><em>Contemporary Implant Dentistry</em>, 4th ed., Elsevier</div>
+            <div class="ref-card"><strong>Chiapasco M.</strong><br><em>Implantologie orale : atlas en couleurs</em>, Elsevier Masson</div>
+            <div class="ref-card"><strong>Lindhe J., Lang N.P.</strong><br><em>Clinical Periodontology and Implant Dentistry</em>, 7th ed., Wiley</div>
+            <div class="ref-card"><strong>Davies J.E.</strong><br><em>Bone Engineering</em>, Em Squared Inc.</div>
+        </div>
+
+        <h3>🦷 Prothèse</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Amram W.</strong><br><em>L'occlusion en prothèse complète</em>, Thèse, 1985</div>
+            <div class="ref-card"><strong>Carr A.B., Brown D.T.</strong><br><em>McCraken's Removable Partial Prosthodontics</em>, 13th ed., Elsevier</div>
+            <div class="ref-card"><strong>Rosenstiel S.F., Land M.F., Fujimoto J.</strong><br><em>Contemporary Fixed Prosthodontics</em>, 6th ed., Elsevier</div>
+            <div class="ref-card"><strong>Shillingburg H.T.</strong><br><em>Fundamentals of Fixed Prosthodontics</em>, 4th ed., Quintessence</div>
+            <div class="ref-card"><strong>Bouetel B.</strong><br><em>Intérêts et limites des techniques piézographiques en prothèse amovible complète sur implants</em>, Thèse, 2005</div>
+        </div>
+
+        <h3>🦷 Parodontologie</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Mora F.</strong><br><em>Parodontologie Clinique</em>, Elsevier-Masson, 2025</div>
+            <div class="ref-card"><strong>Lindhe J., Lang N.P., Karring T.</strong><br><em>Clinical Periodontology and Implant Dentistry</em>, 7th ed., Wiley</div>
+            <div class="ref-card"><strong>European Federation of Periodontology</strong><br><em>Classification des maladies parodontales</em>, 2018</div>
+            <div class="ref-card"><strong>Newman M.G., Takei H.H., Klokkevold P.R.</strong><br><em>Newman and Carranza's Clinical Periodontology</em>, 13th ed., Elsevier</div>
+            <div class="ref-card"><strong>Hempton T.J., Dominici J.T.</strong><br><em>Contemporary Periodontal Surgery</em>, Quintessence</div>
+        </div>
+
+        <h3>🦷 Radiologie</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>White S.C., Pharoah M.J.</strong><br><em>Oral Radiology: Principles and Interpretation</em>, 8th ed., Elsevier</div>
+            <div class="ref-card"><strong>Brune D.</strong><br><em>Radiation protection in dental radiology</em>, Springer</div>
+            <div class="ref-card"><strong>Whaites E., Drage N.</strong><br><em>Essentials of Dental Radiography and Radiology</em>, 6th ed., Elsevier</div>
+            <div class="ref-card"><strong>Scarfe W.C., Levin M.D.</strong><br><em>Dental Radiology</em>, Dental Clinics of North America</div>
+            <div class="ref-card"><strong>Miles D.A., Van Dis M.L., Williamson G.F.</strong><br><em>Radiographic Imaging for the Dental Team</em>, 5th ed., Saunders</div>
+        </div>
+
+        <h3>🦷 Stérilisation</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Rutala W.A., Weber D.J.</strong><br><em>CDC Guideline for Disinfection and Sterilization in Healthcare Facilities</em></div>
+            <div class="ref-card"><strong>AFNOR</strong><br><em>Normes NF EN 556, NF EN ISO 17665</em></div>
+            <div class="ref-card"><strong>McDonnell G., Russell A.D.</strong><br><em>Antiseptics and Disinfectants: Activity, Action, and Resistance</em>, ASM Press</div>
+            <div class="ref-card"><strong>Association Dentaire Française</strong><br><em>Recommandations pour la stérilisation en cabinet dentaire</em></div>
+            <div class="ref-card"><strong>World Health Organization</strong><br><em>Decontamination and Reprocessing of Medical Devices</em>, WHO Press</div>
+        </div>
+
+        <!-- =========== SPÉCIALITÉS COMPLÉTÉES (UNIVERSELLES) =========== -->
+        <h3>🦷 Pédodontie</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>American Academy of Pediatric Dentistry (AAPD)</strong><br><em>Reference Manual & Clinical Guidelines</em>, 2024-2026</div>
+            <div class="ref-card"><strong>McDonald R.E., Avery D.R.</strong><br><em>Dentistry for the Child and Adolescent</em>, 11th ed., Elsevier, 2022</div>
+            <div class="ref-card"><strong>Cameron A.C., Widmer R.P.</strong><br><em>Handbook of Pediatric Dentistry</em>, 5th ed., Elsevier, 2021</div>
+            <div class="ref-card"><strong>European Academy of Pediatric Dentistry (EAPD)</strong><br><em>Guidelines on pediatric dental care</em>, 2020-2025</div>
+            <div class="ref-card"><strong>World Health Organization (WHO)</strong><br><em>Oral health in children: global strategies</em>, 2023</div>
+        </div>
+
+        <h3>🦷 Orthodontie</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Proffit W.R., Fields H.W., Larson B.E., Sarver D.M.</strong><br><em>Contemporary Orthodontics</em>, 7th ed., Elsevier, 2024</div>
+            <div class="ref-card"><strong>Graber L.W., Vanarsdall R.L., Vig K.W.L., Huang G.J.</strong><br><em>Orthodontics: Current Principles and Techniques</em>, 7th ed., Elsevier, 2023</div>
+            <div class="ref-card"><strong>American Association of Orthodontists (AAO)</strong><br><em>Clinical Practice Guidelines</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Björk A.</strong><br><em>Growth of the mandible</em>, American Journal of Orthodontics, 1963-2023 updates</div>
+            <div class="ref-card"><strong>Ricketts R.M.</strong><br><em>Bioprogressive therapy</em>, Rocky Mountain Orthodontics, 2020 revision</div>
+        </div>
+
+        <h3>🫂 Relation patient & Psychomotricité</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Armfield J.M.</strong><br><em>Dental fear and anxiety: epidemiology, causes and management</em>, Journal of Dental Research, 2020-2024</div>
+            <div class="ref-card"><strong>American Dental Association (ADA)</strong><br><em>Communication guidelines for dental teams & patient management</em>, 2023-2025</div>
+            <div class="ref-card"><strong>World Health Organization (WHO)</strong><br><em>Oral health and quality of life, disability and aging</em>, 2021-2025</div>
+            <div class="ref-card"><strong>European Journal of Oral Sciences</strong><br><em>Behavioral dentistry, anxiety management, special needs</em>, 2021-2025</div>
+            <div class="ref-card"><strong>Cohen's Pathways of the Pulp</strong><br><em>Patient management and psychological aspects</em>, 11th ed., Elsevier, 2021</div>
+            <div class="ref-card"><strong>Travail et Sécurité / Santé au travail</strong><br><em>Burn-out prevention, stress management, ergonomics</em>, 2022-2025</div>
+        </div>
+
+        <h3>🦷 Sciences des matériaux dentaires</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Phillips' Science of Dental Materials</strong><br><em>13th ed., Elsevier, 2022</em></div>
+            <div class="ref-card"><strong>Craig's Restorative Dental Materials</strong><br><em>14th ed., Elsevier, 2023</em></div>
+            <div class="ref-card"><strong>Sakaguchi R.L., Ferracane J.L., Powers J.M.</strong><br><em>Dental Materials: Properties and Applications</em>, 3rd ed., Elsevier, 2024</div>
+            <div class="ref-card"><strong>ISO 4049 / ISO 7405</strong><br><em>Standards for dental materials testing</em>, 2022-2025</div>
+            <div class="ref-card"><strong>ADA Council on Scientific Affairs</strong><br><em>Dental materials guidelines</em>, 2023-2025</div>
+        </div>
+
+        <h3>🦷 Médecine buccale</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Burket's Oral Medicine</strong><br><em>13th ed., Michael Glick, 2021</em></div>
+            <div class="ref-card"><strong>Scully C.</strong><br><em>Oral and Maxillofacial Medicine: The Basis of Diagnosis and Treatment</em>, 3rd ed., Elsevier, 2023</div>
+            <div class="ref-card"><strong>Greenberg M.S., Glick M.</strong><br><em>Oral Medicine: Diagnosis and Treatment</em>, 12th ed., Elsevier, 2024</div>
+            <div class="ref-card"><strong>American Academy of Oral Medicine (AAOM)</strong><br><em>Clinical Practice Guidelines</em>, 2023-2025</div>
+            <div class="ref-card"><strong>World Health Organization (WHO)</strong><br><em>Oral mucosal diseases and diagnostics</em>, 2023</div>
+        </div>
+
+        <h3>💉 Anesthésiologie dentaire</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Malamed S.F.</strong><br><em>Handbook of Local Anesthesia</em>, 8th ed., Elsevier, 2023</div>
+            <div class="ref-card"><strong>American Dental Association (ADA)</strong><br><em>Guidelines on Local Anesthesia and Sedation</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Rosenberg M., Phero J.C.</strong><br><em>Local Anesthesia in Dentistry</em>, Dental Clinics of North America, 2022</div>
+            <div class="ref-card"><strong>Société Marocaine d'Anesthésie et de Réanimation (SMAR)</strong><br><em>Recommandations pour la sédation en odontologie</em>, 2023</div>
+            <div class="ref-card"><strong>Ordre National des Chirurgiens-Dentistes du Maroc (ONCD)</strong><br><em>Bonnes pratiques en anesthésie locale</em>, 2024</div>
+        </div>
+
+        <h3>🖨️ CFAO & Impression 3D</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Rekow E.D.</strong><br><em>Digital Dentistry: CAD/CAM and 3D Printing</em>, Quintessence Publishing, 2024</div>
+            <div class="ref-card"><strong>Revilla-León M., Özcan M.</strong><br><em>Additive Manufacturing Technologies in Dentistry</em>, Journal of Prosthetic Dentistry, 2023</div>
+            <div class="ref-card"><strong>Strub J.R., Kern M., Witkowski S.</strong><br><em>CAD/CAM in Dentistry: Current Status and Future Perspectives</em>, Quintessence, 2022</div>
+            <div class="ref-card"><strong>International Journal of Computerized Dentistry</strong><br><em>Digital workflows and 3D printing guidelines</em>, 2021-2025</div>
+            <div class="ref-card"><strong>Dentsply Sirona / 3Shape / Medit</strong><br><em>Clinical protocols for intraoral scanning and CAD/CAM</em>, 2023-2025</div>
+        </div>
+
+        <h3>🏥 Santé publique dentaire</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>World Health Organization (WHO)</strong><br><em>Global Oral Health Status Report 2023</em>, WHO Press</div>
+            <div class="ref-card"><strong>World Health Organization (WHO)</strong><br><em>Global Strategy on Oral Health 2023-2030</em>, WHO Press</div>
+            <div class="ref-card"><strong>Petersen P.E., Kwan S.</strong><br><em>Oral Health and Public Health: Foundations and Challenges</em>, Springer, 2024</div>
+            <div class="ref-card"><strong>Ministère de la Santé et de la Protection Sociale du Maroc</strong><br><em>Programmes de prévention bucco-dentaire</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Association Nationale des Dentistes du Maroc (ANDM)</strong><br><em>Recommandations pour la santé publique dentaire</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Centers for Disease Control and Prevention (CDC)</strong><br><em>Oral Health Surveillance and Prevention Guidelines</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Fédération Dentaire Internationale (FDI)</strong><br><em>Vision 2030: Delivering Optimal Oral Health for All</em>, 2022</div>
+        </div>
+
+        <!-- =========== NOUVEAU : MODULES INFORMATIQUE & LOGICIELS DENTAIRES MAROC =========== -->
+        <h3>💻 Informatique & Logiciels dentaires – Maroc <span class="badge-new">NOUVEAU</span></h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Loi 09-08 (CNDP)</strong><br><em>Protection des données personnelles (RGPD marocain)</em> – Déclaration à la CNDP, consentement, durée de conservation (20 ans), droit d'accès, notification de fuite, amendes</div>
+            <div class="ref-card"><strong>Loi 44-19 & Décret 2-20-687</strong><br><em>Télémédecine au Maroc</em> – 5 actes de télémédecine, consentement éclairé, obligations légales</div>
+            <div class="ref-card"><strong>Code général des impôts (DGI Maroc)</strong><br><em>Fiscalité du cabinet dentaire</em> – Numéro IF, patente, TVA, facturation électronique (2024)</div>
+            <div class="ref-card"><strong>CNSS (Caisse Nationale de Sécurité Sociale)</strong><br><em>Télétransmission, déclarations de salaires, AMO, Noémie</em> – Guides officiels et spécifications techniques</div>
+            <div class="ref-card"><strong>CNDP (Commission Nationale de Contrôle de la Protection des Données)</strong><br><em>Guides conformité Loi 09-08</em> – Registre des traitements, PIA, bonnes pratiques</div>
+            <div class="ref-card"><strong>Ordre des dentistes du Maroc (ONCD)</strong><br><em>Charte de télémédecine, recommandations cybersécurité</em> – Guide des bonnes pratiques informatiques</div>
+            <div class="ref-card"><strong>ANSS (Agence Nationale de Sécurité Sanitaire)</strong><br><em>Réglementation des équipements rayonnants</em> – CBCT, RVG, autorisations d'installation</div>
+        </div>
+
+        <h3>🖥️ Logiciels dentaires spécifiques (Maroc)</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Dentibox / EasyDent / DDL</strong><br><em>Logiciels de gestion de cabinet (PMS)</em> – Documentation technique, modules agenda, facturation, télétransmission CNSS</div>
+            <div class="ref-card"><strong>Exocad / 3Shape</strong><br><em>Logiciels CFAO/CAO</em> – Documentation officielle, modules Implant/Guide/Fixed/Ortho, formations Exocad Academy</div>
+            <div class="ref-card"><strong>Carestream (RVG, CS 3D) / Planmeca (Romexis)</strong><br><em>Logiciels de radiologie et imagerie</em> – Guides utilisateur, spécifications capteurs et logiciel CBCT</div>
+            <div class="ref-card"><strong>Doctolib / Maiia / RDV360</strong><br><em>Plateformes de prise de rendez-vous et téléconsultation</em> – Charte d'utilisation Maroc, API, intégration PMS</div>
+            <div class="ref-card"><strong>Dolphin Imaging / Invisalign ClinCheck</strong><br><em>Logiciels d'orthodontie numérique</em> – Documentation officielle, modules 2D/3D, croissance, téléhealth, SmartTrack</div>
+        </div>
+
+        <h3>🔒 Sécurité informatique & Conformité</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>ANSSI (recommandations adaptées au Maroc)</strong><br><em>Cybersécurité en cabinet dentaire</em> – Règle 3-2-1, MFA, ransomware, audits de sécurité</div>
+            <div class="ref-card"><strong>Maroc Datacenter / Inetum / Sicpa</strong><br><em>Hébergeurs agréés de données de santé</em> – Offres cloud dentaire labellisées par le ministère de la Santé</div>
+            <div class="ref-card"><strong>HL7/FHIR / DICOM</strong><br><em>Standards d'interopérabilité</em> – Échanges de données entre PMS, radiologie, laboratoire</div>
+        </div>
+
+        <!-- =========== MODULES MAROCAINS (BASE MAROCAINE) =========== -->
+        <h3>🏢 Formes juridiques (Maroc)</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Code de commerce marocain</strong><br><em>Dahir n° 1-96-83 du 15 moharrem 1417 (1er juin 1996)</em></div>
+            <div class="ref-card"><strong>Dahir n° 1-96-124 du 30 août 1996</strong><br><em>Loi n° 5-96 relative aux sociétés d'exercice libéral</em></div>
+            <div class="ref-card"><strong>Ordre National des Chirurgiens-Dentistes du Maroc (ONCD)</strong><br><em>Guides pour la création de SEL et cabinets dentaires</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Direction Générale des Impôts (DGI) Maroc</strong><br><em>Guides fiscaux pour les professions libérales</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Office Marocain de la Propriété Industrielle et Commerciale (OMPIC)</strong><br><em>Formalités de création d'entreprise</em>, 2023-2025</div>
+        </div>
+
+        <h3>💰 Aides à l'installation (Maroc)</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>ANAPEC (Agence Nationale de Promotion de l'Emploi et des Compétences)</strong><br><em>Programmes Idar, Taahil, aides à l'installation</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Tamwilcom (Groupe Caisse de Dépôt et de Gestion)</strong><br><em>Programmes Damane Al Moukawil, Intelaka, Forsa</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Ministère de l'Industrie et du Commerce</strong><br><em>Programme Moukawalati</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Ministère de l'Économie et des Finances</strong><br><em>Programme Moussanada</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Ordre National des Chirurgiens-Dentistes du Maroc (ONCD)</strong><br><em>Accompagnement des jeunes dentistes</em>, 2023-2025</div>
+        </div>
+
+        <h3>🏥 Conventionnement AMO (Maroc)</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Loi n° 65-00 portant code de la couverture médicale de base</strong><br><em>Assurance Maladie Obligatoire (AMO)</em>, 2002-2025</div>
+            <div class="ref-card"><strong>CNSS (Caisse Nationale de Sécurité Sociale)</strong><br><em>Régime AMO des salariés et TNS</em>, 2023-2025</div>
+            <div class="ref-card"><strong>CNOPS (Caisse Nationale des Organismes de Prévoyance Sociale)</strong><br><em>Régime AMO des fonctionnaires</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Ministère de la Santé et de la Protection Sociale</strong><br><em>Conventions nationales et tarifs AMO</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Ordre National des Chirurgiens-Dentistes du Maroc (ONCD)</strong><br><em>Guides pour le conventionnement des dentistes</em>, 2023-2025</div>
+        </div>
+
+        <h3>🏢 Aménagement du cabinet (Maroc)</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Ordre National des Chirurgiens-Dentistes du Maroc (ONCD)</strong><br><em>Normes d'aménagement et d'équipement des cabinets dentaires</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Ministère de la Santé et de la Protection Sociale</strong><br><em>Règles d'hygiène et de sécurité en cabinet dentaire</em>, 2023-2025</div>
+            <div class="ref-card"><strong>AFNOR (Association Française de Normalisation)</strong><br><em>Normes ISO 13485, ISO 17664, ISO 15882</em>, 2023-2025</div>
+            <div class="ref-card"><strong>World Health Organization (WHO)</strong><br><em>Guidelines for infection control in dental practice</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Centre de Recherche et d'Études en Biomédecine (CREB)</strong><br><em>Recommandations pour la stérilisation</em>, 2023-2025</div>
+        </div>
+
+        <h3>💰 Fiscalité du dentiste (Maroc)</h3>
+        <div class="references-grid">
+            <div class="ref-card"><strong>Code général des impôts (CGI) du Maroc</strong><br><em>Loi n° 47-06</em>, 2025</div>
+            <div class="ref-card"><strong>Direction Générale des Impôts (DGI) Maroc</strong><br><em>Guides de l'impôt sur le revenu (IR) et l'impôt sur les sociétés (IS)</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Code de la TVA au Maroc</strong><br><em>Exonérations applicables aux actes médicaux</em>, 2025</div>
+            <div class="ref-card"><strong>Ordre National des Chirurgiens-Dentistes du Maroc (ONCD)</strong><br><em>Recommandations fiscales pour les dentistes</em>, 2023-2025</div>
+            <div class="ref-card"><strong>Conseil Supérieur de la Formation en Gestion (CSFG)</strong><br><em>Guides de gestion et fiscalité pour professions libérales</em>, 2023-2025</div>
+        </div>
+
+        <p style="margin-top: 15px; font-size: 0.8rem; font-style: italic;">✅ ETEO s'engage à fournir un contenu scientifiquement validé et régulièrement mis à jour. </p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== 4. CONDITIONS D'UTILISATION === -->
+    <!-- ============================================ -->
+    <div class="section">
+        <h2>⚖️ Conditions d'utilisation</h2>
+        <ul>
+            <li>ETEO est une application <strong>gratuite</strong> à usage éducatif et professionnel.</li>
+            <li>Les informations fournies ne remplacent pas un avis médical personnalisé. En cas de doute, consultez un professionnel de santé.</li>
+            <li>Les scores sont anonymes par défaut. Vous pouvez choisir d'afficher votre nom dans le classement mondial.</li>
+            <li>L'inscription est <strong>gratuite</strong>. Elle permet de sauvegarder votre progression sur plusieurs appareils.</li>
+            <li>Données personnelles : ETEO ne collecte aucune donnée sensible. Les noms et pays sont stockés uniquement pour le classement.</li>
+            <li>© 2026 – Dr. SAID MAARAK. Tous droits réservés.</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>© 2026 - Dr. SAID MAARAK 🇲🇦 | Tous droits réservés</p>
+        <p>ETEO n'est pas responsable de l'utilisation des informations à des fins cliniques sans avis médical.</p>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== VOICE SYSTEM ==================
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ IA activée";
+                indicator.style.background = "#4caf50";
+            }
+        }
+    }
+
+    document.body.addEventListener('click', function firstClick() {
+        activateVoice();
+        document.body.removeEventListener('click', firstClick);
+    });
+
+    setTimeout(() => {
+        speak("Bienvenue dans la section À propos d'ETEO. Inscrivez-vous gratuitement pour sauvegarder votre progression, puis découvrez nos sources scientifiques, les règles des quiz et les conditions d'utilisation.", "fr-FR");
+    }, 1000);
+
+    function goBack() {
+        window.location.href = "index.html";
+    }
+
+    // ============================================
+    // =========== INSCRIPTION ====================
+    // ============================================
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const firstName = document.getElementById('firstName').value.trim();
+        
+        if (!email || !lastName || !firstName) {
+            alert("Veuillez remplir tous les champs.");
+            return;
+        }
+        
+        localStorage.setItem("eteo_user_email", email);
+        localStorage.setItem("eteo_user_lastname", lastName);
+        localStorage.setItem("eteo_user_firstname", firstName);
+        localStorage.setItem("eteo_user_registered", "true");
+        
+        const successMsg = document.getElementById('successMessage');
+        successMsg.style.display = 'block';
+        
+        document.getElementById('registerForm').reset();
+        
+        speak(`Félicitations Docteur ${firstName} ${lastName}! Votre inscription est confirmée. Vous pouvez maintenant utiliser ETEO sur tous vos appareils.`, "fr-FR");
+        
+        setTimeout(() => {
+            successMsg.style.display = 'none';
+        }, 5000);
+    });
+</script>
+</body>
+</html>

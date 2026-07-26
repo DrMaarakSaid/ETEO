@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - World Ranking</title>
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT DES PLUGINS ============= -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { Share } from '@capacitor/share';
+        import { Print } from '@capacitor/print';
+        
+        window.Share = Share;
+        window.Print = Print;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        
+        console.log('✅ Plugins chargés !');
+        console.log('📱 Mode mobile :', window.isMobile);
+        console.log('📤 Share :', !!Share);
+        console.log('🖨️ Print :', !!Print);
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        
+        .header { text-align: center; margin-bottom: 15px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        body.dark .header h1 { color: #8899dd; }
+        .subtitle { text-align: center; margin-bottom: 15px; color: #666; font-size: 0.85rem; }
+        body.dark .subtitle { color: #aaa; }
+        
+        /* ============================================================ */
+        /* =========== NAV BAR RESPONSIVE ============================== */
+        /* ============================================================ */
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .nav-bar .nav-left {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .nav-bar .nav-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .back-btn, .dashboard-btn {
+            background: #667eea;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+        }
+        .back-btn:active, .dashboard-btn:active { transform: scale(0.95); }
+        .dashboard-btn { background: #2196f3; }
+        .theme-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 5px 8px;
+        }
+        body.dark .theme-btn { color: #eee; }
+        
+        /* ============================================================ */
+        /* =========== FILTER BAR RESPONSIVE =========================== */
+        /* ============================================================ */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .filter-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .level-filter {
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        body.dark .level-filter { background: #2a2a3e; color: #eee; }
+        
+        .refresh-btn, .share-btn, .print-btn, .challenge-btn {
+            border: none;
+            padding: 8px 14px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+            white-space: nowrap;
+        }
+        .refresh-btn:active, .share-btn:active, .print-btn:active, .challenge-btn:active {
+            transform: scale(0.95);
+        }
+        .refresh-btn { background: #4caf50; }
+        .share-btn { background: #2196f3; }
+        .print-btn { background: #ff9800; }
+        .challenge-btn { background: #e91e63; }
+        
+        /* ============================================================ */
+        /* =========== MOTIVATION BANNER =============================== */
+        /* ============================================================ */
+        .motivation-banner {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: white;
+        }
+        .motivation-text { font-size: 0.85rem; font-weight: 500; }
+        .badge {
+            background: #ffd700;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        /* ============================================================ */
+        /* =========== TABLE RESPONSIVE ================================ */
+        /* ============================================================ */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -5px;
+            padding: 0 5px;
+        }
+        
+        .ranking-table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        .ranking-table th, .ranking-table td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+        }
+        body.dark .ranking-table td { border-bottom-color: #333; }
+        .ranking-table th {
+            background: #667eea;
+            color: white;
+            font-size: 0.7rem;
+            padding: 10px 6px;
+        }
+        .ranking-table tr:hover { background: #f5f5f5; }
+        body.dark .ranking-table tr:hover { background: #2a2a3e; }
+        
+        /* ============================================================ */
+        /* =========== USER ROW (FLUO) ================================ */
+        /* ============================================================ */
+        .user-row {
+            background: #ffff00 !important;
+            color: #000000 !important;
+            font-weight: bold !important;
+            box-shadow: 0 0 15px rgba(255, 255, 0, 0.8);
+            animation: pulseFluo 1.5s ease-in-out infinite;
+        }
+        .user-row td { background: #ffff00 !important; color: #000000 !important; font-weight: bold !important; }
+        
+        @keyframes pulseFluo {
+            0% { background: #ffff00; box-shadow: 0 0 5px rgba(255, 255, 0, 0.5); }
+            50% { background: #ccff00; box-shadow: 0 0 20px rgba(204, 255, 0, 0.9); }
+            100% { background: #ffff00; box-shadow: 0 0 5px rgba(255, 255, 0, 0.5); }
+        }
+        body.dark .user-row { background: #ccff00 !important; color: #000000 !important; }
+        body.dark .user-row td { background: #ccff00 !important; color: #000000 !important; }
+        
+        /* ============================================================ */
+        /* =========== BADGES ========================================== */
+        /* ============================================================ */
+        .top3-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 20px;
+            margin-left: 4px;
+            font-weight: bold;
+        }
+        .top1-badge { background: #ffd700; color: #b8860b; }
+        .top2-badge { background: #c0c0c0; color: #333; }
+        .top3-badge { background: #cd7f32; color: white; }
+        
+        .medal-1 { color: #ffd700; font-weight: bold; }
+        .medal-2 { color: #c0c0c0; font-weight: bold; }
+        .medal-3 { color: #cd7f32; font-weight: bold; }
+        .flag { font-size: 1rem; }
+        
+        .loading, .no-data { text-align: center; padding: 30px; font-size: 1rem; color: #888; }
+        
+        /* ============================================================ */
+        /* =========== USER POSITION BANNER ============================ */
+        /* ============================================================ */
+        .user-position-banner {
+            margin-top: 15px;
+            padding: 12px;
+            background: #ffff00;
+            border-radius: 12px;
+            text-align: center;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255,255,0,0.8);
+            animation: pulseFluo 1.5s ease-in-out infinite;
+        }
+        .user-position-banner .pos-score { font-size: 1.1rem; }
+        .user-position-banner .pos-country { font-size: 0.8rem; font-weight: normal; }
+        
+        /* ============================================================ */
+        /* =========== FOOTER ========================================== */
+        /* ============================================================ */
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            font-size: 0.6rem;
+            color: #888;
+            line-height: 1.6;
+        }
+        body.dark .footer { border-top-color: #333; }
+        
+        /* ============================================================ */
+        /* =========== VOICE INDICATOR ================================= */
+        /* ============================================================ */
+        .voice-indicator {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: #4caf50;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            z-index: 999;
+            opacity: 0.8;
+        }
+        
+        /* ============================================================ */
+        /* =========== EMPTY STATE ===================================== */
+        /* ============================================================ */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 15px; }
+        .empty-state-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; color: #333; }
+        body.dark .empty-state-title { color: #eee; }
+        .empty-state-message { font-size: 0.9rem; color: #666; margin-bottom: 15px; }
+        body.dark .empty-state-message { color: #aaa; }
+        .empty-state-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .empty-state-btn:active { transform: scale(0.95); }
+        
+        /* ============================================================ */
+        /* =========== PRINT STYLES ==================================== */
+        /* ============================================================ */
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .container { box-shadow: none; padding: 15px; margin: 0; max-width: 100%; border-radius: 0; }
+            .nav-bar, .filter-bar, .voice-indicator, .motivation-banner,
+            .refresh-btn, .share-btn, .print-btn, .challenge-btn {
+                display: none !important;
+            }
+            .ranking-table th { background: #667eea !important; color: white !important; print-color-adjust: exact; }
+            .user-row { background: #ffff00 !important; print-color-adjust: exact; }
+            .footer { border-top: 1px solid #ccc; margin-top: 15px; padding-top: 10px; }
+            .table-wrapper { overflow: visible !important; margin: 0; padding: 0; }
+            .ranking-table { min-width: 100% !important; font-size: 0.7rem; }
+        }
+        
+        /* ============================================================ */
+        /* =========== RESPONSIVE - MOBILE FIRST ======================= */
+        /* ============================================================ */
+        @media (max-width: 768px) {
+            body { padding: 8px; }
+            .container { padding: 12px; border-radius: 15px; }
+            .header h1 { font-size: 1.2rem; }
+            .subtitle { font-size: 0.75rem; }
+            
+            .nav-bar { gap: 6px; }
+            .nav-bar .nav-left { gap: 6px; }
+            .nav-bar .nav-right { gap: 6px; }
+            .back-btn, .dashboard-btn { padding: 6px 12px; font-size: 0.7rem; }
+            .theme-btn { font-size: 1.1rem; padding: 4px 6px; }
+            
+            .filter-bar { gap: 6px; }
+            .filter-controls { gap: 6px; }
+            .action-buttons { gap: 4px; }
+            .level-filter { padding: 6px 10px; font-size: 0.7rem; }
+            .refresh-btn, .share-btn, .print-btn, .challenge-btn {
+                padding: 6px 10px;
+                font-size: 0.65rem;
+            }
+            
+            .motivation-banner { padding: 10px 12px; }
+            .motivation-text { font-size: 0.75rem; }
+            .badge { font-size: 0.6rem; padding: 3px 8px; }
+            
+            .ranking-table { font-size: 0.65rem; min-width: 500px; }
+            .ranking-table th { font-size: 0.6rem; padding: 6px 4px; }
+            .ranking-table td { padding: 5px 4px; }
+            .flag { font-size: 0.85rem; }
+            .top3-badge { font-size: 0.5rem; padding: 1px 4px; }
+            
+            .user-position-banner { padding: 10px; }
+            .user-position-banner .pos-score { font-size: 0.95rem; }
+            
+            .footer { font-size: 0.5rem; margin-top: 15px; padding-top: 10px; }
+            .voice-indicator { font-size: 8px; padding: 4px 10px; bottom: 10px; right: 10px; }
+            
+            .empty-state { padding: 30px 15px; }
+            .empty-state-icon { font-size: 2.5rem; }
+            .empty-state-title { font-size: 1rem; }
+            .empty-state-message { font-size: 0.8rem; }
+            .empty-state-btn { padding: 8px 20px; font-size: 0.8rem; }
+        }
+        
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            .container { padding: 8px; border-radius: 12px; }
+            .header h1 { font-size: 1rem; }
+            
+            .back-btn, .dashboard-btn { padding: 5px 10px; font-size: 0.6rem; }
+            .theme-btn { font-size: 0.9rem; }
+            
+            .level-filter { padding: 5px 8px; font-size: 0.6rem; }
+            .refresh-btn, .share-btn, .print-btn, .challenge-btn {
+                padding: 5px 8px;
+                font-size: 0.55rem;
+            }
+            
+            .ranking-table { font-size: 0.55rem; min-width: 400px; }
+            .ranking-table th { font-size: 0.5rem; padding: 4px 3px; }
+            .ranking-table td { padding: 4px 3px; }
+            .flag { font-size: 0.7rem; }
+            
+            .motivation-text { font-size: 0.65rem; }
+            .badge { font-size: 0.5rem; padding: 2px 6px; }
+            
+            .footer { font-size: 0.45rem; }
+            .voice-indicator { font-size: 7px; padding: 3px 8px; bottom: 8px; right: 8px; }
+            
+            .user-position-banner .pos-score { font-size: 0.8rem; }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ AI waiting</div>
+
+<div class="container">
+    <div class="nav-bar">
+        <div class="nav-left">
+            <button class="back-btn" onclick="goBack()">← Back</button>
+            <button class="dashboard-btn" onclick="goToDashboard()">📊 Rankings</button>
+        </div>
+        <div class="nav-right">
+            <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+        </div>
+    </div>
+    
+    <div class="header">
+        <h1 id="pageTitle">🏆 ETEO World Ranking</h1>
+        <div class="subtitle" id="pageSubtitle">Loading...</div>
+    </div>
+    
+    <div id="motivationBanner" class="motivation-banner"></div>
+    
+    <div class="filter-bar">
+        <div class="filter-controls">
+            <select id="topFilter" class="level-filter">
+                <option value="10">🏆 TOP 10</option>
+                <option value="20" selected>🏆 TOP 20</option>
+                <option value="50">🏆 TOP 50</option>
+                <option value="100">🏆 TOP 100</option>
+            </select>
+            <button class="refresh-btn" id="refreshBtn">🔄</button>
+        </div>
+        <div class="action-buttons">
+            <button class="challenge-btn" id="challengeBtn">🎯 Challenge</button>
+            <button class="share-btn" id="shareBtn">📤 Share</button>
+            <button class="print-btn" id="printBtn">🖨️ Print</button>
+        </div>
+    </div>
+    
+    <div class="table-wrapper" id="tableWrapper">
+        <div id="rankingContainer" class="loading">📡 Loading ranking...</div>
+    </div>
+    
+    <div class="footer">
+        <p>🌍 Country required – 👤 Name optional (anonymous allowed)</p>
+        <p>📊 Real-time ranking • © 2026 - Dr. SAID MAARAK 🇲🇦</p>
+        <p>🔗 https://eteo-endo-to-every-one.web.app</p>
+    </div>
+</div>
+
+<script>
+    // ================================================================
+    // =========== DÉTECTION MOBILE ====================================
+    // ================================================================
+    const isMobile = window.hasOwnProperty('capacitor');
+    console.log('📱 Mode mobile :', isMobile);
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let currentTop = 20;
+    let currentScores = [];
+    let currentLevelId = null;
+    let userRank = null;
+
+    // ================================================================
+    // =========== LIRE LE PARAMETRE level DANS L'URL ==================
+    // ================================================================
+    function getLevelFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('level');
+    }
+
+    // ================================================================
+    // =========== FORMATER LE NOM DU NIVEAU ===========================
+    // ================================================================
+    function formatLevelName(levelId) {
+        if (!levelId) return "All Levels";
+        
+        const isFrench = levelId.endsWith('_fr');
+        const isEnglish = levelId.endsWith('_en');
+        const isSpanish = levelId.endsWith('_es');
+        const isRussian = levelId.endsWith('_ru');
+        
+        let name = levelId
+            .replace(/_/g, ' ')
+            .replace(/(debutant|beginner|principiante|начальный)[\s_]?(\d+)/i, function(match, p1, p2) {
+                if (isFrench || isSpanish) return `Niveau ${p2}`;
+                if (isRussian) return `Уровень ${p2}`;
+                return `Level ${p2}`;
+            })
+            .replace(/(intermediaire|intermediate|intermedio|средний)[\s_]?(\d+)/i, function(match, p1, p2) {
+                if (isFrench || isSpanish) return `Intermédiaire ${p2}`;
+                if (isRussian) return `Средний ${p2}`;
+                return `Intermediate ${p2}`;
+            })
+            .replace(/(expert|experto|эксперт)[\s_]?(\d+)/i, function(match, p1, p2) {
+                if (isRussian) return `Эксперт ${p2}`;
+                return `Expert ${p2}`;
+            });
+        
+        name = name.replace(/\b\w/g, l => l.toUpperCase());
+        return name;
+    }
+
+    // ================================================================
+    // =========== VOICE SYSTEM ========================================
+    // ================================================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ AI active";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => { indicator.style.opacity = "0.5"; }, 2000);
+            }
+        }
+    }
+
+    // ================================================================
+    // =========== COUNTRY NAMES =======================================
+    // ================================================================
+    const countryNames = {
+        FR: "France", MA: "Morocco", CH: "Switzerland", CA: "Canada", BE: "Belgium",
+        SN: "Senegal", CI: "Ivory Coast", CM: "Cameroon", DZ: "Algeria", TN: "Tunisia",
+        US: "United States", GB: "United Kingdom", DE: "Germany", ES: "Spain", IT: "Italy",
+        PT: "Portugal", TR: "Turkey", RU: "Russia", CN: "China", JP: "Japan",
+        BR: "Brazil", AU: "Australia", IN: "India"
+    };
+
+    const countries = {
+        FR: "🇫🇷", MA: "🇲🇦", CH: "🇨🇭", CA: "🇨🇦", BE: "🇧🇪",
+        SN: "🇸🇳", CI: "🇨🇮", CM: "🇨🇲", DZ: "🇩🇿", TN: "🇹🇳",
+        US: "🇺🇸", GB: "🇬🇧", DE: "🇩🇪", ES: "🇪🇸", IT: "🇮🇹",
+        PT: "🇵🇹", TR: "🇹🇷", RU: "🇷🇺", CN: "🇨🇳", JP: "🇯🇵",
+        BR: "🇧🇷", AU: "🇦🇺", IN: "🇮🇳"
+    };
+
+    function getFlag(countryCode) { return countries[countryCode] || "🌍"; }
+    function getCountryName(countryCode) { return countryNames[countryCode] || countryCode || "unknown"; }
+    function escapeHtml(text) { if (!text) return "Anonymous"; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+    // ================================================================
+    // =========== MOTIVATION MESSAGES ================================
+    // ================================================================
+    const motivationMessages = [
+        { icon: "🚀", text: "Not in the top yet? Play again and improve your score!" },
+        { icon: "💪", text: "Every point counts! A small effort and you will climb the ranking." },
+        { icon: "🏆", text: "The top 3 receive an exclusive badge and make their country proud!" },
+        { icon: "📈", text: "International competition! Answer faster to earn +5 bonus points." },
+        { icon: "🎯", text: "Challenge your colleagues worldwide and share your score!" },
+        { icon: "⭐", text: "Goal: Enter the top 10 this week and represent your country!" }
+    ];
+
+    function updateMotivationBanner() {
+        const banner = document.getElementById('motivationBanner');
+        if (!banner) return;
+        const randomMsg = motivationMessages[Math.floor(Math.random() * motivationMessages.length)];
+        banner.innerHTML = `<div class="motivation-text">${randomMsg.icon} ${randomMsg.text}</div>
+                            <div class="badge">🎯 Keep improving!</div>`;
+    }
+
+    // ================================================================
+    // =========== SHARE RANKING - RECTIFIÉ POUR APK ==================
+    // ================================================================
+    async function shareRanking() {
+        if (currentScores.length === 0) { alert("No scores to share."); return; }
+        
+        let title = currentLevelId ? formatLevelName(currentLevelId) : "All Levels";
+        let shareText = `🏆 ETEO Ranking - ${title}\n`;
+        shareText += new Date().toLocaleDateString('en-GB') + "\n\n";
+        
+        currentScores.slice(0, 10).forEach((s, idx) => {
+            const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx+1}.`;
+            shareText += `${medal} ${s.nom || "Anonymous"} (${getCountryName(s.pays)}) - ${s.score}/${s.maxScore} (${s.percentage}%)\n`;
+        });
+        
+        shareText += "\n📊 ETEO - Continuing Dental Education\n";
+        shareText += "© 2026 - Dr. SAID MAARAK 🇲🇦\n";
+        shareText += "https://eteo-endo-to-every-one.web.app";
+
+        try {
+            // ✅ APK (Capacitor)
+            if (isMobile && window.Share) {
+                console.log('📤 Partage via Capacitor Share...');
+                await window.Share.share({
+                    title: 'ETEO Ranking',
+                    text: shareText,
+                    dialogTitle: 'Share your ranking'
+                });
+                console.log('📤 Partage réussi sur mobile');
+            } 
+            // ✅ Navigateur Web
+            else if (navigator.share) {
+                console.log('📤 Partage via Web Share API...');
+                await navigator.share({
+                    title: 'ETEO Ranking',
+                    text: shareText
+                });
+                console.log('📤 Partage réussi sur navigateur');
+            } 
+            // ✅ Fallback
+            else if (navigator.clipboard) {
+                console.log('📤 Copie via Presse-papier...');
+                await navigator.clipboard.writeText(shareText);
+                alert("📋 Ranking copied to clipboard!");
+            } else {
+                prompt("Copy this ranking:", shareText);
+            }
+        } catch (error) {
+            console.error('❌ Erreur de partage:', error);
+            if (!error.message || !error.message.includes('cancel')) {
+                alert(`Share failed. Copy this text manually:\n\n${shareText}`);
+            }
+        }
+    }
+
+    // ================================================================
+    // =========== PRINT RANKING - RECTIFIÉ POUR APK ==================
+    // ================================================================
+    async function printRanking() {
+        try {
+            // ✅ APK (Capacitor)
+            if (isMobile && window.Print) {
+                console.log('🖨️ Impression via Capacitor Print...');
+                const container = document.querySelector('.container');
+                await window.Print.print({
+                    html: container.outerHTML,
+                    html: true
+                });
+                console.log('🖨️ Impression réussie sur mobile');
+            } 
+            // ✅ Navigateur Web
+            else {
+                console.log('🖨️ Impression via window.print...');
+                window.print();
+                console.log('🖨️ Impression réussie sur navigateur');
+            }
+        } catch (error) {
+            console.error('❌ Erreur d\'impression:', error);
+            try {
+                window.print();
+            } catch (e) {
+                alert('🖨️ Print failed. Use your browser\'s print function.');
+            }
+        }
+    }
+
+    // ================================================================
+    // =========== CHALLENGE FRIEND ====================================
+    // ================================================================
+    function challengeFriend() {
+        if (currentScores.length === 0) { alert("No scores to challenge."); return; }
+        const topPlayer = currentScores[0];
+        const challengeText = `🎯 ETEO Challenge!\n\n${topPlayer.nom || "The leader"} from ${getCountryName(topPlayer.pays)} dominates the ranking with ${topPlayer.score}/${topPlayer.maxScore} points (${topPlayer.percentage}%).\n\nIt's your turn!\n\n👉 https://eteo-endo-to-every-one.web.app`;
+        
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Challenge', text: challengeText });
+        } else {
+            navigator.clipboard.writeText(challengeText);
+            alert("📋 Challenge copied!");
+        }
+    }
+
+    // ================================================================
+    // =========== EMPTY STATE ========================================
+    // ================================================================
+    function showEmptyState() {
+        const container = document.getElementById('rankingContainer');
+        const levelName = formatLevelName(currentLevelId);
+        
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-title">No scores yet for "${levelName}"</div>
+                <div class="empty-state-message">
+                    Complete this quiz to be the first to appear in the ranking!<br>
+                    🎯 Speed gives bonus points!
+                </div>
+                <button class="empty-state-btn" onclick="goToDashboard()">← Back to all rankings</button>
+            </div>
+        `;
+    }
+
+    // ================================================================
+    // =========== CONNECTION ERROR ====================================
+    // ================================================================
+    function showConnectionError() {
+        const container = document.getElementById('rankingContainer');
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <div class="empty-state-title">Connection error</div>
+                <div class="empty-state-message">
+                    Unable to load ranking. Check your internet connection.
+                </div>
+                <button class="empty-state-btn" onclick="refreshRanking()">🔄 Retry</button>
+            </div>
+        `;
+    }
+
+    // ================================================================
+    // =========== LOAD RANKING ========================================
+    // ================================================================
+    async function loadRanking() {
+        const container = document.getElementById('rankingContainer');
+        container.innerHTML = '<div class="loading">⏳ Loading scores...</div>';
+        
+        currentTop = parseInt(document.getElementById('topFilter').value, 10);
+        currentLevelId = getLevelFromURL();
+        
+        const title = currentLevelId ? formatLevelName(currentLevelId) : "All Levels";
+        document.getElementById('pageTitle').innerHTML = `🏆 ETEO World Ranking - ${title}`;
+        document.getElementById('pageSubtitle').innerHTML = currentLevelId ? `Best scores for ${title}` : "Best scores from the global dental community";
+        
+        let query = db.collection('scores');
+        if (currentLevelId) {
+            query = query.where('levelId', '==', currentLevelId);
+        }
+        query = query.orderBy('percentage', 'desc').limit(currentTop);
+        
+        try {
+            const snapshot = await query.get();
+            
+            if (snapshot.empty) {
+                if (currentLevelId) {
+                    showEmptyState();
+                } else {
+                    container.innerHTML = '<div class="no-data">📭 No scores recorded yet. Be the first!</div>';
+                }
+                currentScores = [];
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            currentScores = scores;
+            
+            const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+            let userPosition = -1;
+            let userScore = null;
+            
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userPosition = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            updateMotivationBanner();
+            
+            let html = `<table class="ranking-table"><thead><tr>
+                <th>🏅</th><th>🌍</th><th>👤 User</th><th>📊 Score</th><th>📈 %</th><th>📅 Date</th>
+            </tr></thead><tbody>`;
+            
+            scores.forEach((s, idx) => {
+                const rank = idx + 1;
+                let medalClass = rank === 1 ? 'medal-1' : rank === 2 ? 'medal-2' : rank === 3 ? 'medal-3' : '';
+                const rowClass = (s.nom === userName) ? 'user-row' : '';
+                const date = s.date ? new Date(s.date).toLocaleDateString('en-GB') : '??';
+                
+                let rankDisplay = rank;
+                if (rank === 1) rankDisplay = "🥇";
+                else if (rank === 2) rankDisplay = "🥈";
+                else if (rank === 3) rankDisplay = "🥉";
+                
+                html += `<tr class="${rowClass}">
+                    <td class="${medalClass}"><strong>${rankDisplay}</strong></td>
+                    <td class="flag">${getFlag(s.pays)}</td>
+                    <td><strong>${escapeHtml(s.nom)}</strong>${rank <= 3 ? ` <span class="top3-badge top${rank}-badge">TOP ${rank}</span>` : ''}</td>
+                    <td>${s.score}/${s.maxScore}</td>
+                    <td><strong>${(s.percentage || 0).toFixed(1)}%</strong></td>
+                    <td>${date}</td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+            
+            // Afficher la position de l'utilisateur si en dessous du top
+            if (userPosition > 0 && userPosition > currentTop) {
+                const userPosHtml = document.createElement('div');
+                userPosHtml.className = 'user-position-banner';
+                userPosHtml.innerHTML = `
+                    <div class="pos-score">📍 Your position: <strong>${userPosition}th</strong> with ${userScore.score}/${userScore.maxScore} points (${userScore.percentage}%)</div>
+                    <div class="pos-country">Country: ${getCountryName(userScore.pays)} 🇺🇳</div>
+                `;
+                container.appendChild(userPosHtml);
+            }
+            
+        } catch (error) {
+            console.error("Firestore error:", error);
+            showConnectionError();
+        }
+    }
+
+    function refreshRanking() {
+        speak("Ranking updated.", "en-US");
+        loadRanking();
+    }
+
+    function goBack() {
+        if (currentLevelId) {
+            window.location.href = "classements_dashboard.html";
+        } else {
+            window.location.href = "index.html";
+        }
+    }
+
+    function goToDashboard() {
+        window.location.href = "classements_dashboard.html";
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark');
+        const btn = document.querySelector('.theme-btn');
+        btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+
+    // ================================================================
+    // =========== INITIALISATION ======================================
+    // ================================================================
+    document.body.addEventListener('click', function firstClick() { activateVoice(); document.body.removeEventListener('click', firstClick); });
+    
+    document.getElementById('refreshBtn').addEventListener('click', refreshRanking);
+    document.getElementById('topFilter').addEventListener('change', loadRanking);
+    document.getElementById('shareBtn').addEventListener('click', shareRanking);
+    document.getElementById('printBtn').addEventListener('click', printRanking);
+    document.getElementById('challengeBtn').addEventListener('click', challengeFriend);
+    
+    // Thème
+    if (localStorage.getItem('eteo_theme') === 'dark') {
+        document.body.classList.add('dark');
+        document.querySelector('.theme-btn').textContent = '☀️';
+    }
+    
+    loadRanking();
+    
+    setTimeout(() => {
+        if (voiceReady) {
+            if (currentLevelId) {
+                speak(`Welcome to the ranking for ${formatLevelName(currentLevelId)}. Discover the best scores.`, "en-US");
+            } else {
+                speak("Welcome to the ETEO World Ranking. Discover all scores from the community.", "en-US");
+            }
+        }
+    }, 1500);
+</script>
+</body>
+</html>

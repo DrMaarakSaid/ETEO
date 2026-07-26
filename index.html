@@ -3,20 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ETEO - Endo To Every One</title>
-    
-    <!-- LIAISON DU MANIFESTE (PWA) -->
+    <title>ETEO - E-learning To Every One</title>
     <link rel="manifest" href="manifest.json">
-    <!-- ICONE POUR IOS (APPLE) -->
-    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- ============================================ -->
+    <!-- =========== TTS MANAGER ==================== -->
+    <!-- ============================================ -->
+    <script src="js/tts-manager.js"></script>
 
     <style>
+        /* ============================================ */
+        /* =========== 1. RESET & BASE =============== */
+        /* ============================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* ============================================ */
+        /* =========== 2. BODY & BACKGROUND ========== */
+        /* ============================================ */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -25,197 +32,795 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            margin: 0;
         }
 
         body.dark {
             background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
         }
 
+        /* ============================================ */
+        /* =========== 3. CONTENEUR PRINCIPAL ======== */
+        /* ============================================ */
         .container {
-            max-width: 400px;
+            max-width: 700px;
             width: 100%;
-            background: white;
-            border-radius: 40px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
             overflow: hidden;
-            padding: 50px 30px;
+            padding: 50px 30px 40px;
             text-align: center;
+            backdrop-filter: blur(10px);
         }
 
         body.dark .container {
-            background: #1e1e2e;
+            background: rgba(30, 30, 46, 0.95);
             color: #eee;
+        }
+
+        /* ============================================ */
+        /* =========== 4. HEADER - ETEO MULTICOLOR ==== */
+        /* ============================================ */
+        .header {
+            margin-bottom: 15px;
         }
 
         .header h1 {
-            font-size: 2.8rem;
-            color: #667eea;
-            margin-bottom: 5px;
+            font-size: 4.5rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            margin-bottom: 2px;
+            position: relative;
+            display: inline-block;
+            filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.3));
+            transition: all 0.3s ease;
         }
 
-        .header p {
-            color: #666;
+        .header h1 .letter-e {
+            color: #2196F3;
+            -webkit-text-stroke: 2px #0d47a1;
+            text-shadow: 
+                -1px -1px 0 #000000,
+                1px -1px 0 #000000,
+                -1px 1px 0 #000000,
+                1px 1px 0 #000000;
+        }
+
+        .header h1 .letter-t {
+            color: #4CAF50;
+            -webkit-text-stroke: 2px #1b5e20;
+            text-shadow: 
+                -1px -1px 0 #000000,
+                1px -1px 0 #000000,
+                -1px 1px 0 #000000,
+                1px 1px 0 #000000;
+        }
+
+        .header h1 .letter-o {
+            color: #FF9800;
+            -webkit-text-stroke: 2px #e65100;
+            text-shadow: 
+                -1px -1px 0 #000000,
+                1px -1px 0 #000000,
+                -1px 1px 0 #000000,
+                1px 1px 0 #000000;
+        }
+
+        body.dark .header h1 .letter-e {
+            color: #42a5f5;
+            -webkit-text-stroke: 2px #1565c0;
+        }
+
+        body.dark .header h1 .letter-t {
+            color: #66bb6a;
+            -webkit-text-stroke: 2px #2e7d32;
+        }
+
+        body.dark .header h1 .letter-o {
+            color: #ffa726;
+            -webkit-text-stroke: 2px #ef6c00;
+        }
+
+        .header .subtitle {
             font-size: 1rem;
-            margin-bottom: 40px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            margin-top: -5px;
+            color: #555;
+            text-transform: uppercase;
+            position: relative;
         }
 
-        body.dark .header p {
+        body.dark .header .subtitle {
+            color: #ccc;
+        }
+
+        /* ============================================ */
+        /* =========== 5. BETA BANNER ================ */
+        /* ============================================ */
+        .beta-banner {
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+            border-radius: 30px;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        .beta-banner p {
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .beta-banner .beta-small {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(255, 87, 34, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
+        }
+
+        /* ============================================ */
+        /* =========== 6. GRILLE DES LANGUES ========== */
+        /* ============================================ */
+        .languages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 25px;
+            margin: 20px 0 30px;
+        }
+
+        /* ============================================ */
+        /* =========== 7. CARTE LANGUE ================ */
+        /* ============================================ */
+        .lang-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            width: 100%;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        filter 0.3s ease;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .lang-btn:hover {
+            transform: scale(1.08) translateY(-5px);
+            filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.3));
+        }
+
+        .lang-btn:active {
+            transform: scale(0.95);
+        }
+
+        .lang-btn img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover img {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .lang-btn .lang-label {
+            display: block;
+            margin-top: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 1px;
+        }
+
+        body.dark .lang-btn .lang-label {
+            color: #ecf0f1;
+        }
+
+        .lang-btn .lang-flag {
+            font-size: 1.8rem;
+            display: block;
+        }
+
+        /* ============================================ */
+        /* =========== 8. BOUTON ÉCOUTER ============== */
+        /* ============================================ */
+        .listen-btn {
+            width: 100%;
+            padding: 10px 12px;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: 2px solid #1976D2;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .listen-btn:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 6px 25px rgba(33, 150, 243, 0.4);
+            background: linear-gradient(135deg, #42a5f5, #1976D2);
+        }
+
+        .listen-btn:active {
+            transform: scale(0.95);
+        }
+
+        .listen-btn.listening {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            border-color: #F57C00;
+            animation: pulseListen 1s infinite;
+        }
+
+        .listen-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        @keyframes pulseListen {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+
+        body.dark .listen-btn {
+            background: linear-gradient(135deg, #42a5f5, #1565c0);
+            border-color: #1565c0;
+        }
+
+        body.dark .listen-btn:hover {
+            background: linear-gradient(135deg, #64b5f6, #1565c0);
+        }
+
+        /* Couleurs par langue pour les boutons Écouter */
+        .listen-fr {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            border-color: #1976D2;
+        }
+        .listen-fr:hover {
+            background: linear-gradient(135deg, #42a5f5, #1976D2);
+        }
+
+        .listen-en {
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            border-color: #388E3C;
+        }
+        .listen-en:hover {
+            background: linear-gradient(135deg, #66bb6a, #388E3C);
+        }
+
+        .listen-es {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            border-color: #F57C00;
+        }
+        .listen-es:hover {
+            background: linear-gradient(135deg, #ffa726, #F57C00);
+        }
+
+        .listen-ru {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            border-color: #7B1FA2;
+        }
+        .listen-ru:hover {
+            background: linear-gradient(135deg, #AB47BC, #7B1FA2);
+        }
+
+        body.dark .listen-fr {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+        }
+        body.dark .listen-en {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+        }
+        body.dark .listen-es {
+            background: linear-gradient(135deg, #e65100, #bf360c);
+        }
+        body.dark .listen-ru {
+            background: linear-gradient(135deg, #6A1B9A, #4A148C);
+        }
+
+        /* ============================================ */
+        /* =========== 9. FOOTER ==================== */
+        /* ============================================ */
+        .footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 0.7rem;
             color: #aaa;
         }
 
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 18px 20px;
-            margin: 15px 0;
-            border: none;
-            border-radius: 60px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-            color: white;
-        }
-
-        .btn:active {
-            transform: scale(0.97);
-        }
-
-        .btn-fr {
-            background: linear-gradient(135deg, #0055A4, #EF4135);
-        }
-
-        .btn-en {
-            background: linear-gradient(135deg, #00247D, #CF142B);
-        }
-
-        .footer {
-            margin-top: 40px;
-            font-size: 0.7rem;
-            color: #888;
+        body.dark .footer {
+            border-top-color: #444;
         }
 
         .footer p {
-            margin: 5px 0;
+            margin: 4px 0;
         }
 
-        .theme-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        body.dark .theme-btn {
-            color: #eee;
-        }
-
+        /* ============================================ */
+        /* =========== 10. VOICE INDICATOR =========== */
+        /* ============================================ */
         .voice-indicator {
             position: fixed;
             bottom: 20px;
             right: 20px;
             background: #4caf50;
             color: white;
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 10px;
             z-index: 999;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .voice-indicator.capacitor {
+            background: #2196F3;
+        }
+
+        .voice-indicator.web {
+            background: #FF9800;
+        }
+
+        .voice-indicator.error {
+            background: #f44336;
+        }
+
+        /* ============================================ */
+        /* =========== 11. TOAST ====================== */
+        /* ============================================ */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* ============================================ */
+        /* =========== 12. THEME TOGGLE ============== */
+        /* ============================================ */
+        .theme-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, background 0.3s;
+            z-index: 100;
+        }
+
+        body.dark .theme-btn {
+            background: rgba(30, 30, 46, 0.9);
+            color: #eee;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1) rotate(20deg);
+        }
+
+        .theme-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* ============================================ */
+        /* =========== 13. RESPONSIVE ================ */
+        /* ============================================ */
+        @media (max-width: 520px) {
+            .container {
+                padding: 30px 15px 30px;
+                border-radius: 30px;
+            }
+
+            .header h1 {
+                font-size: 3.2rem;
+                letter-spacing: 4px;
+            }
+
+            .languages-grid {
+                grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+                gap: 15px;
+            }
+
+            .listen-btn {
+                font-size: 0.75rem;
+                padding: 8px 10px;
+            }
+
+            .theme-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.4rem;
+                top: 15px;
+                right: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .languages-grid {
+                grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 2.6rem;
+                letter-spacing: 3px;
+            }
+
+            .listen-btn {
+                font-size: 0.65rem;
+                padding: 6px 8px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="voice-indicator" id="voiceIndicator">🎙️ IA en attente</div>
-    
-    <div class="container">
-        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+
+<!-- ============================================ -->
+<!-- =========== INDICATEUR VOCAL =============== -->
+<!-- ============================================ -->
+<div class="voice-indicator" id="voiceIndicator">🎙️ Initialisation...</div>
+
+<!-- ============================================ -->
+<!-- =========== TOAST ========================== -->
+<!-- ============================================ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================ -->
+<!-- =========== THEME TOGGLE =================== -->
+<!-- ============================================ -->
+<button class="theme-btn" onclick="toggleTheme()" aria-label="Changer le thème">🌙</button>
+
+<!-- ============================================ -->
+<!-- =========== CONTENEUR PRINCIPAL ============ -->
+<!-- ============================================ -->
+<div class="container">
+
+    <!-- ============================================ -->
+    <!-- =========== HEADER - ETEO MULTICOLOR ======= -->
+    <!-- ============================================ -->
+    <div class="header">
+        <h1>
+            <span class="letter-e">E</span>
+            <span class="letter-t">T</span>
+            <span class="letter-e">E</span>
+            <span class="letter-o">O</span>
+        </h1>
+        <p class="subtitle">E-learning To Every One</p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== BETA BANNER =================== -->
+    <!-- ============================================ -->
+    <div class="beta-banner">
+        <p>🔺  🔺🔺  🔺🔺  🔺🔺  🔺🔺  🔺</p>
+        <p class="beta-small">« Borderless learning, right in your pocket »</p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== GRILLE DES LANGUES ============= -->
+    <!-- ============================================ -->
+    <div class="languages-grid">
         
-        <div class="header">
-            <h1>🦷 ETEO</h1>
-            <p>Endo To Every One</p>
+        <!-- FRANÇAIS - BLEU -->
+        <div class="lang-wrapper">
+            <button class="lang-btn" onclick="redirectToLanguage('fr')">
+                <img src="images/C.jpg" alt="Français">
+                <span class="lang-flag">🇫🇷</span>
+                <span class="lang-label">Français</span>
+            </button>
+            <button class="listen-btn listen-fr" onclick="listenLanguage('fr', event)">
+                🔊 Écouter
+            </button>
         </div>
 
-        <button class="btn btn-fr" onclick="startFrenchWithVoice()">🇫🇷 Français</button>
-        <button class="btn btn-en" onclick="startEnglishWithVoice()">🇬🇧 English</button>
+        <!-- ANGLAIS - VERT -->
+        <div class="lang-wrapper">
+            <button class="lang-btn" onclick="redirectToLanguage('en')">
+                <img src="images/C.jpg" alt="English">
+                <span class="lang-flag">🇬🇧</span>
+                <span class="lang-label">English</span>
+            </button>
+            <button class="listen-btn listen-en" onclick="listenLanguage('en', event)">
+                🔊 Listen
+            </button>
+        </div>
 
-        <div class="footer">
-            <p>🎙️ Assistant vocal IA | ⏱️ 20 secondes par question</p>
-            <p>⚡ Bonus rapidité +5 points | 📖 Explications détaillées</p>
-            <p>📤 Partagez vos scores | 🏆 Débloquez tous les niveaux</p>
-            <p>© 2026 - Dr. SAID MAARAK 🇲🇦</p>
+        <!-- ESPAGNOL - ORANGE -->
+        <div class="lang-wrapper">
+            <button class="lang-btn" onclick="redirectToLanguage('es')">
+                <img src="images/C.jpg" alt="Español">
+                <span class="lang-flag">🇪🇸</span>
+                <span class="lang-label">Español</span>
+            </button>
+            <button class="listen-btn listen-es" onclick="listenLanguage('es', event)">
+                🔊 Escuchar
+            </button>
+        </div>
+
+        <!-- RUSSE - VIOLET -->
+        <div class="lang-wrapper">
+            <button class="lang-btn" onclick="redirectToLanguage('ru')">
+                <img src="images/C.jpg" alt="Русский">
+                <span class="lang-flag">🇷🇺</span>
+                <span class="lang-label">Русский</span>
+            </button>
+            <button class="listen-btn listen-ru" onclick="listenLanguage('ru', event)">
+                🔊 Слушать
+            </button>
         </div>
     </div>
 
-    <script>
-        // === SYSTÈME VOCAL ===
-        let speechSynthesisObj = null;
-        let voiceActive = true;
-        let voiceReady = false;
-        
-        function initVoice() {
-            if ('speechSynthesis' in window) {
-                speechSynthesisObj = window.speechSynthesis;
-                voiceReady = true;
-                return true;
-            }
-            return false;
+    <!-- ============================================ -->
+    <!-- =========== FOOTER ======================== -->
+    <!-- ============================================ -->
+    <div class="footer">
+        <p>🎙️ AI Voice Assistant | ⏱️ 20s per question</p>
+        <p>⚡ Speed bonus +5 pts | 📖 Detailed explanations</p>
+        <p>📤 Share your scores | 🏆 Unlock all levels</p>
+        <p>© 2026 - Dr. SAID MAARAK 🇲🇦</p>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- =========== SCRIPT PRINCIPAL =============== -->
+<!-- ============================================ -->
+<script>
+    // ============================================
+    // =========== 1. CONFIGURATION DES LANGUES ====
+    // ============================================
+    const langConfig = {
+        fr: {
+            message: "Bienvenue sur ETEO, l'application d'apprentissage en ligne. Choisissez le français pour commencer votre inscription.",
+            label: 'français',
+            flag: '🇫🇷',
+            toastMessage: '✅ Message lu en français'  // Message en français
+        },
+        en: {
+            message: "Welcome to ETEO, the online learning application. Choose English to start your registration.",
+            label: 'english',
+            flag: '🇬🇧',
+            toastMessage: '✅ Message read in English'  // Message en anglais
+        },
+        es: {
+            message: "Bienvenido a ETEO, la aplicación de aprendizaje en línea. Elige español para comenzar tu registro.",
+            label: 'espagnol',
+            flag: '🇪🇸',
+            toastMessage: '✅ Mensaje leído en español'  // Message en espagnol
+        },
+        ru: {
+            message: "Добро пожаловать в ETEO, приложение для онлайн-обучения. Выберите русский язык, чтобы начать регистрацию.",
+            label: 'russe',
+            flag: '🇷🇺',
+            toastMessage: '✅ Сообщение прочитано на русском'  // Message en russe
         }
+    };
+
+    const pages = {
+        fr: 'inscription_fr.html',
+        en: 'inscription_en.html',
+        es: 'inscription_es.html',
+        ru: 'inscription_ru.html'
+    };
+
+    // ============================================
+    // =========== 2. THÈME ======================
+    // ============================================
+    function toggleTheme() {
+        document.body.classList.toggle('dark');
+        const btn = document.querySelector('.theme-btn');
+        btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+        localStorage.setItem('eteo_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    // ============================================
+    // =========== 3. TOAST ======================
+    // ============================================
+    function showToast(message, duration = 2500) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    }
+
+    // ============================================
+    // =========== 4. BOUTON ÉCOUTER =============
+    // ============================================
+    function listenLanguage(lang, event) {
+        const btn = event ? event.currentTarget : null;
         
-        function speak(text, lang) {
-            if (!voiceActive || !speechSynthesisObj || !voiceReady) return;
-            try {
-                speechSynthesisObj.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang;
-                utterance.rate = 0.9;
-                utterance.pitch = 1.0;
-                speechSynthesisObj.speak(utterance);
-            } catch(e) {}
+        // Vérifier que le TTS est disponible
+        if (!window.ETEO || !window.ETEO.TTS) {
+            showToast('❌ Système vocal non disponible', 3000);
+            return;
         }
-        
-        let voiceActivated = false;
-        function activateVoice() {
-            if (!voiceActivated) {
-                initVoice();
-                voiceActivated = true;
-                const indicator = document.getElementById('voiceIndicator');
-                if (indicator) {
-                    indicator.textContent = "🎙️ IA activée";
-                    indicator.style.background = "#4caf50";
-                    setTimeout(() => { indicator.style.opacity = "0.5"; }, 2000);
+
+        const config = langConfig[lang];
+        if (!config) {
+            showToast('❌ Langue non supportée', 3000);
+            return;
+        }
+
+        // Désactiver le bouton pendant la lecture
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('listening');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '🔊 Lecture...';
+        }
+
+        // Lire le message
+        window.ETEO.TTS.speak(config.message, lang === 'fr' ? 'fr-FR' : 
+                                       lang === 'en' ? 'en-US' :
+                                       lang === 'es' ? 'es-ES' : 'ru-RU')
+            .then(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('listening');
+                    btn.innerHTML = lang === 'fr' ? '🔊 Écouter' :
+                                    lang === 'en' ? '🔊 Listen' :
+                                    lang === 'es' ? '🔊 Escuchar' : '🔊 Слушать';
                 }
+                // ==== CORRECTION ICI : Utilisation du message traduit ====
+                showToast(config.toastMessage, 2000);  // Maintenant le message est dans la bonne langue
+            })
+            .catch((error) => {
+                console.error('Erreur lors de la lecture :', error);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('listening');
+                    btn.innerHTML = lang === 'fr' ? '🔊 Écouter' :
+                                    lang === 'en' ? '🔊 Listen' :
+                                    lang === 'es' ? '🔊 Escuchar' : '🔊 Слушать';
+                }
+                showToast('❌ Erreur lors de la lecture', 3000);
+            });
+
+        // Fallback
+        setTimeout(() => {
+            if (btn && btn.disabled) {
+                btn.disabled = false;
+                btn.classList.remove('listening');
+                btn.innerHTML = lang === 'fr' ? '🔊 Écouter' :
+                                lang === 'en' ? '🔊 Listen' :
+                                lang === 'es' ? '🔊 Escuchar' : '🔊 Слушать';
             }
+        }, 15000);
+    }
+
+    // ============================================
+    // =========== 5. REDIRECTION (SANS VOIX) =====
+    // ============================================
+    function redirectToLanguage(lang) {
+        const target = pages[lang];
+        if (!target) {
+            showToast('❌ Page non trouvée', 3000);
+            return;
         }
-        
-        function startFrenchWithVoice() {
-            activateVoice();
-            speak("Bienvenue Docteur dans ETEO, Endo To Every One. Bonne chance !", "fr-FR");
-            setTimeout(() => { window.location.href = "menu_fr.html"; }, 19000);
-        }
-        
-        function startEnglishWithVoice() {
-            activateVoice();
-            speak("Welcome Doctor to ETEO, Endo To Every One. Good luck !", "en-US");
-            setTimeout(() => { window.location.href = "menu_en.html"; }, 20000);
-        }
-        
-        function toggleTheme() {
-            document.body.classList.toggle('dark');
-        }
-        
-        document.body.addEventListener('click', function firstClick() {
-            activateVoice();
-            document.body.removeEventListener('click', firstClick);
+
+        // Désactiver tous les boutons de langue
+        const langBtns = document.querySelectorAll('.lang-btn');
+        langBtns.forEach(btn => {
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
         });
 
-        // === ENREGISTREMENT DU SERVICE WORKER (PWA) ===
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(() => console.log('Service Worker enregistré avec succès'))
-                    .catch((err) => console.log('Erreur Service Worker:', err));
-            });
+        // Désactiver tous les boutons Écouter
+        const listenBtns = document.querySelectorAll('.listen-btn');
+        listenBtns.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        });
+
+        // Feedback
+        const langNames = {
+            fr: 'français',
+            en: 'anglais',
+            es: 'espagnol',
+            ru: 'russe'
+        };
+        showToast(`⏳ Redirection vers ${langNames[lang]}...`, 2000);
+
+        // Redirection UNIQUEMENT (SANS voix)
+        setTimeout(() => {
+            window.location.href = target;
+        }, 1500);
+    }
+
+    // ============================================
+    // =========== 6. INITIALISATION =============
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- THÈME ---
+        if (localStorage.getItem('eteo_theme') === 'dark') {
+            document.body.classList.add('dark');
+            document.querySelector('.theme-btn').textContent = '☀️';
         }
-    </script>
+
+        // --- INITIALISATION DU TTS MANAGER (AUDIT SEULEMENT) ---
+        if (window.ETEO && window.ETEO.TTS) {
+            window.ETEO.TTS.init();
+            
+            const indicator = document.getElementById('voiceIndicator');
+            if (window.ETEO.TTS.engine === 'capacitor') {
+                indicator.textContent = '🎙️ Capacitor (Natife)';
+                indicator.className = 'voice-indicator capacitor';
+                console.log('✅ VOIX NATIVE CAPACITOR DÉTECTÉE !');
+            } else if (window.ETEO.TTS.engine === 'web') {
+                indicator.textContent = '🎙️ Web Speech (Secours)';
+                indicator.className = 'voice-indicator web';
+                console.log('⚠️ Secours Web Speech activé');
+            } else {
+                indicator.textContent = '❌ Aucune voix';
+                indicator.className = 'voice-indicator error';
+                console.error('❌ Aucun moteur TTS disponible');
+            }
+        } else {
+            console.error('❌ TTS Manager non chargé !');
+            const indicator = document.getElementById('voiceIndicator');
+            indicator.textContent = '❌ Erreur TTS';
+            indicator.className = 'voice-indicator error';
+        }
+
+        console.log('🚀 ETEO Accueil prêt !');
+        console.log('🔈 Cliquez sur les boutons "Écouter" pour entendre les messages.');
+    });
+
+    // ⚠️ PAS DE VOIX AUTOMATIQUE - L'utilisateur décide !
+</script>
 </body>
 </html>

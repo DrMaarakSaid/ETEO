@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ETEO - Tous les classements</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1em; }
+        .stats-banner {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        /* ============================================
+           STYLE POUR LES BOUTONS LANGUE
+           ============================================ */
+        .lang-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px 30px;
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+        .lang-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-decoration: none;
+        }
+        .lang-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .lang-btn:active {
+            transform: translateY(0px);
+        }
+        .lang-btn-fr {
+            background: linear-gradient(135deg, #3182ce, #2b6cb0);
+            color: white;
+        }
+        .lang-btn-fr:hover {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+        }
+        .lang-btn-en {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+        }
+        .lang-btn-en:hover {
+            background: linear-gradient(135deg, #fc8181, #e53e3e);
+        }
+        .lang-btn-es {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        .lang-btn-es:hover {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+        /* ============================================
+           RUSSE - VIOLET (NOUVEAU)
+           ============================================ */
+        .lang-btn-ru {
+            background: linear-gradient(135deg, #9C27B0, #6A1B9A);
+            color: white;
+        }
+        .lang-btn-ru:hover {
+            background: linear-gradient(135deg, #ab47bc, #7b1fa2);
+        }
+        .lang-btn .flag {
+            font-size: 1.5em;
+        }
+        .lang-btn .arrow {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+        .lang-btn:hover .arrow {
+            transform: translateX(5px);
+        }
+
+        .back-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px 30px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .back-btn:hover { background: #38a169; transform: translateY(-2px); }
+        .search-bar {
+            padding: 20px 30px;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 1em;
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: #667eea; }
+        .specialties-list { padding: 20px 30px; }
+        .category-group { margin-bottom: 30px; }
+        .category-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #4a5568;
+            padding: 10px 0;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .category-icon { font-size: 1.3em; }
+        .specialties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .specialty-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
+        .specialty-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .specialty-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .specialty-header h3 {
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+        .specialty-header.collapsed .toggle-icon { transform: rotate(-90deg); }
+        .specialty-content {
+            padding: 15px;
+            display: block;
+        }
+        .specialty-content.collapsed { display: none; }
+        .version-section {
+            margin-bottom: 20px;
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+        }
+        .version-title {
+            font-size: 1em;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 12px;
+            padding: 5px 0;
+        }
+        .lang-group {
+            margin-bottom: 15px;
+        }
+        .lang-title {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 8px;
+            padding: 5px 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            padding-left: 10px;
+        }
+        .level-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f7fafc;
+            padding: 8px 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #2d3748;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+            font-size: 0.9em;
+        }
+        .level-link:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+            border-color: #667eea;
+        }
+        .level-name {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lang-badge {
+            font-size: 0.7em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .lang-badge.fr { background: #3182ce; color: white; }
+        .lang-badge.en { background: #e53e3e; color: white; }
+        .lang-badge.es { background: #d97706; color: white; }
+        .lang-badge.ru { background: #9C27B0; color: white; }
+        .level-arrow {
+            color: #a0aec0;
+            font-size: 1em;
+        }
+        .level-link:hover .level-arrow {
+            color: #667eea;
+            transform: translateX(3px);
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        .footer {
+            background: #f7fafc;
+            padding: 20px;
+            text-align: center;
+            color: #718096;
+            font-size: 0.85em;
+        }
+        @media (max-width: 768px) {
+            .specialties-grid { grid-template-columns: 1fr; }
+            .levels-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.5em; }
+            .lang-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            .lang-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Tous les classements ETEO</h1>
+            <p>Sélectionnez votre spécialité, version et niveau pour voir le classement mondial</p>
+            <div class="stats-banner" id="statsBanner">Chargement...</div>
+        </div>
+        
+        <!-- ============================================
+             BOUTONS LANGUE AVEC LES BONS LIENS
+             ============================================ -->
+        <div class="lang-buttons">
+            <a href="choix_specialite_fr.html" class="lang-btn lang-btn-fr">
+                <span class="flag">🇫🇷</span>
+                <span>Version Française</span>
+                <span class="arrow">→</span>
+            </a>
+            <a href="choix_specialite_en.html" class="lang-btn lang-btn-en">
+                <span class="flag">🇬🇧</span>
+                <span>English Version</span>
+                <span class="arrow">→</span>
+            </a>
+            <a href="choix_specialite_es.html" class="lang-btn lang-btn-es">
+                <span class="flag">🇪🇸</span>
+                <span>Versión Española</span>
+                <span class="arrow">→</span>
+            </a>
+            <!-- ============================================
+                 RUSSE - NOUVEAU BOUTON
+                 ============================================ -->
+            <a href="choix_specialite_ru.html" class="lang-btn lang-btn-ru">
+                <span class="flag">🇷🇺</span>
+                <span>Русская версия</span>
+                <span class="arrow">→</span>
+            </a>
+        </div>
+        
+        <button class="back-btn" onclick="goBack()">← Retour au menu principal</button>
+        
+        <div class="search-bar">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Rechercher une spécialité, version ou niveau...">
+        </div>
+        
+        <div class="specialties-list" id="specialtiesList"></div>
+        
+        <div class="footer">
+            <p>📊 Classements en temps réel • 🎯 Plus vous répondez vite, plus votre score augmente !</p>
+            <p>🌍 Français (FR) · English (EN) · Español (ES) · Русский (RU) ont des classements séparés</p>
+            <p>© 2026 - ETEO Dental Education | 🇲🇦 Dr. SAID MAARAK</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // LISTE COMPLÈTE DES SPÉCIALITÉS PAR CATÉGORIE
+        // ============================================
+        const categories = {
+            clinique: {
+                name: "🏥 Clinique",
+                icon: "🏥",
+                specialties: [
+                    { key: "chirurgie", name: "Chirurgie", icon: "🦷" },
+                    { key: "endo", name: "Endodontie", icon: "🔬" },
+                    { key: "esthetique", name: "Esthétique", icon: "✨" },
+                    { key: "implantologie", name: "Implantologie", icon: "💉" },
+                    { key: "Médecine_buccale", name: "Médecine Buccale", icon: "👄" },
+                    { key: "orthodontie", name: "Orthodontie", icon: "😁" },
+                    { key: "parodontologie", name: "Parodontologie", icon: "🦷" },
+                    { key: "pedodontie", name: "Pédodontie", icon: "👶" },
+                    { key: "prothese", name: "Prothèse", icon: "🦷" },
+                    { key: "Soins_conservateurs", name: "Soins conservateurs", icon: "🦷" }
+                ]
+            },
+            technique: {
+                name: "🔧 Technique",
+                icon: "🔧",
+                specialties: [
+                    { key: "anesthesiologie", name: "Anesthésiologie", icon: "💉" },
+                    { key: "cfao_impression3d", name: "CFAO & Impression 3D", icon: "🖨️" },
+                    { key: "photographie", name: "📸 Photographie dentaire", icon: "📸" },
+                    { key: "radiologie", name: "Radiologie", icon: "📷" },
+                    { key: "sterilisation", name: "Stérilisation", icon: "🧼" }
+                ]
+            },
+            gestion: {
+                name: "📊 Gestion",
+                icon: "📊",
+                specialties: [
+                    { key: "aides_installation", name: "Aides à l'installation", icon: "🏢" },
+                    { key: "amenagement_cabinet", name: "Aménagement du cabinet", icon: "🪑" },
+                    { key: "comptabilite_fiscalite", name: "Comptabilité & Fiscalité", icon: "📈" },
+                    { key: "conventionnement_amo", name: "Conventionnement & AMO", icon: "📋" },
+                    { key: "fiscalite_dentiste", name: "Fiscalité du dentiste", icon: "💰" },
+                    { key: "formes_juridiques", name: "Formes juridiques", icon: "⚖️" },
+                    { key: "gestion_cabinet", name: "Gestion du cabinet", icon: "📁" },
+                    { key: "Informatique Logiciels dentaires", name: "Informatique & Logiciels", icon: "💻" },
+                    { key: "mutuelles_prises_en_charge", name: "Mutuelles & Prise en charge", icon: "🏥" },
+                    { key: "sante_publique", name: "Santé publique", icon: "🌍" }
+                ]
+            },
+            rh: {
+                name: "👥 Ressources Humaines",
+                icon: "👥",
+                specialties: [
+                    { key: "assistantes_dentaires", name: "Assistantes dentaires", icon: "👩‍⚕️" },
+                    { key: "code_deontologie", name: "Code de déontologie", icon: "📜" },
+                    { key: "ONMD_CRS_CRN", name: "ONMD - Ordre National & Conseils", icon: "🏛️" },
+                    { key: "conflits_médiation", name: "Conflits & Médiation", icon: "🤝" },
+                    { key: "ethique_deontologie", name: "Éthique & Déontologie", icon: "⚖️" },
+                    { key: "Femmes_dentistes", name: "Femmes dentistes", icon: "👩‍⚕️" },
+                    { key: "futur_docteur", name: "Futur docteur", icon: "🎓" },
+                    { key: "seniors", name: "Seniors", icon: "👴" },
+                    { key: "syndicat", name: "Syndicat", icon: "🤝" }
+                ]
+            },
+            sciences: {
+                name: "🔬 Sciences & Matériaux",
+                icon: "🔬",
+                specialties: [
+                    { key: "materiaux_dentaires", name: "Sciences & Matériaux dentaires", icon: "🧪" }
+                ]
+            },
+            relationnel: {
+                name: "💬 Relationnel & Psychomotricité",
+                icon: "💬",
+                specialties: [
+                    { key: "Relationnel&Psychomotricité", name: "Relationnel & Psychomotricité", icon: "🧠" }
+                ]
+            }
+        };
+
+        // ============================================
+        // NIVEAUX DISPONIBLES (6 niveaux)
+        // ============================================
+        const levels = [
+            { id: "debutant1", label: "Débutant 1", badge: "🌱" },
+            { id: "debutant2", label: "Débutant 2", badge: "🌿" },
+            { id: "intermediaire1", label: "Intermédiaire 1", badge: "⭐" },
+            { id: "intermediaire2", label: "Intermédiaire 2", badge: "⭐⭐" },
+            { id: "expert1", label: "Expert 1", badge: "🏆" },
+            { id: "expert2", label: "Expert 2", badge: "🏆🏆" }
+        ];
+
+        // ============================================
+        // LANGUES (FR, EN, ES, RU) - AJOUT DU RUSSE
+        // ============================================
+        const languages = [
+            { code: "fr", label: "FR", flag: "🇫🇷", class: "fr" },
+            { code: "en", label: "EN", flag: "🇬🇧", class: "en" },
+            { code: "es", label: "ES", flag: "🇪🇸", class: "es" },
+            { code: "ru", label: "RU", flag: "🇷🇺", class: "ru" }  // ← NOUVEAU
+        ];
+
+        // ============================================
+        // GÉNÉRER LE levelId COMPLET
+        // ============================================
+        function generateLevelId(specialtyKey, version, levelId, language) {
+            return `${specialtyKey}_${version.toLowerCase()}_${levelId}_${language}`;
+        }
+
+        // ============================================
+        // COMPTER LE NOMBRE TOTAL DE CLASSEMENTS
+        // ============================================
+        function countTotalRankings() {
+            let total = 0;
+            const versions = ["V1", "V2", "V3"];
+            
+            for (const category of Object.values(categories)) {
+                for (const specialty of category.specialties) {
+                    total += versions.length * levels.length * languages.length;
+                }
+            }
+            return total;
+        }
+
+        // ============================================
+        // RENDRE LA LISTE DES SPÉCIALITÉS (AVEC FR/EN/ES/RU)
+        // ============================================
+        function renderSpecialties(filterText = "") {
+            const container = document.getElementById('specialtiesList');
+            const statsSpan = document.getElementById('statsBanner');
+            
+            const totalRankings = countTotalRankings();
+            statsSpan.innerHTML = `📊 ${totalRankings} classements disponibles • ${Object.keys(categories).length} catégories`;
+            
+            let html = '';
+            const filterLower = filterText.toLowerCase();
+            
+            for (const [categoryKey, category] of Object.entries(categories)) {
+                let categoryHasMatches = false;
+                let specialtiesHtml = '';
+                
+                for (const specialty of category.specialties) {
+                    const specialtyMatches = filterLower === "" || 
+                        specialty.name.toLowerCase().includes(filterLower) ||
+                        specialty.key.toLowerCase().includes(filterLower);
+                    
+                    let versionsHtml = '';
+                    let specialtyHasMatch = false;
+                    
+                    const versions = ["V1", "V2", "V3"];
+                    
+                    for (const version of versions) {
+                        let levelsHtml = '';
+                        
+                        for (const lang of languages) {
+                            let langLevelsHtml = '';
+                            
+                            for (const level of levels) {
+                                const levelMatch = filterLower === "" || 
+                                    level.label.toLowerCase().includes(filterLower) ||
+                                    version.toLowerCase().includes(filterLower) ||
+                                    lang.label.toLowerCase().includes(filterLower);
+                                
+                                if (levelMatch || specialtyMatches) {
+                                    const fullLevelId = generateLevelId(specialty.key, version, level.id, lang.code);
+                                    const levelLabel = level.label;
+                                    
+                                    langLevelsHtml += `
+                                        <a href="ranking.html?level=${fullLevelId}" class="level-link">
+                                            <span class="level-name">
+                                                <span>${level.badge || '📚'}</span>
+                                                ${levelLabel}
+                                            </span>
+                                            <span class="level-arrow">→</span>
+                                        </a>
+                                    `;
+                                }
+                            }
+                            
+                            if (langLevelsHtml) {
+                                levelsHtml += `
+                                    <div class="lang-group">
+                                        <div class="lang-title">
+                                            <span class="lang-badge ${lang.class}">${lang.flag} ${lang.label}</span>
+                                        </div>
+                                        <div class="levels-grid">${langLevelsHtml}</div>
+                                    </div>
+                                `;
+                                specialtyHasMatch = true;
+                            }
+                        }
+                        
+                        if (levelsHtml) {
+                            versionsHtml += `
+                                <div class="version-section">
+                                    <div class="version-title">📌 ${version}</div>
+                                    ${levelsHtml}
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    if (specialtyHasMatch || specialtyMatches) {
+                        if (!specialtyHasMatch && specialtyMatches && filterLower !== "") {
+                            versionsHtml = '';
+                            const versions = ["V1", "V2", "V3"];
+                            for (const version of versions) {
+                                let levelsHtml = '';
+                                for (const lang of languages) {
+                                    let langLevelsHtml = '';
+                                    for (const level of levels) {
+                                        const fullLevelId = generateLevelId(specialty.key, version, level.id, lang.code);
+                                        const levelLabel = level.label;
+                                        
+                                        langLevelsHtml += `
+                                            <a href="ranking.html?level=${fullLevelId}" class="level-link">
+                                                <span class="level-name">
+                                                    <span>${level.badge || '📚'}</span>
+                                                    ${levelLabel}
+                                                </span>
+                                                <span class="level-arrow">→</span>
+                                            </a>
+                                        `;
+                                    }
+                                    if (langLevelsHtml) {
+                                        levelsHtml += `
+                                            <div class="lang-group">
+                                                <div class="lang-title">
+                                                    <span class="lang-badge ${lang.class}">${lang.flag} ${lang.label}</span>
+                                                </div>
+                                                <div class="levels-grid">${langLevelsHtml}</div>
+                                            </div>
+                                        `;
+                                    }
+                                }
+                                if (levelsHtml) {
+                                    versionsHtml += `
+                                        <div class="version-section">
+                                            <div class="version-title">📌 ${version}</div>
+                                            ${levelsHtml}
+                                        </div>
+                                    `;
+                                }
+                            }
+                            specialtyHasMatch = true;
+                        }
+                        
+                        if (specialtyHasMatch) {
+                            specialtiesHtml += `
+                                <div class="specialty-card" data-specialty="${specialty.key}">
+                                    <div class="specialty-header" onclick="toggleSpecialty('${specialty.key}')">
+                                        <h3>
+                                            <span>${specialty.icon}</span>
+                                            ${specialty.name}
+                                        </h3>
+                                        <span class="toggle-icon">▼</span>
+                                    </div>
+                                    <div class="specialty-content" id="content-${specialty.key}">
+                                        ${versionsHtml}
+                                    </div>
+                                </div>
+                            `;
+                            categoryHasMatches = true;
+                        }
+                    }
+                }
+                
+                if (categoryHasMatches || (filterLower !== "" && category.name.toLowerCase().includes(filterLower))) {
+                    if (specialtiesHtml) {
+                        html += `
+                            <div class="category-group">
+                                <div class="category-title">
+                                    <span class="category-icon">${category.icon}</span>
+                                    ${category.name}
+                                </div>
+                                <div class="specialties-grid">
+                                    ${specialtiesHtml}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            if (html === "") {
+                html = `<div class="no-results">
+                    <div style="font-size: 3rem;">🔍</div>
+                    <div style="font-size: 1.2rem; margin-top: 10px;">Aucun résultat trouvé</div>
+                    <div style="margin-top: 5px;">Essayez un autre terme de recherche</div>
+                </div>`;
+            }
+            
+            container.innerHTML = html;
+            restoreExpandedState();
+        }
+        
+        // ============================================
+        // GESTION DE L'EXPANSION/RÉTRACTION
+        // ============================================
+        function toggleSpecialty(specialtyKey) {
+            const content = document.getElementById(`content-${specialtyKey}`);
+            const card = document.querySelector(`.specialty-card[data-specialty="${specialtyKey}"]`);
+            const header = card.querySelector('.specialty-header');
+            
+            if (content && header) {
+                content.classList.toggle('collapsed');
+                header.classList.toggle('collapsed');
+                saveExpandedState(specialtyKey, !content.classList.contains('collapsed'));
+            }
+        }
+        
+        function saveExpandedState(specialtyKey, isExpanded) {
+            let states = JSON.parse(localStorage.getItem('specialtyExpandedStates') || '{}');
+            states[specialtyKey] = isExpanded;
+            localStorage.setItem('specialtyExpandedStates', JSON.stringify(states));
+        }
+        
+        function restoreExpandedState() {
+            const states = JSON.parse(localStorage.getItem('specialtyExpandedStates') || '{}');
+            
+            for (const [specialtyKey, isExpanded] of Object.entries(states)) {
+                const content = document.getElementById(`content-${specialtyKey}`);
+                const header = document.querySelector(`.specialty-card[data-specialty="${specialtyKey}"] .specialty-header`);
+                if (content && header) {
+                    if (!isExpanded) {
+                        content.classList.add('collapsed');
+                        header.classList.add('collapsed');
+                    } else {
+                        content.classList.remove('collapsed');
+                        header.classList.remove('collapsed');
+                    }
+                }
+            }
+        }
+        
+        // ============================================
+        // RECHERCHE EN TEMPS RÉEL
+        // ============================================
+        let searchTimeout;
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchText = document.getElementById('searchInput').value;
+                renderSpecialties(searchText);
+            }, 300);
+        }
+        
+        // ============================================
+        // RETOUR AU MENU PRINCIPAL
+        // ============================================
+        function goBack() {
+            window.location.href = "index.html";
+        }
+        
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSpecialties();
+            
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', handleSearch);
+            }
+        });
+    </script>
+</body>
+</html>

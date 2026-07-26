@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Мой Прогресс ETEO</title>
+    
+    <!-- ============================================ -->
+    <!-- =========== ИМПОРТ ПЛАГИНОВ ================ -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        import { Share } from '@capacitor/share';
+        import { Print } from '@capacitor/print';
+        
+        window.TextToSpeech = TextToSpeech;
+        window.Share = Share;
+        window.Print = Print;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        
+        console.log('✅ Плагины загружены!');
+        console.log('📱 Мобильный режим:', window.isMobile);
+        console.log('🔊 TextToSpeech:', !!TextToSpeech);
+        console.log('📤 Share:', !!Share);
+        console.log('🖨️ Print:', !!Print);
+    </script>
+
+    <style>
+        /* ================================================================ */
+        /* =========== 1. ОБЩИЕ СТИЛИ ===================================== */
+        /* ================================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            animation: fadeIn 0.6s ease;
+        }
+
+        body.dark .container {
+            background: #1e1e2e;
+            color: #eee;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ================================================================ */
+        /* =========== 2. ЗАГОЛОВОК ======================================= */
+        /* ================================================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e8ecf1;
+            margin-bottom: 25px;
+        }
+
+        body.dark .header {
+            border-bottom-color: #333;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        body.dark .header-left h1 {
+            color: #ecf0f1;
+        }
+
+        .header-left h1 span {
+            color: #3498db;
+        }
+
+        .header-left .subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        body.dark .header-left .subtitle {
+            color: #aaa;
+        }
+
+        .header-right {
+            text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .header-right .user-info {
+            background: #f0f4f8;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        body.dark .header-right .user-info {
+            background: #2a2a3e;
+            color: #ecf0f1;
+        }
+
+        .header-right .user-info strong {
+            color: #3498db;
+        }
+
+        .lang-badge {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* ================================================================ */
+        /* =========== 3. КНОПКИ ПОДЕЛИТЬСЯ И ПЕЧАТЬ ===================== */
+        /* ================================================================ */
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-share-page {
+            background: #1da1f2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-share-page:hover {
+            background: #0d8bd9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(29, 161, 242, 0.4);
+        }
+
+        .btn-share-page:active {
+            transform: scale(0.95);
+        }
+
+        .btn-print-page {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-print-page:hover {
+            background: #27ae60;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-print-page:active {
+            transform: scale(0.95);
+        }
+
+        .theme-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #2c3e50;
+            padding: 5px 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            transform: rotate(20deg);
+        }
+
+        body.dark .theme-btn {
+            color: #ecf0f1;
+        }
+
+        /* ================================================================ */
+        /* =========== 4. ГЛОБАЛЬНАЯ СТАТИСТИКА ========================== */
+        /* ================================================================ */
+        .stats-globales {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            color: white;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .number {
+            font-size: 32px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-item .label {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .stat-item .rank-link {
+            color: #f1c40f;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .stat-item .rank-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ================================================================ */
+        /* =========== 5. ШКАЛА ПРОГРЕССА ================================= */
+        /* ================================================================ */
+        .progress-global {
+            margin-bottom: 25px;
+            background: #ecf0f1;
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        body.dark .progress-global {
+            background: #2a2a3e;
+        }
+
+        .progress-global .progress-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            min-width: 140px;
+        }
+
+        body.dark .progress-global .progress-label {
+            color: #ecf0f1;
+        }
+
+        .progress-bar-track {
+            flex: 1;
+            height: 12px;
+            background: #dfe6e9;
+            border-radius: 10px;
+            overflow: hidden;
+            min-width: 150px;
+        }
+
+        body.dark .progress-bar-track {
+            background: #3a3a4e;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            border-radius: 10px;
+            transition: width 0.8s ease;
+            width: 0%;
+        }
+
+        .progress-global .progress-percent {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 16px;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        body.dark .progress-global .progress-percent {
+            color: #ecf0f1;
+        }
+
+        /* ================================================================ */
+        /* =========== 6. КНОПКИ ========================================== */
+        /* ================================================================ */
+        .btn-ranking {
+            display: inline-block;
+            background: #f1c40f;
+            color: #2c3e50;
+            padding: 10px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-ranking:hover {
+            background: #f39c12;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
+        }
+
+        /* ================================================================ */
+        /* =========== 7. ТАБЛИЦА ========================================= */
+        /* ================================================================ */
+        .tableau-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 800px;
+        }
+
+        thead {
+            background: #2c3e50;
+            color: white;
+        }
+
+        thead th {
+            padding: 12px 10px;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #34495e;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        thead th.spec-col {
+            min-width: 140px;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        thead th.volet-col {
+            min-width: 80px;
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        body.dark tbody tr:hover {
+            background: #2a2a3e;
+        }
+
+        tbody td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: middle;
+        }
+
+        body.dark tbody td {
+            border-bottom-color: #333;
+        }
+
+        tbody td.volet-name {
+            text-align: left;
+            font-weight: 600;
+            color: #3498db;
+            padding-left: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* ================================================================ */
+        /* =========== 8. ССЫЛКИ НА СПЕЦИАЛЬНОСТИ ========================= */
+        /* ================================================================ */
+        tbody td.spec-name {
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .spec-link {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        body.dark .spec-link {
+            color: #ecf0f1;
+        }
+
+        .spec-link:hover {
+            color: #3498db;
+            transform: translateX(5px);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .spec-link:active {
+            transform: scale(0.97);
+        }
+
+        body.dark .spec-link:hover {
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .spec-link .arrow {
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+
+        .spec-link:hover .arrow {
+            opacity: 1;
+            transform: translateX(3px);
+        }
+
+        /* ================================================================ */
+        /* =========== 9. ЧЕКБОКСЫ (НЕКЛИКАБЕЛЬНЫЕ) ====================== */
+        /* ================================================================ */
+        .checkbox-wrapper {
+            display: inline-block;
+            position: relative;
+            width: 28px;
+            height: 28px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkbox-wrapper .checkmark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            cursor: default;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: bold;
+            color: #95a5a6;
+            user-select: none;
+        }
+
+        body.dark .checkbox-wrapper .checkmark {
+            background: #2a2a3e;
+            border-color: #555;
+            color: #666;
+        }
+
+        .checkbox-wrapper .checkmark.checked {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        body.dark .checkbox-wrapper .checkmark.checked {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        .checkbox-wrapper .checkmark.unchecked {
+            background: #ecf0f1;
+            border-color: #bdc3c7;
+            color: #95a5a6;
+        }
+
+        body.dark .checkbox-wrapper .checkmark.unchecked {
+            background: #2a2a3e;
+            border-color: #555;
+            color: #666;
+        }
+
+        /* ================================================================ */
+        /* =========== 10. ЗАБЛОКИРОВАНО ================================== */
+        /* ================================================================ */
+        .locked {
+            display: inline-block;
+            background: #ecf0f1;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #95a5a6;
+            border: 1px solid #bdc3c7;
+            cursor: not-allowed;
+            white-space: nowrap;
+        }
+
+        body.dark .locked {
+            background: #2a2a3e;
+            border-color: #555;
+            color: #888;
+        }
+
+        .locked .lock-icon {
+            margin-right: 4px;
+        }
+
+        .locked .premium-tag {
+            background: #e74c3c;
+            color: white;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        /* ================================================================ */
+        /* =========== 11. СЕРТИФИКАТЫ ==================================== */
+        /* ================================================================ */
+        .btn-cert {
+            padding: 5px 14px;
+            border: none;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-cert.disabled {
+            background: #ecf0f1;
+            color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        body.dark .btn-cert.disabled {
+            background: #2a2a3e;
+            color: #666;
+        }
+
+        .btn-cert.available {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-cert.available:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-cert.available:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cert.gold {
+            background: #f1c40f;
+            color: #2c3e50;
+        }
+
+        .btn-cert.gold:hover {
+            background: #f39c12;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
+        }
+
+        .btn-cert.gold:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cert.grand {
+            background: linear-gradient(135deg, #f1c40f, #e67e22);
+            color: white;
+            padding: 14px 35px;
+            font-size: 18px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(241, 196, 15, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-cert.grand:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(241, 196, 15, 0.6);
+        }
+
+        .btn-cert.grand:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cert.grand:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ================================================================ */
+        /* =========== 12. РАЗДЕЛ СЕРТИФИКАТЫ ============================ */
+        /* ================================================================ */
+        .volet-cert-section {
+            margin: 30px 0 20px 0;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        body.dark .volet-cert-section {
+            background: #2a2a3e;
+            border-left-color: #3498db;
+        }
+
+        .volet-cert-section .volet-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+
+        body.dark .volet-cert-section .volet-title {
+            color: #ecf0f1;
+        }
+
+        .volet-cert-section .volet-title small {
+            font-weight: normal;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        body.dark .volet-cert-section .volet-title small {
+            color: #aaa;
+        }
+
+        /* ================================================================ */
+        /* =========== 13. ГЛАВНЫЙ СЕРТИФИКАТ ============================ */
+        /* ================================================================ */
+        .grand-cert-section {
+            margin-top: 35px;
+            padding: 30px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .grand-cert-section h2 {
+            color: white;
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .grand-cert-section p {
+            color: #bdc3c7;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+
+        /* ================================================================ */
+        /* =========== 14. ЛЕГЕНДА ======================================== */
+        /* ================================================================ */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 15px 0;
+            margin-top: 10px;
+            border-top: 2px solid #ecf0f1;
+        }
+
+        body.dark .legend {
+            border-top-color: #333;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #2c3e50;
+        }
+
+        body.dark .legend-item {
+            color: #ecf0f1;
+        }
+
+        .legend-item .box {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 2px solid #bdc3c7;
+            display: inline-block;
+            text-align: center;
+            line-height: 24px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        body.dark .legend-item .box {
+            border-color: #555;
+        }
+
+        .legend-item .box.validated {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        .legend-item .box.locked-box {
+            background: #ecf0f1;
+            border-color: #bdc3c7;
+            color: #95a5a6;
+            font-size: 12px;
+        }
+
+        body.dark .legend-item .box.locked-box {
+            background: #2a2a3e;
+            border-color: #555;
+            color: #888;
+        }
+
+        .legend-item .box.unlocked {
+            background: #f8f9fa;
+            border-color: #bdc3c7;
+        }
+
+        body.dark .legend-item .box.unlocked {
+            background: #1e1e2e;
+            border-color: #555;
+        }
+
+        /* ================================================================ */
+        /* =========== 15. АДАПТИВНОСТЬ =================================== */
+        /* ================================================================ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header-right {
+                text-align: left;
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .stats-globales {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 15px;
+            }
+
+            .stat-item .number {
+                font-size: 24px;
+            }
+
+            .progress-global {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .progress-global .progress-label {
+                min-width: auto;
+            }
+
+            table {
+                font-size: 12px;
+                min-width: 600px;
+            }
+
+            thead th {
+                padding: 8px 4px;
+                font-size: 10px;
+            }
+
+            tbody td {
+                padding: 5px 3px;
+            }
+
+            .checkbox-wrapper .checkmark {
+                width: 22px;
+                height: 22px;
+                font-size: 12px;
+            }
+
+            .btn-cert {
+                font-size: 9px;
+                padding: 4px 10px;
+            }
+
+            .locked {
+                font-size: 9px;
+                padding: 3px 6px;
+            }
+
+            .volet-cert-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .grand-cert-section h2 {
+                font-size: 18px;
+            }
+
+            .btn-cert.grand {
+                font-size: 14px;
+                padding: 12px 25px;
+            }
+
+            .spec-link {
+                font-size: 12px;
+            }
+
+            .btn-share-page,
+            .btn-print-page {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-globales {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-item .number {
+                font-size: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .btn-share-page,
+            .btn-print-page {
+                font-size: 10px;
+                padding: 5px 10px;
+            }
+        }
+
+        /* ================================================================ */
+        /* =========== 16. СТИЛИ ДЛЯ ПЕЧАТИ =============================== */
+        /* ================================================================ */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            .container {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 20px !important;
+            }
+
+            .header-actions {
+                display: none !important;
+            }
+
+            .theme-btn {
+                display: none !important;
+            }
+
+            .btn-ranking {
+                display: none !important;
+            }
+
+            .btn-cert {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .btn-cert.gold {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .btn-cert.grand {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .stats-globales {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .checkbox-wrapper .checkmark {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .locked {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .legend .box {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .grand-cert-section {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .progress-bar-fill {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .volet-cert-section {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .btn-share-page,
+            .btn-print-page {
+                display: none !important;
+            }
+
+            .progress-global .btn-ranking {
+                display: none !important;
+            }
+
+            .header-right .user-info {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .lang-badge {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+
+        <!-- ============================================================ -->
+        <!-- =========== ЗАГОЛОВОК ======================================== -->
+        <!-- ============================================================ -->
+        <div class="header">
+            <div class="header-left">
+                <h1>📊 Мой <span>Прогресс</span> ETEO</h1>
+                <div class="subtitle">E-learning To Every One • Отслеживайте свой прогресс</div>
+            </div>
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="btn-share-page" onclick="partagerPage()">📤 Поделиться</button>
+                    <button class="btn-print-page" onclick="imprimerPage()">🖨️ Печать</button>
+                    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+                </div>
+                <div class="user-info">
+                    👤 <strong id="userName">Доктор</strong>
+                    <div class="lang-badge">🇷🇺 RU</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== ГЛОБАЛЬНАЯ СТАТИСТИКА =========================== -->
+        <!-- ============================================================ -->
+        <div class="stats-globales">
+            <div class="stat-item">
+                <span class="number" id="totalSpecialites">36</span>
+                <span class="label">Специальности</span>
+            </div>
+            <div class="stat-item">
+                <span class="number" id="totalNiveaux">216</span>
+                <span class="label">Уровни</span>
+            </div>
+            <div class="stat-item">
+                <span class="number" id="totalValides">0</span>
+                <span class="label">✅ Пройдено уровней</span>
+            </div>
+            <div class="stat-item">
+                <span class="number" id="totalCertificats">0</span>
+                <span class="label">📜 Получено сертификатов</span>
+            </div>
+            <div class="stat-item">
+                <span class="number" id="monRang">#1200</span>
+                <span class="label">
+                    <a href="classements_dashboard_ru.html" class="rank-link">🏆 Мировой рейтинг</a>
+                </span>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== ШКАЛА ПРОГРЕССА ================================== -->
+        <!-- ============================================================ -->
+        <div class="progress-global">
+            <span class="progress-label">📈 Общий прогресс</span>
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="progressFill" style="width: 0%;"></div>
+            </div>
+            <span class="progress-percent" id="progressPercent">0%</span>
+            <a href="classements_dashboard.html" class="btn-ranking">🏆 Мировой рейтинг</a>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== ТАБЛИЦА ========================================= -->
+        <!-- ============================================================ -->
+        <div class="tableau-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="volet-col">РАЗДЕЛ</th>
+                        <th class="spec-col">СПЕЦИАЛЬНОСТЬ</th>
+                        <th>Начальный 1</th>
+                        <th>Начальный 2</th>
+                        <th>Средний 1 🔒</th>
+                        <th>Средний 2 🔒</th>
+                        <th>Эксперт 1 🔒</th>
+                        <th>Эксперт 2 🔒</th>
+                        <th>СЕРТИФИКАТ</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Генерируется динамически -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== ЛЕГЕНДА ========================================= -->
+        <!-- ============================================================ -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="box validated">✓</span>
+                Уровень пройден
+            </div>
+            <div class="legend-item">
+                <span class="box unlocked">☐</span>
+                Не пройден
+            </div>
+            <div class="legend-item">
+                <span class="box locked-box">🔒</span>
+                Заблокирован (подписка)
+            </div>
+            <div class="legend-item">
+                <span style="background:#3498db;color:white;padding:2px 12px;border-radius:12px;font-size:11px;">📜</span>
+                Сертификат доступен
+            </div>
+            <div class="legend-item">
+                <span style="background:#f1c40f;color:#2c3e50;padding:2px 12px;border-radius:12px;font-size:11px;">🏅</span>
+                Сертификат отличия
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== РАЗДЕЛ СЕРТИФИКАТЫ ============================== -->
+        <!-- ============================================================ -->
+        <div id="voletCertificates">
+            <!-- Генерируется динамически -->
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== ГЛАВНЫЙ СЕРТИФИКАТ ETEO ========================= -->
+        <!-- ============================================================ -->
+        <div class="grand-cert-section">
+            <h2>🏆 ПОЛНЫЙ СЕРТИФИКАТ ETEO</h2>
+            <p>Получите высший сертификат, пройдя <strong>все уровни</strong> всех 36 специальностей</p>
+            <button class="btn-cert grand" id="btnGrandCert" disabled>
+                🔒 Заблокирован • Пройдите все специальности
+            </button>
+        </div>
+
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- =========== СКРИПТ ПОЛНЫЙ ====================================== -->
+    <!-- ================================================================ -->
+    <script>
+        // ================================================================
+        // =========== 1. ОБНАРУЖЕНИЕ МОБИЛЬНОГО РЕЖИМА ===================
+        // ================================================================
+        const isMobile = window.hasOwnProperty('capacitor');
+        console.log('📱 Мобильный режим:', isMobile);
+
+        // ================================================================
+        // =========== 2. УНИВЕРСАЛЬНАЯ ФУНКЦИЯ SPEAK ====================
+        // ================================================================
+        async function speak(text, lang) {
+            try {
+                if (isMobile && window.TextToSpeech) {
+                    await window.TextToSpeech.speak({
+                        text: text,
+                        lang: lang || 'ru-RU',
+                        rate: 0.9,
+                        pitch: 1.0,
+                        volume: 1.0
+                    });
+                    console.log('🗣️ [Мобильный] Речь:', text);
+                    return;
+                }
+                
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = lang || 'ru-RU';
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.0;
+                    window.speechSynthesis.speak(utterance);
+                    console.log('🗣️ [Браузер] Речь:', text);
+                } else {
+                    console.warn('⚠️ Синтез речи недоступен');
+                }
+            } catch(error) {
+                console.error('❌ Ошибка синтеза речи:', error);
+                try {
+                    if (window.speechSynthesis) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = lang || 'ru-RU';
+                        utterance.rate = 0.9;
+                        utterance.pitch = 1.0;
+                        window.speechSynthesis.speak(utterance);
+                    }
+                } catch(e) {
+                    console.error('❌ Ошибка запасного варианта:', e);
+                }
+            }
+        }
+
+        // ================================================================
+        // =========== 3. АКТИВАЦИЯ ГОЛОСА ================================
+        // ================================================================
+        let voiceActivated = false;
+
+        function activateVoice() {
+            if (!voiceActivated) {
+                voiceActivated = true;
+                console.log('✅ Голос активирован на:', isMobile ? 'Мобильном' : 'Браузере');
+            }
+        }
+
+        // ================================================================
+        // =========== 4. ОБЪЕДИНЕНИЕ КЛЮЧЕЙ ПОЛЬЗОВАТЕЛЯ =================
+        // ================================================================
+        function getUserName() {
+            let name = localStorage.getItem('eteo_userName');
+
+            if (!name) {
+                name = localStorage.getItem('eteo_user_name');
+                if (name) {
+                    localStorage.setItem('eteo_userName', name);
+                    localStorage.removeItem('eteo_user_name');
+                    console.log('✅ Старый ключ перенесён в eteo_userName');
+                }
+            }
+
+            return name || 'Доктор';
+        }
+
+        // ================================================================
+        // =========== 5. ПРИВЕТСТВИЕ ПОЛЬЗОВАТЕЛЯ С ГОЛОСОМ =============
+        // ================================================================
+        function accueillirUtilisateur() {
+            const userName = getUserName();
+            const totalValides = parseInt(document.getElementById('totalValides').textContent) || 0;
+            const totalNiveaux = 216;
+            const pourcentage = Math.round((totalValides / totalNiveaux) * 100);
+
+            let message = '';
+
+            if (pourcentage === 0) {
+                message = `Здравствуйте, Доктор ${userName}! Вы пока не прошли ни одного уровня на ETEO. Не волнуйтесь, каждый великий эксперт начинал с первого шага. Мы здесь, чтобы помочь вам!`;
+            } else if (pourcentage <= 30) {
+                message = `Здравствуйте, Доктор ${userName}! Вы прошли ${totalValides} уровней из ${totalNiveaux}. Вы только начинаете своё путешествие в ETEO, но каждый великий эксперт начинал с первого шага. Мы здесь, чтобы помочь вам!`;
+            } else if (pourcentage <= 70) {
+                message = `Здравствуйте, Доктор ${userName}! Вы прошли ${totalValides} уровней из ${totalNiveaux}. Отличный прогресс! Вы на правильном пути. Продолжайте в том же духе, вы становитесь экспертом!`;
+            } else if (pourcentage < 100) {
+                message = `Здравствуйте, Доктор ${userName}! Вы прошли ${totalValides} уровней из ${totalNiveaux}. Вы почти на вершине! Ещё немного усилий, и вы получите полный сертификат ETEO. Браво за вашу решимость!`;
+            } else {
+                message = `Здравствуйте, Доктор ${userName}! Поздравляю! Вы прошли все ${totalNiveaux} уровней ETEO. Вы официально эксперт в стоматологии! Теперь вы можете скачать свой полный сертификат ETEO. Браво за этот исключительный путь!`;
+            }
+
+            activateVoice();
+            setTimeout(() => {
+                speak(message, 'ru-RU');
+            }, 500);
+        }
+
+        // ================================================================
+        // =========== 6. ДАННЫЕ СПЕЦИАЛЬНОСТЕЙ ===========================
+        // ================================================================
+        const data = {
+            volets: {
+                "КЛИНИКА": [
+                    "Хирургия",
+                    "Эндодонтия",
+                    "Эстетическая стоматология",
+                    "Имплантология",
+                    "Медицина полости рта",
+                    "Ортодонтия",
+                    "Пародонтология",
+                    "Детская стоматология",
+                    "Протезирование",
+                    "Психология и психомоторика",
+                    "Терапевтическая стоматология"
+                ],
+                "ТЕХНИКА": [
+                    "Анестезиология в стоматологии",
+                    "CAD/CAM и 3D-печать",
+                    "Стоматологическая фотография",
+                    "Рентгенология в стоматологии",
+                    "Стерилизация"
+                ],
+                "УПРАВЛЕНИЕ": [
+                    "Помощь при открытии",
+                    "Обустройство кабинета",
+                    "Бухгалтерия и налоги",
+                    "Договор с AMO",
+                    "Налогообложение стоматолога",
+                    "Юридические формы",
+                    "Управление кабинетом",
+                    "Информатика и стоматологическое ПО",
+                    "Страховые компании и оплата",
+                    "Общественное стоматологическое здоровье"
+                ],
+                "КАДРЫ И ДЕОНТОЛОГИЯ": [
+                    "Ассистенты стоматолога",
+                    "Кодекс деонтологии",
+                    "ONMD - Национальный орден и советы",
+                    "Конфликты и медиация",
+                    "Этика и деонтология",
+                    "Женщины-стоматологи",
+                    "Будущий доктор",
+                    "Сеньоры",
+                    "Профсоюз"
+                ],
+                "ФУНДАМЕНТАЛЬНЫЕ НАУКИ": [
+                    "Материаловедение в стоматологии"
+                ]
+            }
+        };
+
+        const niveaux = [
+            { id: 'debutant1', label: 'Начальный 1', type: 'free' },
+            { id: 'debutant2', label: 'Начальный 2', type: 'free' },
+            { id: 'intermediaire1', label: 'Средний 1', type: 'locked' },
+            { id: 'intermediaire2', label: 'Средний 2', type: 'locked' },
+            { id: 'expert1', label: 'Эксперт 1', type: 'locked' },
+            { id: 'expert2', label: 'Эксперт 2', type: 'locked' }
+        ];
+
+        // ================================================================
+        // =========== 7. СОСТОЯНИЕ ПРОГРЕССА =============================
+        // ================================================================
+        function getProgression() {
+            const saved = localStorage.getItem('eteo_progression_ru');
+            if (saved) {
+                try { return JSON.parse(saved); } catch (e) { return {}; }
+            }
+            return {};
+        }
+
+        function saveProgression(prog) {
+            localStorage.setItem('eteo_progression_ru', JSON.stringify(prog));
+        }
+
+        function getKey(specialite, niveauId) {
+            return specialite + '_' + niveauId;
+        }
+
+        function isCompleted(specialite, niveauId) {
+            const prog = getProgression();
+            return prog[getKey(specialite, niveauId)] === true;
+        }
+
+        // ================================================================
+        // =========== 8. ПОДТВЕРДИТЬ УРОВЕНЬ =============================
+        // ================================================================
+        function validerNiveau(specialite, niveauId) {
+            const prog = getProgression();
+            const key = getKey(specialite, niveauId);
+            prog[key] = true;
+            saveProgression(prog);
+            renderTable();
+            updateStats();
+            updateVoletCerts();
+            updateGrandCert();
+
+            setTimeout(() => {
+                accueillirUtilisateur();
+            }, 500);
+        }
+
+        // ================================================================
+        // =========== 9. ОТОБРАЖЕНИЕ ТАБЛИЦЫ =============================
+        // ================================================================
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            let html = '';
+
+            for (const [volet, specialites] of Object.entries(data.volets)) {
+                let isFirst = true;
+                for (const spec of specialites) {
+                    html += '<tr>';
+                    if (isFirst) {
+                        html += `<td class="volet-name" rowspan="${specialites.length}">${volet}</td>`;
+                        isFirst = false;
+                    }
+                    html += `<td class="spec-name">
+                        <a href="choix_specialite_ru.html?spec=${encodeURIComponent(spec)}" class="spec-link">
+                            📚 ${spec} <span class="arrow">→</span>
+                        </a>
+                    </td>`;
+
+                    for (const niv of niveaux) {
+                        const completed = isCompleted(spec, niv.id);
+                        if (niv.type === 'free') {
+                            html += `<td>
+                                <div class="checkbox-wrapper">
+                                    <span class="checkmark ${completed ? 'checked' : 'unchecked'}">
+                                        ${completed ? '✓' : '☐'}
+                                    </span>
+                                </div>
+                            </td>`;
+                        } else {
+                            html += `<td>
+                                <span class="locked">
+                                    <span class="lock-icon">🔒</span>
+                                    ПРЕМИУМ подписка
+                                </span>
+                            </td>`;
+                        }
+                    }
+
+                    const totalSpec = niveaux.length;
+                    const completedSpec = niveaux.filter(n => isCompleted(spec, n.id)).length;
+                    const allDone = completedSpec === totalSpec;
+
+                    html += `<td>
+                        <button class="btn-cert ${allDone ? 'available' : 'disabled'}" 
+                                ${allDone ? '' : 'disabled'}
+                                onclick="telechargerCertificat('${spec}')">
+                            ${allDone ? '📜 Скачать' : '🔒 Заблокирован'}
+                        </button>
+                    </td>`;
+
+                    html += '</tr>';
+                }
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        // ================================================================
+        // =========== 10. СТАТИСТИКА =====================================
+        // ================================================================
+        function updateStats() {
+            const prog = getProgression();
+            let totalValides = 0;
+            let totalCertifs = 0;
+
+            for (const [volet, specialites] of Object.entries(data.volets)) {
+                for (const spec of specialites) {
+                    for (const niv of niveaux) {
+                        if (niv.type === 'free') {
+                            const key = getKey(spec, niv.id);
+                            if (prog[key]) totalValides++;
+                        }
+                    }
+
+                    const allDone = niveaux.every(n => prog[getKey(spec, n.id)]);
+                    if (allDone) totalCertifs++;
+                }
+            }
+
+            document.getElementById('totalValides').textContent = totalValides;
+            document.getElementById('totalCertificats').textContent = totalCertifs;
+
+            const totalNiveaux = Object.values(data.volets).reduce((acc, specs) => acc + specs.length * niveaux.filter(n =>
+                n.type === 'free').length, 0);
+            const pourcentage = totalNiveaux > 0 ? Math.round((totalValides / totalNiveaux) * 100) : 0;
+            document.getElementById('progressFill').style.width = pourcentage + '%';
+            document.getElementById('progressPercent').textContent = pourcentage + '%';
+
+            const rang = Math.max(1, 1200 - totalValides * 8);
+            document.getElementById('monRang').textContent = '#' + rang;
+        }
+
+        // ================================================================
+        // =========== 11. РАЗДЕЛ СЕРТИФИКАТЫ =============================
+        // ================================================================
+        function updateVoletCerts() {
+            const container = document.getElementById('voletCertificates');
+            let html = '';
+            const prog = getProgression();
+
+            for (const [volet, specialites] of Object.entries(data.volets)) {
+                let allHaveCert = true;
+                for (const spec of specialites) {
+                    const allDone = niveaux.every(n => prog[getKey(spec, n.id)]);
+                    if (!allDone) {
+                        allHaveCert = false;
+                        break;
+                    }
+                }
+
+                html += `
+                    <div class="volet-cert-section">
+                        <span class="volet-title">
+                            📁 ${volet}
+                            <small>(${specialites.length} специальностей)</small>
+                        </span>
+                        <button class="btn-cert ${allHaveCert ? 'gold' : 'disabled'}" 
+                                ${allHaveCert ? '' : 'disabled'}
+                                onclick="telechargerCertificatVolet('${volet}')">
+                            ${allHaveCert ? '🏅 Скачать сертификат раздела' : '🔒 Пройдите все специальности'}
+                        </button>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ================================================================
+        // =========== 12. ГЛАВНЫЙ СЕРТИФИКАТ =============================
+        // ================================================================
+        function updateGrandCert() {
+            const btn = document.getElementById('btnGrandCert');
+            const prog = getProgression();
+            let allDone = true;
+
+            for (const [volet, specialites] of Object.entries(data.volets)) {
+                for (const spec of specialites) {
+                    const freeNiveaux = niveaux.filter(n => n.type === 'free');
+                    for (const niv of freeNiveaux) {
+                        if (!prog[getKey(spec, niv.id)]) {
+                            allDone = false;
+                            break;
+                        }
+                    }
+                    if (!allDone) break;
+                }
+                if (!allDone) break;
+            }
+
+            if (allDone) {
+                btn.innerHTML = '🏆 СКАЧАТЬ ПОЛНЫЙ СЕРТИФИКАТ ETEO';
+                btn.disabled = false;
+                btn.className = 'btn-cert grand';
+                btn.onclick = function() { telechargerCertificatEteo(); };
+            } else {
+                btn.innerHTML = '🔒 Заблокирован • Пройдите все специальности';
+                btn.disabled = true;
+            }
+        }
+
+        // ================================================================
+        // =========== 13. ФУНКЦИИ СКАЧИВАНИЯ =============================
+        // ================================================================
+        function telechargerCertificat(specialite) {
+            alert(`📜 Скачивание сертификата для "${specialite}"\n\nПоздравляю! Вы прошли все начальные уровни этой специальности.`);
+        }
+
+        function telechargerCertificatVolet(volet) {
+            alert(`🏅 Скачивание сертификата для раздела "${volet}"\n\nПоздравляю! Вы прошли все специальности этого раздела.`);
+        }
+
+        function telechargerCertificatEteo() {
+            alert(`🏆 СКАЧИВАНИЕ ПОЛНОГО СЕРТИФИКАТА ETEO\n\nПоздравляю! Вы прошли все специальности ETEO.\n\nВы эксперт в стоматологии! 🎉`);
+        }
+
+        // ================================================================
+        // =========== 14. ПОДЕЛИТЬСЯ СТРАНИЦЕЙ - ИСПРАВЛЕНО ДЛЯ APK ======
+        // ================================================================
+        async function partagerPage() {
+            const url = window.location.href;
+            const userName = getUserName();
+            const totalValides = document.getElementById('totalValides').textContent;
+            const text = `📊 Мой Прогресс ETEO\n\n${userName} прошёл ${totalValides}/216 уровней!\n\nПрисоединяйтесь ко мне на ETEO : ${url}`;
+
+            try {
+                // ✅ APK (Capacitor)
+                if (isMobile && window.Share) {
+                    console.log('📤 Публикация через Capacitor Share...');
+                    await window.Share.share({
+                        title: '📊 Мой Прогресс ETEO',
+                        text: text,
+                        url: url,
+                        dialogTitle: 'Поделиться своим прогрессом'
+                    });
+                    console.log('📤 Поделились на мобильном');
+                } 
+                // ✅ Веб-браузер (API Web Share)
+                else if (navigator.share) {
+                    console.log('📤 Публикация через Web Share API...');
+                    await navigator.share({
+                        title: '📊 Мой Прогресс ETEO',
+                        text: text,
+                        url: url
+                    });
+                    console.log('📤 Поделились в браузере');
+                } 
+                // ✅ Запасной вариант: буфер обмена
+                else if (navigator.clipboard) {
+                    console.log('📤 Копирование через буфер обмена...');
+                    await navigator.clipboard.writeText(text);
+                    alert(`📤 Ссылка скопирована в буфер обмена!\n\nПоделитесь ею в социальных сетях.\n\n${text}`);
+                }
+                // ✅ Последний запасной вариант
+                else {
+                    console.log('📤 Последний запасной вариант: prompt...');
+                    prompt("Скопируйте это сообщение для публикации :", text);
+                }
+            } catch (error) {
+                console.error('❌ Ошибка публикации:', error);
+                if (error.message && error.message.includes('cancel')) {
+                    console.log('📤 Публикация отменена пользователем');
+                } else {
+                    alert(`Не удалось поделиться. Скопируйте текст вручную:\n\n${text}`);
+                }
+            }
+        }
+
+        // ================================================================
+        // =========== 15. ПЕЧАТЬ СТРАНИЦЫ - ИСПРАВЛЕНО ДЛЯ APK ===========
+        // ================================================================
+        async function imprimerPage() {
+            try {
+                // ✅ APK (Capacitor)
+                if (isMobile && window.Print) {
+                    console.log('🖨️ Печать через Capacitor Print...');
+                    const container = document.querySelector('.container');
+                    await window.Print.print({
+                        html: container.outerHTML,
+                        html: true
+                    });
+                    console.log('🖨️ Напечатали на мобильном');
+                } 
+                // ✅ Веб-браузер (window.print)
+                else {
+                    console.log('🖨️ Печать через window.print...');
+                    window.print();
+                    console.log('🖨️ Напечатали в браузере');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка печати:', error);
+                try {
+                    window.print();
+                } catch (e) {
+                    console.error('❌ Ошибка запасного варианта:', e);
+                    alert('🖨️ Не удалось напечатать. Используйте функцию печати вашего браузера.');
+                }
+            }
+        }
+
+        // ================================================================
+        // =========== 16. ТЕМА ===========================================
+        // ================================================================
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            const btn = document.querySelector('.theme-btn');
+            btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+            localStorage.setItem('eteo_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        // ================================================================
+        // =========== 17. ИНИЦИАЛИЗАЦИЯ ==================================
+        // ================================================================
+        function init() {
+            const userName = getUserName();
+            document.getElementById('userName').textContent = userName;
+
+            if (localStorage.getItem('eteo_theme') === 'dark') {
+                document.body.classList.add('dark');
+                document.querySelector('.theme-btn').textContent = '☀️';
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const validation = params.get('valider');
+            const score = params.get('score');
+            const total = params.get('total');
+
+            if (validation) {
+                const parts = validation.split('_');
+                const niveauId = parts.pop();
+                const specialite = parts.join(' ');
+                
+                // ✅ VÉRIFICATION : score / total >= 60%
+                const scoreNum = parseInt(score) || 0;
+                const totalNum = parseInt(total) || 0;
+                const percentage = totalNum > 0 ? (scoreNum / totalNum) * 100 : 0;
+                
+                if (percentage >= 60) {
+                    // ✅ SEULEMENT SI >= 60% - La case est cochée
+                    validerNiveau(specialite, niveauId);
+                    setTimeout(() => {
+                        alert(`🎉 Поздравляю! Вы прошли "${specialite}" - ${niveauId} с результатом ${score}/${total}!`);
+                    }, 500);
+                } else {
+                    // ❌ SI < 60% - La case N'EST PAS cochée
+                    setTimeout(() => {
+                        alert(`❌ Недостаточно баллов! Вы набрали ${score}/${total} (${percentage.toFixed(1)}%). Нужно как минимум 60% для подтверждения уровня.`);
+                    }, 500);
+                }
+
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            renderTable();
+            updateStats();
+            updateVoletCerts();
+            updateGrandCert();
+
+            setTimeout(() => {
+                accueillirUtilisateur();
+            }, 1500);
+        }
+
+        // Экспорт функций глобально
+        window.validerNiveau = validerNiveau;
+        window.partagerPage = partagerPage;
+        window.imprimerPage = imprimerPage;
+        window.toggleTheme = toggleTheme;
+        window.telechargerCertificat = telechargerCertificat;
+        window.telechargerCertificatVolet = telechargerCertificatVolet;
+        window.telechargerCertificatEteo = telechargerCertificatEteo;
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Ma Progression ETEO</title>
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT DES PLUGINS ============= -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        import { Share } from '@capacitor/share';
+        import { Print } from '@capacitor/print';
+        
+        window.TextToSpeech = TextToSpeech;
+        window.Share = Share;
+        window.Print = Print;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        
+        console.log('✅ Plugins chargés !');
+        console.log('📱 Mode mobile :', window.isMobile);
+        console.log('🔊 TextToSpeech :', !!TextToSpeech);
+        console.log('📤 Share :', !!Share);
+        console.log('🖨️ Print :', !!Print);
+    </script>
+
+    <style>
+        /* ================================================================ */
+        /* =========== 1. GENERAL STYLES ================================== */
+        /* ================================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            animation: fadeIn 0.6s ease;
+        }
+
+        body.dark .container {
+            background: #1e1e2e;
+            color: #eee;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ================================================================ */
+        /* =========== 2. HEADER ========================================== */
+        /* ================================================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e8ecf1;
+            margin-bottom: 25px;
+        }
+
+        body.dark .header {
+            border-bottom-color: #333;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        body.dark .header-left h1 {
+            color: #ecf0f1;
+        }
+
+        .header-left h1 span {
+            color: #3498db;
+        }
+
+        .header-left .subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        body.dark .header-left .subtitle {
+            color: #aaa;
+        }
+
+        .header-right {
+            text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .header-right .user-info {
+            background: #f0f4f8;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        body.dark .header-right .user-info {
+            background: #2a2a3e;
+            color: #ecf0f1;
+        }
+
+        .header-right .user-info strong {
+            color: #3498db;
+        }
+
+        .lang-badge {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* ================================================================ */
+        /* =========== 3. SHARE & PRINT BUTTONS ========================== */
+        /* ================================================================ */
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-share-page {
+            background: #1da1f2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-share-page:hover {
+            background: #0d8bd9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(29, 161, 242, 0.4);
+        }
+
+        .btn-share-page:active {
+            transform: scale(0.95);
+        }
+
+        .btn-print-page {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-print-page:hover {
+            background: #27ae60;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-print-page:active {
+            transform: scale(0.95);
+        }
+
+        .theme-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #2c3e50;
+            padding: 5px 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            transform: rotate(20deg);
+        }
+
+        body.dark .theme-btn {
+            color: #ecf0f1;
+        }
+
+        /* ================================================================ */
+        /* =========== 4. GLOBAL STATS ==================================== */
+        /* ================================================================ */
+        .stats-globales {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            color: white;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .number {
+            font-size: 32px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-item .label {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .stat-item .rank-link {
+            color: #f1c40f;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .stat-item .rank-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ================================================================ */
+        /* =========== 5. PROGRESS BAR ==================================== */
+        /* ================================================================ */
+        .progress-global {
+            margin-bottom: 25px;
+            background: #ecf0f1;
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        body.dark .progress-global {
+            background: #2a2a3e;
+        }
+
+        .progress-global .progress-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            min-width: 140px;
+        }
+
+        body.dark .progress-global .progress-label {
+            color: #ecf0f1;
+        }
+
+        .progress-bar-track {
+            flex: 1;
+            height: 12px;
+            background: #dfe6e9;
+            border-radius: 10px;
+            overflow: hidden;
+            min-width: 150px;
+        }
+
+        body.dark .progress-bar-track {
+            background: #3a3a4e;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            border-radius: 10px;
+            transition: width 0.8s ease;
+            width: 0%;
+        }
+
+        .progress-global .progress-percent {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 16px;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        body.dark .progress-global .progress-percent {
+            color: #ecf0f1;
+        }
+
+        /* ================================================================ */
+        /* =========== 6. BUTTONS ========================================= */
+        /* ================================================================ */
+        .btn-ranking {
+            display: inline-block;
+            background: #f1c40f;
+            color: #2c3e50;
+            padding: 10px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-ranking:hover {
+            background: #f39c12;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
+        }
+
+        /* ================================================================ */
+        /* =========== 7. TABLE =========================================== */
+        /* ================================================================ */
+        .tableau-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 800px;
+        }
+
+        thead {
+            background: #2c3e50;
+            color: white;
+        }
+
+        thead th {
+            padding: 12px 10px;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #34495e;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        thead th.spec-col {
+            min-width: 140px;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        thead th.volet-col {
+            min-width: 80px;
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        body.dark tbody tr:hover {
+            background: #2a2a3e;
+        }
+
+        tbody td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: middle;
+        }
+
+        body.dark tbody td {
+            border-bottom-color: #333;
+        }
+
+        tbody td.volet-name {
+            text-align: left;
+            font-weight: 600;
+            color: #3498db;
+            padding-left: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* ================================================================ */
+        /* =========== 8. SPECIALTY LINKS ================================= */
+        /* ================================================================ */
+        tbody td.spec-name {
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .spec-link {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        body.dark .spec-link {
+            color: #ecf0f1;
+        }
+
+        .spec-link:hover {
+            color: #3498db;
+            transform: translateX(5px);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .spec-link:active {
+            transform: scale(0.97);
+        }
+
+        body.dark .spec-link:hover {
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .spec-link .arrow {
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+
+        .spec-link:hover .arrow {
+            opacity: 1;
+            transform: translateX(3px);
+        }
+
+        /* ================================================================ */
+        /* =========== 9. CHECKBOXES (NON CLIQUABLES) ==================== */
+        /* ================================================================ */
+        .checkbox-wrapper {
+            display: inline-block;
+            position: relative;
+            width: 28px;
+            height: 28px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkbox-wrapper .checkmark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            cursor: default;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: bold;
+            color: #95a5a6;
+            user-select: none;
+        }
+
+        body.dark .checkbox-wrapper .checkmark {
+            background: #2a2a3e;
+            border-color: #555;
+            color: #666;
+        }
+
+        .checkbox-wrapper .checkmark.checked {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        body.dark .checkbox-wrapper .checkmark.checked {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        .checkbox-wrapper .checkmark.unchecked {
+            background: #ecf0f1;
+            border-color: #bdc3c7;
+            color: #95a5a6;
+        }
+
+        body.dark .checkbox-wrapper .checkmark.unchecked {
+            background: #2a2a3e;
+            border-color: #555;
+            color: #666;
+        }
+
+        /* ================================================================ */
+        /* =========== 10. LOCKED ========================================= */
+        /* ================================================================ */
+        .locked {
+            display: inline-block;
+            background: #ecf0f1;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #95a5a6;
+            border: 1px solid #bdc3c7;
+            cursor: not-allowed;
+            white-space: nowrap;
+        }
+
+        body.dark .locked {
+            background: #2a2a3e;
+            border-color: #555;
+            color: #888;
+        }
+
+        .locked .lock-icon {
+            margin-right: 4px;
+        }
+
+        .locked .premium-tag {
+            background: #e74c3c;
+            color: white;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        /* ================================================================ */
+        /* =========== 11. CERTIFICATES =================================== */
+        /* ================================================================ */
+        .btn-cert {
+            padding: 5px 14px;
+            border: none;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-cert.disabled {
+            background: #ecf0f1;
+            color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        body.dark .btn-cert.disabled {
+            background: #2a2a3e;
+            color: #666;
+        }
+
+        .btn-cert.available {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-cert.available:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-cert.available:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cert.gold {
+            background: #f1c40f;
+            color: #2c3e50;
+        }
+
+        .btn-cert.gold:hover {
+            background: #f39c12;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
+        }
+
+        .btn-cert.gold:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cert.grand {
+            background: linear-gradient(135deg, #f1c40f, #e67e22);
+            color: white;
+            padding: 14px 35px;
+            font-size: 18px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(241, 196, 15, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-cert.grand:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(241, 196, 15, 0.6);
+        }
+
+        .btn-cert.grand:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cert.grand:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ================================================================ */
+        /* =========== 12. SECTION CERTIFICATES =========================== */
+        /* ================================================================ */
+        .volet-cert-section {
+            margin: 30px 0 20px 0;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        body.dark .volet-cert-section {
+            background: #2a2a3e;
+            border-left-color: #3498db;
+        }
+
+        .volet-cert-section .volet-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+
+        body.dark .volet-cert-section .volet-title {
+            color: #ecf0f1;
+        }
+
+        .volet-cert-section .volet-title small {
+            font-weight: normal;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        body.dark .volet-cert-section .volet-title small {
+            color: #aaa;
+        }
+
+        /* ================================================================ */
+        /* =========== 13. GRAND CERTIFICATE ============================== */
+        /* ================================================================ */
+        .grand-cert-section {
+            margin-top: 35px;
+            padding: 30px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .grand-cert-section h2 {
+            color: white;
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .grand-cert-section p {
+            color: #bdc3c7;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+
+        /* ================================================================ */
+        /* =========== 14. LEGEND ========================================= */
+        /* ================================================================ */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 15px 0;
+            margin-top: 10px;
+            border-top: 2px solid #ecf0f1;
+        }
+
+        body.dark .legend {
+            border-top-color: #333;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #2c3e50;
+        }
+
+        body.dark .legend-item {
+            color: #ecf0f1;
+        }
+
+        .legend-item .box {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 2px solid #bdc3c7;
+            display: inline-block;
+            text-align: center;
+            line-height: 24px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        body.dark .legend-item .box {
+            border-color: #555;
+        }
+
+        .legend-item .box.validated {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        .legend-item .box.locked-box {
+            background: #ecf0f1;
+            border-color: #bdc3c7;
+            color: #95a5a6;
+            font-size: 12px;
+        }
+
+        body.dark .legend-item .box.locked-box {
+            background: #2a2a3e;
+            border-color: #555;
+            color: #888;
+        }
+
+        .legend-item .box.unlocked {
+            background: #f8f9fa;
+            border-color: #bdc3c7;
+        }
+
+        body.dark .legend-item .box.unlocked {
+            background: #1e1e2e;
+            border-color: #555;
+        }
+
+        /* ================================================================ */
+        /* =========== 15. RESPONSIVE ===================================== */
+        /* ================================================================ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header-right {
+                text-align: left;
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .stats-globales {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 15px;
+            }
+
+            .stat-item .number {
+                font-size: 24px;
+            }
+
+            .progress-global {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .progress-global .progress-label {
+                min-width: auto;
+            }
+
+            table {
+                font-size: 12px;
+                min-width: 600px;
+            }
+
+            thead th {
+                padding: 8px 4px;
+                font-size: 10px;
+            }
+
+            tbody td {
+                padding: 5px 3px;
+            }
+
+            .checkbox-wrapper .checkmark {
+                width: 22px;
+                height: 22px;
+                font-size: 12px;
+            }
+
+            .btn-cert {
+                font-size: 9px;
+                padding: 4px 10px;
+            }
+
+            .locked {
+                font-size: 9px;
+                padding: 3px 6px;
+            }
+
+            .volet-cert-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .grand-cert-section h2 {
+                font-size: 18px;
+            }
+
+            .btn-cert.grand {
+                font-size: 14px;
+                padding: 12px 25px;
+            }
+
+            .spec-link {
+                font-size: 12px;
+            }
+
+            .btn-share-page,
+            .btn-print-page {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-globales {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-item .number {
+                font-size: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .btn-share-page,
+            .btn-print-page {
+                font-size: 10px;
+                padding: 5px 10px;
+            }
+        }
+
+        /* ================================================================ */
+        /* =========== 16. PRINT STYLES =================================== */
+        /* ================================================================ */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            .container {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 20px !important;
+            }
+
+            .header-actions {
+                display: none !important;
+            }
+
+            .theme-btn {
+                display: none !important;
+            }
+
+            .btn-ranking {
+                display: none !important;
+            }
+
+            .btn-cert {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .btn-cert.gold {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .btn-cert.grand {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .stats-globales {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .checkbox-wrapper .checkmark {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .locked {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .legend .box {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .grand-cert-section {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .progress-bar-fill {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .volet-cert-section {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .btn-share-page,
+            .btn-print-page {
+                display: none !important;
+            }
+
+            .progress-global .btn-ranking {
+                display: none !important;
+            }
+
+            .header-right .user-info {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .lang-badge {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+
+        <!-- ============================================================ -->
+        <!-- =========== HEADER =========================================== -->
+        <!-- ============================================================ -->
+        <div class="header">
+            <div class="header-left">
+                <h1>📊 Ma <span>Progression</span> ETEO</h1>
+                <div class="subtitle">E-learning To Every One • Suivez votre évolution</div>
+            </div>
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="btn-share-page" onclick="partagerPage()">📤 Partager</button>
+                    <button class="btn-print-page" onclick="imprimerPage()">🖨️ Imprimer</button>
+                    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+                </div>
+                <div class="user-info">
+                    👤 <strong id="userName">Docteur</strong>
+                    <div class="lang-badge">🇫🇷 FR</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== GLOBAL STATS ==================================== -->
+        <!-- ============================================================ -->
+        <div class="stats-globales">
+            <div class="stat-item">
+                <span class="number" id="totalSpecialites">36</span>
+                <span class="label">Spécialités</span>
+            </div>
+            <div class="stat-item">
+                <span class="number" id="totalNiveaux">216</span>
+                <span class="label">Niveaux</span>
+            </div>
+            <div class="stat-item">
+                <span class="number" id="totalValides">0</span>
+                <span class="label">✅ Niveaux validés</span>
+            </div>
+            <div class="stat-item">
+                <span class="number" id="totalCertificats">0</span>
+                <span class="label">📜 Certificats obtenus</span>
+            </div>
+            <div class="stat-item">
+                <span class="number" id="monRang">#1200</span>
+                <span class="label">
+                    <a href="classements_dashboard.html" class="rank-link">🏆 Voir classement mondial</a>
+                </span>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== PROGRESS BAR ==================================== -->
+        <!-- ============================================================ -->
+        <div class="progress-global">
+            <span class="progress-label">📈 Progression globale</span>
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="progressFill" style="width: 0%;"></div>
+            </div>
+            <span class="progress-percent" id="progressPercent">0%</span>
+            <a href="classements_dashboard.html" class="btn-ranking">🏆 Classement mondial</a>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== TABLE =========================================== -->
+        <!-- ============================================================ -->
+        <div class="tableau-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="volet-col">VOLET</th>
+                        <th class="spec-col">SPÉCIALITÉ</th>
+                        <th>Débutant 1</th>
+                        <th>Débutant 2</th>
+                        <th>Inter. 1 🔒</th>
+                        <th>Inter. 2 🔒</th>
+                        <th>Expert 1 🔒</th>
+                        <th>Expert 2 🔒</th>
+                        <th>CERTIFICAT</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Généré dynamiquement -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== LEGEND ========================================== -->
+        <!-- ============================================================ -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="box validated">✓</span>
+                Niveau validé
+            </div>
+            <div class="legend-item">
+                <span class="box unlocked">☐</span>
+                À compléter
+            </div>
+            <div class="legend-item">
+                <span class="box locked-box">🔒</span>
+                Verrouillé (abonnement)
+            </div>
+            <div class="legend-item">
+                <span style="background:#3498db;color:white;padding:2px 12px;border-radius:12px;font-size:11px;">📜</span>
+                Certificat disponible
+            </div>
+            <div class="legend-item">
+                <span style="background:#f1c40f;color:#2c3e50;padding:2px 12px;border-radius:12px;font-size:11px;">🏅</span>
+                Certificat d'excellence
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== SECTION CERTIFICATES ============================ -->
+        <!-- ============================================================ -->
+        <div id="voletCertificates">
+            <!-- Généré dynamiquement -->
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- =========== GRAND ETEO CERTIFICATE ========================== -->
+        <!-- ============================================================ -->
+        <div class="grand-cert-section">
+            <h2>🏆 CERTIFICAT COMPLET ETEO</h2>
+            <p>Obtenez le certificat ultime en validant <strong>tous les niveaux</strong> des 36 spécialités</p>
+            <button class="btn-cert grand" id="btnGrandCert" disabled>
+                🔒 Verrouillé • Terminez toutes les spécialités
+            </button>
+        </div>
+
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- =========== SCRIPT COMPLET RECTIFIÉ ============================ -->
+    <!-- ================================================================ -->
+    <script>
+        // ================================================================
+        // =========== 1. DÉTECTION MOBILE ================================
+        // ================================================================
+        const isMobile = window.hasOwnProperty('capacitor');
+        console.log('📱 Mode mobile :', isMobile);
+
+        // ================================================================
+        // =========== 2. FONCTION SPEAK UNIVERSELLE ======================
+        // ================================================================
+        async function speak(text, lang) {
+            try {
+                if (isMobile && window.TextToSpeech) {
+                    await window.TextToSpeech.speak({
+                        text: text,
+                        lang: lang || 'fr-FR',
+                        rate: 0.9,
+                        pitch: 1.0,
+                        volume: 1.0
+                    });
+                    console.log('🗣️ [Mobile] Parole :', text);
+                    return;
+                }
+                
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = lang || 'fr-FR';
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.0;
+                    window.speechSynthesis.speak(utterance);
+                    console.log('🗣️ [Navigateur] Parole :', text);
+                } else {
+                    console.warn('⚠️ Synthèse vocale non disponible');
+                }
+            } catch(error) {
+                console.error('❌ Erreur de synthèse vocale:', error);
+                try {
+                    if (window.speechSynthesis) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = lang || 'fr-FR';
+                        utterance.rate = 0.9;
+                        utterance.pitch = 1.0;
+                        window.speechSynthesis.speak(utterance);
+                    }
+                } catch(e) {
+                    console.error('❌ Erreur fallback:', e);
+                }
+            }
+        }
+
+        // ================================================================
+        // =========== 3. VOICE ACTIVATION ================================
+        // ================================================================
+        let voiceActivated = false;
+
+        function activateVoice() {
+            if (!voiceActivated) {
+                voiceActivated = true;
+                console.log('✅ Voice activée sur :', isMobile ? 'Mobile' : 'Navigateur');
+            }
+        }
+
+        // ================================================================
+        // =========== 4. UNIFICATION DES CLÉS UTILISATEUR ================
+        // ================================================================
+        function getUserName() {
+            let name = localStorage.getItem('eteo_userName');
+
+            if (!name) {
+                name = localStorage.getItem('eteo_user_name');
+                if (name) {
+                    localStorage.setItem('eteo_userName', name);
+                    localStorage.removeItem('eteo_user_name');
+                    console.log('✅ Ancienne clé migrée vers eteo_userName');
+                }
+            }
+
+            return name || 'Docteur';
+        }
+
+        // ================================================================
+        // =========== 5. WELCOME USER WITH VOICE =========================
+        // ================================================================
+        function accueillirUtilisateur() {
+            const userName = getUserName();
+            const totalValides = parseInt(document.getElementById('totalValides').textContent) || 0;
+            const totalNiveaux = 216;
+            const pourcentage = Math.round((totalValides / totalNiveaux) * 100);
+
+            let message = '';
+
+            if (pourcentage === 0) {
+                message = `Bonjour Docteur ${userName} ! Vous n'avez pas encore validé de niveaux sur ETEO. Mais ne vous inquiétiez pas, chaque grand expert a commencé par un premier pas. Nous sommes là pour vous accompagner !`;
+            } else if (pourcentage <= 30) {
+                message = `Bonjour Docteur ${userName} ! Vous avez validé ${totalValides} niveaux sur ${totalNiveaux}. Vous commencez tout juste votre aventure ETEO, mais chaque grand expert a commencé par un premier pas. Nous sommes là pour vous accompagner !`;
+            } else if (pourcentage <= 70) {
+                message = `Bonjour Docteur ${userName} ! Vous avez validé ${totalValides} niveaux sur ${totalNiveaux}. Excellente progression ! Vous êtes sur la bonne voie. Continuez comme ça, vous êtes en train de devenir un expert !`;
+            } else if (pourcentage < 100) {
+                message = `Bonjour Docteur ${userName} ! Vous avez validé ${totalValides} niveaux sur ${totalNiveaux}. Vous êtes presque au sommet ! Encore un petit effort et vous décrocherez le certificat complet ETEO. Bravo pour votre détermination !`;
+            } else {
+                message = `Bonjour Docteur ${userName} ! Félicitations ! Vous avez validé les ${totalNiveaux} niveaux ETEO. Vous êtes officiellement un expert en dentisterie ! Vous pouvez maintenant télécharger votre certificat complet ETEO. Bravo pour ce parcours exceptionnel !`;
+            }
+
+            activateVoice();
+            setTimeout(() => {
+                speak(message, 'fr-FR');
+            }, 500);
+        }
+
+        // ================================================================
+        // =========== 6. SPECIALTIES DATA ================================
+        // ================================================================
+        const data = {
+            volets: {
+                "Clinique": [
+                    "Chirurgie",
+                    "Endodontie",
+                    "Esthétique dentaire",
+                    "Implantologie",
+                    "Médecine buccale",
+                    "Orthodontie",
+                    "Parodontologie",
+                    "Pédodontie",
+                    "Prothèse",
+                    "Relationnel_Psychomotricite",
+                    "Soins conservateurs"
+                ],
+                "Technique": [
+                    "Anesthésiologie dentaire",
+                    "CFAO_Impression 3D",
+                    "Photographie dentaire",
+                    "Radiologie dentaire",
+                    "Stérilisation"
+                ],
+                "Gestion": [
+                    "Aides à l'installation",
+                    "Aménagement du cabinet",
+                    "Comptabilité & fiscalité",
+                    "Conventionnement AMO",
+                    "Fiscalité du dentiste",
+                    "Formes juridiques",
+                    "Gestion du cabinet",
+                    "Informatique & Logiciels dentaires",
+                    "Mutuelles & Prises en charge",
+                    "Santé publique"
+                ],
+                "RH & Déontologie": [
+                    "Assistantes dentaires",
+                    "Code_de_déontologie",
+                    "ONMD - Ordre National & Conseils",
+                    "Conflits_médiation",
+                    "Éthique & déontologie",
+                    "Femmes dentistes",
+                    "Futur Docteur",
+                    "Seniors",
+                    "Syndicat"
+                ],
+                "Sciences fondamentales": [
+                    "Sciences des matériaux dentaires"
+                ]
+            }
+        };
+
+        const niveaux = [
+            { id: 'debutant1', label: 'Débutant 1', type: 'free' },
+            { id: 'debutant2', label: 'Débutant 2', type: 'free' },
+            { id: 'intermediaire1', label: 'Inter. 1', type: 'locked' },
+            { id: 'intermediaire2', label: 'Inter. 2', type: 'locked' },
+            { id: 'expert1', label: 'Expert 1', type: 'locked' },
+            { id: 'expert2', label: 'Expert 2', type: 'locked' }
+        ];
+
+        // ================================================================
+        // =========== 7. PROGRESS STATE ===================================
+        // ================================================================
+        function getProgression() {
+            const saved = localStorage.getItem('eteo_progression');
+            if (saved) {
+                try { return JSON.parse(saved); } catch (e) { return {}; }
+            }
+            return {};
+        }
+
+        function saveProgression(prog) {
+            localStorage.setItem('eteo_progression', JSON.stringify(prog));
+        }
+
+        function getKey(specialite, niveauId) {
+            return specialite + '_' + niveauId;
+        }
+
+        function isCompleted(specialite, niveauId) {
+            const prog = getProgression();
+            return prog[getKey(specialite, niveauId)] === true;
+        }
+
+        // ================================================================
+        // =========== 8. VALIDER AUTOMATIQUEMENT UN NIVEAU ===============
+        // ================================================================
+        function validerNiveau(specialite, niveauId) {
+            const prog = getProgression();
+            const key = getKey(specialite, niveauId);
+            prog[key] = true;
+            saveProgression(prog);
+            renderTable();
+            updateStats();
+            updateVoletCerts();
+            updateGrandCert();
+
+            setTimeout(() => {
+                accueillirUtilisateur();
+            }, 500);
+        }
+
+        // ================================================================
+        // =========== 9. RENDER TABLE ====================================
+        // ================================================================
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            let html = '';
+
+            for (const [volet, specialites] of Object.entries(data.volets)) {
+                let isFirst = true;
+                for (const spec of specialites) {
+                    html += '<tr>';
+                    if (isFirst) {
+                        html += `<td class="volet-name" rowspan="${specialites.length}">${volet}</td>`;
+                        isFirst = false;
+                    }
+                    html += `<td class="spec-name">
+                        <a href="choix_specialite_fr.html?spec=${encodeURIComponent(spec)}" class="spec-link">
+                            📚 ${spec} <span class="arrow">→</span>
+                        </a>
+                    </td>`;
+
+                    for (const niv of niveaux) {
+                        const completed = isCompleted(spec, niv.id);
+                        if (niv.type === 'free') {
+                            html += `<td>
+                                <div class="checkbox-wrapper">
+                                    <span class="checkmark ${completed ? 'checked' : 'unchecked'}">
+                                        ${completed ? '✓' : '☐'}
+                                    </span>
+                                </div>
+                            </td>`;
+                        } else {
+                            html += `<td>
+                                <span class="locked">
+                                    <span class="lock-icon">🔒</span>
+                                    Abonnement PREMIUM
+                                </span>
+                            </td>`;
+                        }
+                    }
+
+                    const totalSpec = niveaux.length;
+                    const completedSpec = niveaux.filter(n => isCompleted(spec, n.id)).length;
+                    const allDone = completedSpec === totalSpec;
+
+                    html += `<td>
+                        <button class="btn-cert ${allDone ? 'available' : 'disabled'}" 
+                                ${allDone ? '' : 'disabled'}
+                                onclick="telechargerCertificat('${spec}')">
+                            ${allDone ? '📜 Télécharger' : '🔒 Verrouillé'}
+                        </button>
+                    </td>`;
+
+                    html += '</tr>';
+                }
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        // ================================================================
+        // =========== 10. STATISTICS =====================================
+        // ================================================================
+        function updateStats() {
+            const prog = getProgression();
+            let totalValides = 0;
+            let totalCertifs = 0;
+
+            for (const [volet, specialites] of Object.entries(data.volets)) {
+                for (const spec of specialites) {
+                    for (const niv of niveaux) {
+                        if (niv.type === 'free') {
+                            const key = getKey(spec, niv.id);
+                            if (prog[key]) totalValides++;
+                        }
+                    }
+
+                    const allDone = niveaux.every(n => prog[getKey(spec, n.id)]);
+                    if (allDone) totalCertifs++;
+                }
+            }
+
+            document.getElementById('totalValides').textContent = totalValides;
+            document.getElementById('totalCertificats').textContent = totalCertifs;
+
+            const totalNiveaux = Object.values(data.volets).reduce((acc, specs) => acc + specs.length * niveaux.filter(n =>
+                n.type === 'free').length, 0);
+            const pourcentage = totalNiveaux > 0 ? Math.round((totalValides / totalNiveaux) * 100) : 0;
+            document.getElementById('progressFill').style.width = pourcentage + '%';
+            document.getElementById('progressPercent').textContent = pourcentage + '%';
+
+            const rang = Math.max(1, 1200 - totalValides * 8);
+            document.getElementById('monRang').textContent = '#' + rang;
+        }
+
+        // ================================================================
+        // =========== 11. SECTION CERTIFICATES ===========================
+        // ================================================================
+        function updateVoletCerts() {
+            const container = document.getElementById('voletCertificates');
+            let html = '';
+            const prog = getProgression();
+
+            for (const [volet, specialites] of Object.entries(data.volets)) {
+                let allHaveCert = true;
+                for (const spec of specialites) {
+                    const allDone = niveaux.every(n => prog[getKey(spec, n.id)]);
+                    if (!allDone) {
+                        allHaveCert = false;
+                        break;
+                    }
+                }
+
+                html += `
+                    <div class="volet-cert-section">
+                        <span class="volet-title">
+                            📁 ${volet}
+                            <small>(${specialites.length} spécialités)</small>
+                        </span>
+                        <button class="btn-cert ${allHaveCert ? 'gold' : 'disabled'}" 
+                                ${allHaveCert ? '' : 'disabled'}
+                                onclick="telechargerCertificatVolet('${volet}')">
+                            ${allHaveCert ? '🏅 Télécharger certificat du volet' : '🔒 Complétez toutes les spécialités'}
+                        </button>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ================================================================
+        // =========== 12. GRAND CERTIFICATE ==============================
+        // ================================================================
+        function updateGrandCert() {
+            const btn = document.getElementById('btnGrandCert');
+            const prog = getProgression();
+            let allDone = true;
+
+            for (const [volet, specialites] of Object.entries(data.volets)) {
+                for (const spec of specialites) {
+                    const freeNiveaux = niveaux.filter(n => n.type === 'free');
+                    for (const niv of freeNiveaux) {
+                        if (!prog[getKey(spec, niv.id)]) {
+                            allDone = false;
+                            break;
+                        }
+                    }
+                    if (!allDone) break;
+                }
+                if (!allDone) break;
+            }
+
+            if (allDone) {
+                btn.innerHTML = '🏆 TÉLÉCHARGER CERTIFICAT ETEO COMPLET';
+                btn.disabled = false;
+                btn.className = 'btn-cert grand';
+                btn.onclick = function() { telechargerCertificatEteo(); };
+            } else {
+                btn.innerHTML = '🔒 Verrouillé • Terminez toutes les spécialités';
+                btn.disabled = true;
+            }
+        }
+
+        // ================================================================
+        // =========== 13. DOWNLOAD FUNCTIONS =============================
+        // ================================================================
+        function telechargerCertificat(specialite) {
+            alert(`📜 Téléchargement du certificat pour "${specialite}"\n\nBravo ! Vous avez validé tous les niveaux débutants de cette spécialité.`);
+        }
+
+        function telechargerCertificatVolet(volet) {
+            alert(`🏅 Téléchargement du certificat pour le volet "${volet}"\n\nFélicitations ! Vous avez terminé toutes les spécialités de ce volet.`);
+        }
+
+        function telechargerCertificatEteo() {
+            alert(`🏆 TÉLÉCHARGEMENT CERTIFICAT ETEO COMPLET\n\nFélicitations ! Vous avez terminé toutes les spécialités d'ETEO.\n\nVous êtes un expert en dentisterie ! 🎉`);
+        }
+
+        // ================================================================
+        // =========== 14. SHARE PAGE - RECTIFIÉ POUR APK =================
+        // ================================================================
+        async function partagerPage() {
+            const url = window.location.href;
+            const userName = getUserName();
+            const totalValides = document.getElementById('totalValides').textContent;
+            const text = `📊 Ma Progression ETEO\n\n${userName} a validé ${totalValides}/216 niveaux !\n\nRejoignez-moi sur ETEO : ${url}`;
+
+            try {
+                // ✅ APK (Capacitor)
+                if (isMobile && window.Share) {
+                    console.log('📤 Partage via Capacitor Share...');
+                    await window.Share.share({
+                        title: '📊 Ma Progression ETEO',
+                        text: text,
+                        url: url,
+                        dialogTitle: 'Partager votre progression'
+                    });
+                    console.log('📤 Partage réussi sur mobile');
+                } 
+                // ✅ Navigateur Web (API Web Share)
+                else if (navigator.share) {
+                    console.log('📤 Partage via Web Share API...');
+                    await navigator.share({
+                        title: '📊 Ma Progression ETEO',
+                        text: text,
+                        url: url
+                    });
+                    console.log('📤 Partage réussi sur navigateur');
+                } 
+                // ✅ Fallback : Presse-papier
+                else if (navigator.clipboard) {
+                    console.log('📤 Copie via Presse-papier...');
+                    await navigator.clipboard.writeText(text);
+                    alert(`📤 Lien copié dans le presse-papier !\n\nPartagez-le sur vos réseaux sociaux.\n\n${text}`);
+                }
+                // ✅ Fallback ultime
+                else {
+                    console.log('📤 Fallback ultime : prompt...');
+                    prompt("Copiez ce message à partager :", text);
+                }
+            } catch (error) {
+                console.error('❌ Erreur de partage:', error);
+                if (error.message && error.message.includes('cancel')) {
+                    console.log('📤 Partage annulé par l\'utilisateur');
+                } else {
+                    alert(`Le partage a échoué. Copiez ce message manuellement :\n\n${text}`);
+                }
+            }
+        }
+
+        // ================================================================
+        // =========== 15. PRINT PAGE - RECTIFIÉ POUR APK =================
+        // ================================================================
+        async function imprimerPage() {
+            try {
+                // ✅ APK (Capacitor)
+                if (isMobile && window.Print) {
+                    console.log('🖨️ Impression via Capacitor Print...');
+                    const container = document.querySelector('.container');
+                    await window.Print.print({
+                        html: container.outerHTML,
+                        html: true
+                    });
+                    console.log('🖨️ Impression réussie sur mobile');
+                } 
+                // ✅ Navigateur Web (window.print)
+                else {
+                    console.log('🖨️ Impression via window.print...');
+                    window.print();
+                    console.log('🖨️ Impression réussie sur navigateur');
+                }
+            } catch (error) {
+                console.error('❌ Erreur d\'impression:', error);
+                // Fallback : window.print()
+                try {
+                    window.print();
+                } catch (e) {
+                    console.error('❌ Erreur fallback:', e);
+                    alert('🖨️ L\'impression a échoué. Utilisez la fonction d\'impression de votre navigateur.');
+                }
+            }
+        }
+
+        // ================================================================
+        // =========== 16. THEME ==========================================
+        // ================================================================
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            const btn = document.querySelector('.theme-btn');
+            btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+            localStorage.setItem('eteo_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        // ================================================================
+        // =========== 17. INITIALIZATION =================================
+        // ================================================================
+        function init() {
+            const userName = getUserName();
+            document.getElementById('userName').textContent = userName;
+
+            if (localStorage.getItem('eteo_theme') === 'dark') {
+                document.body.classList.add('dark');
+                document.querySelector('.theme-btn').textContent = '☀️';
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const validation = params.get('valider');
+            const score = params.get('score');
+            const total = params.get('total');
+
+            if (validation) {
+                const parts = validation.split('_');
+                const niveauId = parts.pop();
+                const specialite = parts.join(' ');
+                
+                // ✅ VÉRIFICATION : score / total >= 60%
+                const scoreNum = parseInt(score) || 0;
+                const totalNum = parseInt(total) || 0;
+                const percentage = totalNum > 0 ? (scoreNum / totalNum) * 100 : 0;
+                
+                if (percentage >= 60) {
+                    // ✅ SEULEMENT SI >= 60% - La case est cochée
+                    validerNiveau(specialite, niveauId);
+                    setTimeout(() => {
+                        alert(`🎉 Félicitations ! Vous avez validé "${specialite}" - ${niveauId} avec ${score}/${total} !`);
+                    }, 500);
+                } else {
+                    // ❌ SI < 60% - La case N'EST PAS cochée
+                    setTimeout(() => {
+                        alert(`❌ Score insuffisant ! Vous avez obtenu ${score}/${total} (${percentage.toFixed(1)}%). Vous devez atteindre au moins 60% pour valider ce niveau.`);
+                    }, 500);
+                }
+
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            renderTable();
+            updateStats();
+            updateVoletCerts();
+            updateGrandCert();
+
+            setTimeout(() => {
+                accueillirUtilisateur();
+            }, 1500);
+        }
+
+        // Exposer les fonctions globalement
+        window.validerNiveau = validerNiveau;
+        window.partagerPage = partagerPage;
+        window.imprimerPage = imprimerPage;
+        window.toggleTheme = toggleTheme;
+        window.telechargerCertificat = telechargerCertificat;
+        window.telechargerCertificatVolet = telechargerCertificatVolet;
+        window.telechargerCertificatEteo = telechargerCertificatEteo;
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+</html>

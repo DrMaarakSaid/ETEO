@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Registro</title>
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== NUEVO TTS MANAGER ============== -->
+    <!-- ============================================ -->
+    <script src="js/tts-manager.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            overflow: hidden;
+            padding: 40px 30px 35px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        body.dark .container {
+            background: rgba(30, 30, 46, 0.95);
+            color: #eee;
+        }
+
+        /* ============================================ */
+        /* =========== HEADER - ETEO MULTICOLOR ====== */
+        /* ============================================ */
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            display: inline-block;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+        }
+
+        .header h1 .letter-e {
+            color: #2196F3;
+            -webkit-text-stroke: 2px #0d47a1;
+            text-shadow: 
+                -1px -1px 0 #000000,
+                1px -1px 0 #000000,
+                -1px 1px 0 #000000,
+                1px 1px 0 #000000;
+        }
+
+        .header h1 .letter-t {
+            color: #4CAF50;
+            -webkit-text-stroke: 2px #1b5e20;
+            text-shadow: 
+                -1px -1px 0 #000000,
+                1px -1px 0 #000000,
+                -1px 1px 0 #000000,
+                1px 1px 0 #000000;
+        }
+
+        .header h1 .letter-o {
+            color: #FF9800;
+            -webkit-text-stroke: 2px #e65100;
+            text-shadow: 
+                -1px -1px 0 #000000,
+                1px -1px 0 #000000,
+                -1px 1px 0 #000000,
+                1px 1px 0 #000000;
+        }
+
+        body.dark .header h1 .letter-e {
+            color: #42a5f5;
+            -webkit-text-stroke: 2px #1565c0;
+        }
+
+        body.dark .header h1 .letter-t {
+            color: #66bb6a;
+            -webkit-text-stroke: 2px #2e7d32;
+        }
+
+        body.dark .header h1 .letter-o {
+            color: #ffa726;
+            -webkit-text-stroke: 2px #ef6c00;
+        }
+
+        .header .subtitle {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
+
+        body.dark .header .subtitle {
+            color: #aaa;
+        }
+
+        /* ============================================ */
+        /* =========== BETA BANNER =================== */
+        /* ============================================ */
+        .beta-banner {
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+            border-radius: 30px;
+            padding: 8px 15px;
+            margin-bottom: 25px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        .beta-banner p {
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .beta-banner .beta-small {
+            font-size: 0.65rem;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(255, 87, 34, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
+        }
+
+        /* ============================================ */
+        /* =========== SECTION TITRE ================== */
+        /* ============================================ */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        body.dark .section-title {
+            color: #ecf0f1;
+        }
+
+        /* ============================================ */
+        /* =========== CHAMPS DE SAISIE =============== */
+        /* ============================================ */
+        .user-name-input, .user-country-input {
+            margin: 12px 0 8px 0;
+            text-align: left;
+        }
+
+        .user-name-input label, .user-country-input label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
+        }
+
+        body.dark .user-name-input label, 
+        body.dark .user-country-input label {
+            color: #ecf0f1;
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid #2196F3;
+            border-radius: 30px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+            color: #2c3e50;
+            box-shadow: 0 2px 10px rgba(33, 150, 243, 0.1);
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: #0d47a1;
+            box-shadow: 0 4px 20px rgba(33, 150, 243, 0.3);
+        }
+
+        body.dark .name-input {
+            background: #2a2a3e;
+            border-color: #42a5f5;
+            color: #ecf0f1;
+        }
+
+        body.dark .name-input:focus {
+            border-color: #64b5f6;
+            box-shadow: 0 4px 20px rgba(66, 165, 245, 0.3);
+        }
+
+        .country-select {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid #4CAF50;
+            border-radius: 30px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+            color: #2c3e50;
+            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.1);
+        }
+
+        .country-select:focus {
+            outline: none;
+            border-color: #1b5e20;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        body.dark .country-select {
+            background: #2a2a3e;
+            border-color: #66bb6a;
+            color: #ecf0f1;
+        }
+
+        body.dark .country-select:focus {
+            border-color: #81c784;
+            box-shadow: 0 4px 20px rgba(102, 187, 106, 0.3);
+        }
+
+        .country-other-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid #FF9800;
+            border-radius: 30px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+            color: #2c3e50;
+            box-shadow: 0 2px 10px rgba(255, 152, 0, 0.1);
+        }
+
+        .country-other-input:focus {
+            outline: none;
+            border-color: #e65100;
+            box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
+        }
+
+        body.dark .country-other-input {
+            background: #2a2a3e;
+            border-color: #ffa726;
+            color: #ecf0f1;
+        }
+
+        body.dark .country-other-input:focus {
+            border-color: #ffb74d;
+            box-shadow: 0 4px 20px rgba(255, 167, 38, 0.3);
+        }
+
+        .name-input::placeholder, .country-other-input::placeholder {
+            color: #aaa;
+        }
+
+        body.dark .name-input::placeholder,
+        body.dark .country-other-input::placeholder {
+            color: #666;
+        }
+
+        .hint {
+            font-size: 0.65rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        body.dark .hint {
+            color: #aaa;
+        }
+
+        .country-or {
+            font-size: 0.7rem;
+            color: #888;
+            margin: 6px 0 4px 0;
+            text-align: center;
+        }
+
+        body.dark .country-or {
+            color: #aaa;
+        }
+
+        /* ============================================ */
+        /* =========== INFO MESSAGE =================== */
+        /* ============================================ */
+        .info-message {
+            background: #e3f2fd;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-top: 12px;
+            text-align: left;
+            border-left: 4px solid #2196F3;
+        }
+
+        body.dark .info-message {
+            background: #1a3a5a;
+            border-left-color: #42a5f5;
+        }
+
+        .info-message .info-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #0d47a1;
+            margin-bottom: 4px;
+        }
+
+        body.dark .info-message .info-title {
+            color: #90caf9;
+        }
+
+        .info-message ul {
+            margin: 0 0 0 18px;
+            padding: 0;
+        }
+
+        .info-message ul li {
+            font-size: 0.75rem;
+            color: #1565c0;
+            margin: 3px 0;
+        }
+
+        body.dark .info-message ul li {
+            color: #bbdefb;
+        }
+
+        .info-message ul li strong {
+            color: #0d47a1;
+        }
+
+        body.dark .info-message ul li strong {
+            color: #64b5f6;
+        }
+
+        /* ============================================ */
+        /* =========== BOTONES ======================== */
+        /* ============================================ */
+        
+        /* ---- BOTÓN ESCUCHAR (NUEVO) ---- */
+        .btn-listen {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: 2px solid #1976D2;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 20px rgba(33, 150, 243, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-listen:hover {
+            transform: scale(1.02) translateY(-2px);
+            box-shadow: 0 6px 30px rgba(33, 150, 243, 0.5);
+            background: linear-gradient(135deg, #42a5f5, #1976D2);
+        }
+
+        .btn-listen:active {
+            transform: scale(0.96);
+        }
+
+        .btn-listen.listening {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            border-color: #F57C00;
+            animation: pulseListen 1s infinite;
+        }
+
+        @keyframes pulseListen {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+
+        body.dark .btn-listen {
+            background: linear-gradient(135deg, #42a5f5, #1565c0);
+            border-color: #1565c0;
+        }
+
+        body.dark .btn-listen:hover {
+            background: linear-gradient(135deg, #64b5f6, #1565c0);
+        }
+
+        /* ---- BOTÓN VALIDAR (DORADO) ---- */
+        .btn-validate {
+            width: 100%;
+            padding: 16px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #FDBB2D, #F7971E, #FFD700, #FDBB2D);
+            background-size: 300% 300%;
+            animation: goldShine 3s ease-in-out infinite;
+            color: #1a1a2e;
+            border: 3px solid #FFD700;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                0 4px 25px rgba(255, 215, 0, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-validate::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .btn-validate:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes goldShine {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .btn-validate:hover {
+            transform: scale(1.04) translateY(-3px);
+            box-shadow: 
+                0 8px 40px rgba(255, 215, 0, 0.6),
+                inset 0 2px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+            border-color: #FFC107;
+        }
+
+        .btn-validate:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-validate:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+            animation: none;
+            background: linear-gradient(135deg, #999, #777);
+            border-color: #666;
+            color: #fff;
+            box-shadow: none;
+        }
+
+        body.dark .btn-validate {
+            color: #1a1a2e;
+            border-color: #FFD700;
+            box-shadow: 
+                0 4px 30px rgba(255, 215, 0, 0.5),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark .btn-validate:hover {
+            box-shadow: 
+                0 8px 50px rgba(255, 215, 0, 0.7),
+                inset 0 2px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* ---- SEPARADOR ---- */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 18px 0 8px 0;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .divider::before {
+            margin-right: 15px;
+        }
+
+        .divider::after {
+            margin-left: 15px;
+        }
+
+        .divider span {
+            color: #888;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        body.dark .divider::before,
+        body.dark .divider::after {
+            border-bottom-color: #444;
+        }
+
+        body.dark .divider span {
+            color: #aaa;
+        }
+
+        /* ============================================ */
+        /* =========== ABOUT LINKS =================== */
+        /* ============================================ */
+        .about-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .about-links .about-btn {
+            flex: 1;
+            min-width: 100px;
+            max-width: 150px;
+            background: linear-gradient(135deg, #2196F3, #4CAF50);
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transition: transform 0.2s, opacity 0.2s;
+            text-align: center;
+        }
+
+        .about-links .about-btn:active {
+            transform: scale(0.97);
+        }
+
+        .about-links .about-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .about-links .about-btn:nth-child(2) {
+            background: linear-gradient(135deg, #4CAF50, #FF9800);
+        }
+
+        .about-links .about-btn:nth-child(3) {
+            background: linear-gradient(135deg, #FF9800, #2196F3);
+        }
+
+        /* ============================================ */
+        /* =========== FOOTER ======================== */
+        /* ============================================ */
+        .footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 0.65rem;
+            color: #aaa;
+        }
+
+        body.dark .footer {
+            border-top-color: #444;
+        }
+
+        .footer p {
+            margin: 3px 0;
+        }
+
+        /* ============================================ */
+        /* =========== VOICE INDICATOR =============== */
+        /* ============================================ */
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            opacity: 0.8;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .voice-indicator.capacitor {
+            background: #2196F3;
+        }
+
+        .voice-indicator.web {
+            background: #FF9800;
+        }
+
+        /* ============================================ */
+        /* =========== THEME TOGGLE ================== */
+        /* ============================================ */
+        .theme-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, background 0.3s;
+            z-index: 100;
+        }
+
+        body.dark .theme-btn {
+            background: rgba(30, 30, 46, 0.9);
+            color: #eee;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1) rotate(20deg);
+        }
+
+        .theme-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* ============================================ */
+        /* =========== REDIRECT INFO ================== */
+        /* ============================================ */
+        .redirect-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f4f8;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #555;
+            display: none;
+        }
+
+        body.dark .redirect-info {
+            background: #2a2a3e;
+            color: #aaa;
+        }
+
+        .redirect-info.show {
+            display: block;
+        }
+
+        .redirect-info .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 520px) {
+            .container {
+                padding: 30px 20px;
+                border-radius: 30px;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .btn-validate {
+                font-size: 1rem;
+                padding: 14px;
+            }
+
+            .btn-listen {
+                font-size: 0.9rem;
+                padding: 12px;
+            }
+
+            .about-links .about-btn {
+                min-width: 80px;
+                font-size: 0.65rem;
+                padding: 6px 10px;
+            }
+
+            .theme-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.4rem;
+                top: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ Inicializando...</div>
+
+<button class="theme-btn" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button>
+
+<!-- Toast para notificaciones -->
+<div class="toast" id="toast"></div>
+
+<div class="container">
+
+    <div class="header">
+        <h1>
+            <span class="letter-e">E</span>
+            <span class="letter-t">T</span>
+            <span class="letter-e">E</span>
+            <span class="letter-o">O</span>
+        </h1>
+        <p class="subtitle">E-learning To Every One</p>
+    </div>
+
+    <div class="beta-banner">
+        <p>🔺  🔺🔺  🔺🔺  🔺🔺  🔺🔺  🔺</p>
+        <p class="beta-small">« Borderless learning, right in your pocket »</p>
+    </div>
+
+    <div class="section-title">📝 Registro</div>
+
+    <!-- NOMBRE - BORDE AZUL (E) -->
+    <div class="user-name-input">
+        <label for="userNameInput">👤 Tu nombre único:</label>
+        <input type="text" id="userNameInput" placeholder="Dr. Martín" class="name-input">
+        <div class="hint">⚠️ Este nombre se guardará una sola vez y no podrá modificarse.</div>
+    </div>
+
+    <!-- PAÍS - BORDE VERDE (T) -->
+    <div class="user-country-input">
+        <label for="userCountry">🌍 Tu país (obligatorio):</label>
+        <select id="userCountry" class="country-select">
+            <option value="FR">🇫🇷 Francia</option>
+            <option value="MA">🇲🇦 Marruecos</option>
+            <option value="CH">🇨🇭 Suiza</option>
+            <option value="CA">🇨🇦 Canadá</option>
+            <option value="BE">🇧🇪 Bélgica</option>
+            <option value="SN">🇸🇳 Senegal</option>
+            <option value="CI">🇨🇮 Costa de Marfil</option>
+            <option value="CM">🇨🇲 Camerún</option>
+            <option value="DZ">🇩🇿 Argelia</option>
+            <option value="TN">🇹🇳 Túnez</option>
+            <option value="US">🇺🇸 Estados Unidos</option>
+            <option value="GB">🇬🇧 Reino Unido</option>
+            <option value="DE">🇩🇪 Alemania</option>
+            <option value="ES">🇪🇸 España</option>
+            <option value="IT">🇮🇹 Italia</option>
+            <option value="PT">🇵🇹 Portugal</option>
+            <option value="TR">🇹🇷 Turquía</option>
+        </select>
+        <div class="country-or">o</div>
+        <input type="text" id="otherCountry" placeholder="Ingresa tu país (ej: Brasil, Japón...)" class="country-other-input">
+        <div class="hint">⚠️ El país es obligatorio para el ranking mundial.</div>
+    </div>
+
+    <!-- INFO -->
+    <div class="info-message">
+        <div class="info-title">📌 Bueno saber:</div>
+        <ul>
+            <li>Tu nombre será usado por el <strong>asistente de voz</strong></li>
+            <li>Tu país es <strong>obligatorio</strong> para el <strong>ranking mundial</strong></li>
+            <li>Esta información se guardará definitivamente</li>
+        </ul>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== BOTÓN ESCUCHAR (NUEVO) ========= -->
+    <!-- ============================================ -->
+    <button class="btn-listen" id="btnListen" onclick="listenInstructions()">
+        🔈 Escuchar instrucciones
+    </button>
+
+    <!-- ============================================ -->
+    <!-- =========== SEPARADOR ====================== -->
+    <!-- ============================================ -->
+    <div class="divider">
+        <span>o</span>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- =========== BOTÓN VALIDAR ================== -->
+    <!-- ============================================ -->
+    <button class="btn-validate" onclick="validateAndRedirect()">
+        ✅ Validar y continuar
+    </button>
+
+    <!-- REDIRECCIÓN -->
+    <div class="redirect-info" id="redirectInfo">
+        <span class="spinner">⏳</span> Redirigiendo a <strong>la elección de especialidades</strong>...
+    </div>
+
+    <!-- ENLACES ACERCA DE -->
+    <div class="about-links">
+       
+        <a href="a_propos_es.html" class="about-btn">📚 Acerca de (ES)</a>
+    </div>
+
+    <div class="footer">
+        <p>🎙️ Asistente de voz IA | ⏱️ 20s por pregunta</p>
+        <p>⚡ Bonus velocidad +5 pts | 📖 Explicaciones detalladas</p>
+        <p>📤 Comparte tus puntuaciones | 🏆 Desbloquea todos los niveles</p>
+        <p>© 2026 - Dr. SAID MAARAK 🇲🇦</p>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- =========== SCRIPT PRINCIPAL =============== -->
+<!-- ============================================ -->
+<script>
+    // ============================================
+    // =========== 1. TEMA =======================
+    // ============================================
+    function toggleTheme() {
+        document.body.classList.toggle('dark');
+        const btn = document.querySelector('.theme-btn');
+        btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+        localStorage.setItem('eteo_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    // ============================================
+    // =========== 2. TOAST NOTIFICACIÓN =========
+    // ============================================
+    function showToast(message, duration = 2500) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    }
+
+    // ============================================
+    // =========== 3. BOTÓN ESCUCHAR =============
+    // ============================================
+    function listenInstructions() {
+        const btn = document.getElementById('btnListen');
+        
+        // Verificar que el TTS esté disponible
+        if (!window.ETEO || !window.ETEO.TTS) {
+            showToast('❌ Sistema de voz no disponible', 3000);
+            return;
+        }
+
+        // Obtener los valores
+        const nameInput = document.getElementById('userNameInput');
+        const countrySelect = document.getElementById('userCountry');
+        const otherInput = document.getElementById('otherCountry');
+        
+        const userName = nameInput.value.trim() || 'Doctor';
+        let selectedCountry = countrySelect.value;
+        if (otherInput.value.trim() !== '') {
+            selectedCountry = otherInput.value.trim();
+        }
+
+        // Construir el mensaje en español
+        let message = `Bienvenido a ETEO. `;
+        message += `Por favor, ingresa tu nombre único. Este nombre se guardará una sola vez y no podrá modificarse. `;
+        message += `Luego selecciona tu país. El país es obligatorio para el ranking mundial. `;
+        
+        if (userName && userName !== 'Doctor') {
+            message += `Vemos que ya has ingresado tu nombre: ${userName}. `;
+        }
+        
+        if (selectedCountry) {
+            message += `Tu país está actualmente configurado como: ${selectedCountry}. `;
+        }
+        
+        message += `Haz clic en Validar y continuar para proceder a la elección de especialidades. `;
+        message += `También puedes hacer clic en los enlaces Acerca de para aprender más sobre ETEO.`;
+
+        // Desactivar el botón durante la lectura
+        btn.disabled = true;
+        btn.classList.add('listening');
+        btn.innerHTML = '🔊 Escuchando...';
+
+        // Leer el mensaje
+        window.ETEO.TTS.speak(message, 'es-ES')
+            .then(() => {
+                // Reactivar el botón después de la lectura
+                btn.disabled = false;
+                btn.classList.remove('listening');
+                btn.innerHTML = '🔈 Escuchar instrucciones';
+                showToast('✅ Instrucciones leídas correctamente', 2000);
+            })
+            .catch((error) => {
+                console.error('Error al leer:', error);
+                btn.disabled = false;
+                btn.classList.remove('listening');
+                btn.innerHTML = '🔈 Escuchar instrucciones';
+                showToast('❌ Error al leer instrucciones', 3000);
+            });
+
+        // Fallback por si la promesa no se resuelve
+        setTimeout(() => {
+            if (btn.disabled) {
+                btn.disabled = false;
+                btn.classList.remove('listening');
+                btn.innerHTML = '🔈 Escuchar instrucciones';
+            }
+        }, 15000); // 15 segundos máximo
+    }
+
+    // ============================================
+    // =========== 4. VALIDAR (SIN VOZ) ==========
+    // ============================================
+    function validateAndRedirect() {
+        const nameInput = document.getElementById('userNameInput');
+        const countrySelect = document.getElementById('userCountry');
+        const otherInput = document.getElementById('otherCountry');
+
+        const userName = nameInput.value.trim();
+        let selectedCountry = countrySelect.value;
+
+        if (otherInput.value.trim() !== '') {
+            selectedCountry = otherInput.value.trim();
+        }
+
+        // Validación SIN voz (solo alertas)
+        if (!userName) {
+            alert('⚠️ Por favor, ingresa tu nombre antes de continuar.');
+            return;
+        }
+
+        if (!selectedCountry) {
+            alert('⚠️ Por favor, selecciona tu país antes de continuar.');
+            return;
+        }
+
+        // Guardar
+        localStorage.setItem('eteo_userName', userName);
+        localStorage.setItem('eteo_userName_fixed', 'true');
+        localStorage.setItem('eteo_userCountry', selectedCountry);
+
+        // UI
+        const btn = document.querySelector('.btn-validate');
+        btn.disabled = true;
+        btn.textContent = '⏳ Abriendo la puerta...';
+
+        const redirectInfo = document.getElementById('redirectInfo');
+        redirectInfo.classList.add('show');
+
+        // Redirección ÚNICAMENTE (SIN voz)
+        setTimeout(() => {
+            window.location.href = 'choix_specialite_es.html';
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== 5. INICIALIZACIÓN =============
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- TEMA ---
+        if (localStorage.getItem('eteo_theme') === 'dark') {
+            document.body.classList.add('dark');
+            document.querySelector('.theme-btn').textContent = '☀️';
+        }
+
+        // --- NOMBRE EXISTENTE ---
+        if (localStorage.getItem('eteo_userName_fixed') === 'true') {
+            const name = localStorage.getItem('eteo_userName') || '';
+            if (name) {
+                document.getElementById('userNameInput').value = name;
+                document.getElementById('userNameInput').disabled = true;
+                document.getElementById('userNameInput').style.opacity = '0.7';
+            }
+        }
+
+        // --- INICIALIZACIÓN DEL TTS MANAGER (SOLO AUDITORÍA) ---
+        if (window.ETEO && window.ETEO.TTS) {
+            window.ETEO.TTS.init();
+            
+            const indicator = document.getElementById('voiceIndicator');
+            if (window.ETEO.TTS.engine === 'capacitor') {
+                indicator.textContent = '🎙️';
+                indicator.className = 'voice-indicator capacitor';
+                console.log('✅ VOZ NATIVA CAPACITOR DETECTADA!');
+            } else if (window.ETEO.TTS.engine === 'web') {
+                indicator.textContent = '🎙️';
+                indicator.className = 'voice-indicator web';
+                console.log('⚠️ Alternativa Web Speech activada');
+            } else {
+                indicator.textContent = '❌';
+                indicator.style.background = '#f44336';
+                console.error('❌ No hay motor TTS disponible');
+            }
+        } else {
+            console.error('❌ TTS Manager no cargado!');
+            document.getElementById('voiceIndicator').textContent = '❌ Error TTS';
+            document.getElementById('voiceIndicator').style.background = '#f44336';
+        }
+
+        console.log('🚀 ETEO Registro listo!');
+        console.log('🔈 Haz clic en "Escuchar instrucciones" para oír las instrucciones.');
+    });
+
+    // ⚠️ NO HAY PRUEBA AUTOMÁTICA - ¡El usuario decide!
+</script>
+</body>
+</html>
