@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Sindicato - Principiante 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4a0a0a, #6a1a1a, #8a2a2a);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #2a0505, #4a0a0a, #6a1515); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #daa520; }
+        .header .subtitle { font-size: 0.9rem; color: #8a2a2a; margin-top: 5px; }
+        body.dark .header .subtitle { color: #e0c0c0; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #daa520;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #daa520; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #8a2a2a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover { background: #6a1a1a; }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #daa520; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #daa520;
+            color: #4a0a0a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            background: #c09020;
+            color: white;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #8a2a2a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover { background: #6a1a1a; }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .note { color: #aaa; }
+        .scenario-box {
+            background: #f5f0f0;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-left: 4px solid #daa520;
+        }
+        body.dark .scenario-box { background: #2a1a1a; }
+        .scenario-box .title { font-weight: bold; color: #8a2a2a; margin-bottom: 5px; }
+        body.dark .scenario-box .title { color: #daa520; }
+        .scenario-box .text { font-size: 0.9rem; color: #555; line-height: 1.5; }
+        body.dark .scenario-box .text { color: #ccc; }
+        .scenario-box .serious { color: #8a2a2a; font-weight: bold; }
+        body.dark .scenario-box .serious { color: #daa520; }
+
+        /* ================================================================ */
+        /* 🆕 POPUP ESCENARIO STYLES */
+        /* ================================================================ */
+        #scenarioModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            animation: fadeIn 0.5s ease;
+        }
+        #scenarioModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 600px;
+            padding: 35px;
+            max-height: 80%;
+            overflow: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.6s ease;
+        }
+        body.dark #scenarioModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #scenarioModal .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+        }
+        #scenarioModal .modal-close:hover {
+            color: #f44336;
+        }
+        #scenarioModal .modal-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #scenarioModal .modal-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #daa520;
+            margin-bottom: 15px;
+        }
+        #scenarioModal .modal-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 4px solid #daa520;
+        }
+        body.dark #scenarioModal .modal-text {
+            color: #ccc;
+            background: #2a2a2a;
+        }
+        #scenarioModal .modal-text .serious {
+            color: #8a2a2a;
+            font-weight: bold;
+        }
+        body.dark #scenarioModal .modal-text .serious {
+            color: #daa520;
+        }
+        #scenarioModal .modal-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #scenarioModal .modal-btn {
+            background: #daa520;
+            color: #4a0a0a;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        #scenarioModal .modal-btn:hover {
+            background: #c09020;
+            transform: scale(1.02);
+            color: white;
+        }
+        #scenarioModal .modal-btn.secondary {
+            background: #8a2a2a;
+            color: white;
+        }
+        #scenarioModal .modal-btn.secondary:hover {
+            background: #6a1a1a;
+        }
+        #scenarioModal .modal-status {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 10px;
+            background: #f0f0f0;
+        }
+        body.dark #scenarioModal .modal-status {
+            color: #aaa;
+            background: #2a2a2a;
+        }
+        #scenarioModal .modal-status.playing {
+            background: #daa520;
+            color: #4a0a0a;
+        }
+        #scenarioModal .modal-status.waiting {
+            background: #f39c12;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #daa520;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #8a2a2a, #daa520);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #8a2a2a;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover { background: #6a1a1a; }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ IA en espera</div>
+
+<div class="container" id="app"></div>
+
+<!-- Ranking Modal -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 SU POSICIÓN</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Cargando clasificación...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Cerrar</button>
+    </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 🆕 POPUP ESCENARIO -->
+<!-- ================================================================ -->
+<div id="scenarioModal" style="display:none;">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeScenarioPopup()">✕</button>
+        <div class="modal-icon">⚖️</div>
+        <div class="modal-title">📖 La reunión sindical - Nivel 2</div>
+        <div class="modal-text" id="scenarioText">
+            <span class="serious">🔴 Contexto :</span> El Dr. MIKOU se afilió al sindicato hace una semana. Hoy acompaña al Dr. YOUSSEF a la primera reunión del consejo sindical de la región.<br><br>
+            <span class="serious">📋 Desafíos :</span> Negociaciones con la CNSS, defensa de los jóvenes dentistas, lucha contra el ejercicio ilegal, estrategias de comunicación.<br><br>
+            <span class="serious">⚡ Ambiente :</span> Más serio que la primera visita. Las preguntas son concretas y las respuestas son precisas.
+        </div>
+        <div class="modal-status waiting" id="scenarioStatus">👆 Haga clic en cualquier lugar para escuchar el escenario</div>
+        <div class="modal-footer">
+            <button class="modal-btn" id="btnEscucharEscenario">🔊 Re-escuchar</button>
+            <button class="modal-btn secondary" onclick="closeScenarioPopup()">✅ ¡Entendido, comencemos!</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURACIÓN FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID PARA ESTE QUIZ
+    // ============================================
+    const LEVEL_ID = "syndicat_v1_debutant2_es";
+
+    // ============================================
+    // =========== 1. SISTEMA DE VOZ ==============
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'es-ES';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            
+            const voices = speechSynthesisObj.getVoices();
+            let selectedVoice = voices.find(v => v.lang.startsWith('es') && v.localService === true);
+            if (!selectedVoice) {
+                selectedVoice = voices.find(v => v.lang.startsWith('es'));
+            }
+            if (selectedVoice) utterance.voice = selectedVoice;
+            
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {
+            console.log('Error de síntesis de voz:', e);
+        }
+    }
+
+    function stopSpeaking() {
+        if (voiceReady && speechSynthesisObj) {
+            speechSynthesisObj.cancel();
+        }
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ IA activada";
+                indicator.style.background = "#daa520";
+                indicator.style.color = "#4a0a0a";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. POPUP ESCENARIO ============
+    // ============================================
+    let scenarioPlaying = false;
+    let scenarioStarted = false;
+
+    function showScenarioPopup() {
+        const modal = document.getElementById('scenarioModal');
+        if (!modal) return;
+        
+        modal.style.display = 'flex';
+        
+        // 🔥 INICIAR LECTURA AL PRIMER CLIC
+        const startScenario = function() {
+            if (scenarioStarted) return;
+            scenarioStarted = true;
+            
+            activateVoice();
+            
+            const scenarioText = document.getElementById('scenarioText');
+            if (scenarioText) {
+                const text = scenarioText.textContent;
+                const cleanText = text.replace(/[🔴📋⚡⚖️]/g, '').trim();
+                speak(cleanText, 'es-ES');
+                const statusEl = document.getElementById('scenarioStatus');
+                if (statusEl) {
+                    statusEl.textContent = '🔊 Lectura en curso...';
+                    statusEl.className = 'modal-status playing';
+                }
+                scenarioPlaying = true;
+                
+                setTimeout(() => {
+                    const statusEl2 = document.getElementById('scenarioStatus');
+                    if (statusEl2 && scenarioPlaying) {
+                        statusEl2.textContent = '✅ Escenario leído. ¡Listo para comenzar!';
+                        statusEl2.className = 'modal-status';
+                    }
+                }, 25000);
+            }
+            
+            document.removeEventListener('click', startScenario);
+        };
+        
+        document.addEventListener('click', startScenario);
+        
+        const btnEscuchar = document.getElementById('btnEscucharEscenario');
+        if (btnEscuchar) {
+            btnEscuchar.addEventListener('click', function() {
+                stopSpeaking();
+                const scenarioText = document.getElementById('scenarioText');
+                if (scenarioText) {
+                    const text = scenarioText.textContent;
+                    const cleanText = text.replace(/[🔴📋⚡⚖️]/g, '').trim();
+                    speak(cleanText, 'es-ES');
+                    const statusEl = document.getElementById('scenarioStatus');
+                    if (statusEl) {
+                        statusEl.textContent = '🔊 Re-escuchando...';
+                        statusEl.className = 'modal-status playing';
+                    }
+                }
+            });
+        }
+    }
+
+    function closeScenarioPopup() {
+        stopSpeaking();
+        const modal = document.getElementById('scenarioModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        scenarioPlaying = false;
+        scenarioStarted = true;
+    }
+
+    // ============================================
+    // =========== 3. INFO USUARIO ===============
+    // ============================================
+    function getUserName() { 
+        return localStorage.getItem("eteo_userName") || ""; 
+    }
+    
+    function getUserCountry() { 
+        return localStorage.getItem("eteo_userCountry") || "MA"; 
+    }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anónimo" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    // ============================================
+    // =========== 4. PANTALLA DE INICIO =========
+    // ============================================
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header">
+                    <h1>⚖️ Sindicato - Principiante Nivel 2</h1>
+                    <div class="subtitle">El Dr. MIKOU asiste a su primera reunión sindical</div>
+                </div>
+                <div class="scenario-box">
+                    <div class="title">🎭 Escenario - Nivel 2</div>
+                    <div class="text">
+                        <span class="serious">🔴 Contexto :</span> El Dr. MIKOU se afilió al sindicato hace una semana. Hoy acompaña al Dr. YOUSSEF a la primera reunión del consejo sindical de la región.<br><br>
+                        <span class="serious">📋 Desafíos :</span> Negociaciones con la CNSS, defensa de los jóvenes dentistas, lucha contra el ejercicio ilegal, estrategias de comunicación.<br><br>
+                        <span class="serious">⚡ Ambiente :</span> Más serio que la primera visita. Las preguntas son concretas y las respuestas son precisas.
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>👤 Su nombre (opcional) :</label>
+                    <input type="text" id="userName" placeholder="Ej: Dr. Martin" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Su país (obligatorio) :</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 Francia</option>
+                        <option value="MA" selected>🇲🇦 Marruecos</option>
+                        <option value="CH">🇨🇭 Suiza</option>
+                        <option value="CA">🇨🇦 Canadá</option>
+                        <option value="BE">🇧🇪 Bélgica</option>
+                        <option value="SN">🇸🇳 Senegal</option>
+                        <option value="CI">🇨🇮 Costa de Marfil</option>
+                        <option value="CM">🇨🇲 Camerún</option>
+                        <option value="DZ">🇩🇿 Argelia</option>
+                        <option value="TN">🇹🇳 Túnez</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="ES">🇪🇸 Spain</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turkiye</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">o</div>
+                    <input type="text" id="otherCountry" placeholder="Ingrese su país (ej: Brasil, Japón, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Comenzar el quiz</button>
+                <div class="note">
+                    ⚠️ Regla : 60% mínimo (225/375 puntos) para validar este nivel.<br>
+                    🎁 Bonus rapidez : +5 puntos si responde antes de que termine el temporizador.<br>
+                    📊 Puntuación máxima posible con bonus : 375 puntos (25 preguntas × 15 puntos)<br>
+                    🔒 Nivel Intermedio 1 : DESBLOQUEADO después de 6 meses de evaluación BETA.
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 5. ENVÍO SCORE FIREBASE ======
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score enviado a Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Error Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== FUNCIÓN DESBLOQUEO ============
+    // ============================================
+    function unlockLevel3(percentage) {
+        // 🔒 BETA : Nivel Intermedio 1 bloqueado durante 6 meses
+        // Esta función siempre retorna false en BETA
+        return false;
+    }
+
+    // ================================================================
+    // 🔥 GUARDAR VALIDACIÓN PARA PROGRESO.HTML
+    // ================================================================
+    function guardarValidacion(especialidad, nivel, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: especialidad,
+                niveau: nivel,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progreso = JSON.parse(localStorage.getItem('eteo_progreso')) || {};
+            const key = especialidad + '_' + nivel;
+            progreso[key] = true;
+            localStorage.setItem('eteo_progreso', JSON.stringify(progreso));
+            
+            console.log('✅ Validación guardada para progreso.html');
+        }
+    }
+
+    // ============================================
+    // =========== 6. PREGUNTAS (25) =============
+    // ============================================
+    const questions = [
+        {
+            question: "El Dr. MIKOU entra en la sala de reuniones. El Dr. YOUSSEF le entrega un expediente. MIKOU lee: 'El sindicato tiene varias misiones. La primera es:'",
+            options: [
+                "Organizar congresos dentales",
+                "Defender los intereses de la profesión",
+                "Vender equipos a precio de coste",
+                "Crear sociedades de gestión"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'La misión principal del sindicato es defender los intereses de la profesión. Todo lo demás deriva de esta misión.' MIKOU: '¿Entonces es el corazón de nuestra acción?' YOUSSEF: 'Exactamente, MIKOU.'"
+        },
+        {
+            question: "El presidente del consejo sindical toma la palabra. MIKOU pregunta a YOUSSEF: '¿Cuál es la diferencia entre el consejo sindical y la asamblea general?'",
+            options: [
+                "El consejo ejecuta, la asamblea decide",
+                "El consejo dirige, la asamblea ejecuta",
+                "El consejo financia, la asamblea gestiona",
+                "El consejo comunica, la asamblea vota"
+            ],
+            correct: 0,
+            explanation: "YOUSSEF: 'El consejo ejecuta las decisiones tomadas por la asamblea general. La asamblea es soberana.' MIKOU: '¿Entonces el poder está en la asamblea?' YOUSSEF: 'Sí, y por eso hay que participar.'"
+        },
+        {
+            question: "Un miembro de la junta toma la palabra sobre las afiliaciones. MIKOU pregunta: '¿Cómo puede un dentista afiliarse al sindicato?' YOUSSEF responde:",
+            options: [
+                "Rellenando un formulario y pagando la cuota",
+                "Enviando una carta al ministerio",
+                "Aprobando un examen de ingreso",
+                "Siendo apadrinado por dos miembros"
+            ],
+            correct: 0,
+            explanation: "YOUSSEF: 'La afiliación se hace con un formulario simple y el pago de la cuota.' MIKOU: '¿Y eso es todo?' YOUSSEF: 'Sí, eso es todo. La libertad sindical, ya te lo dije.'"
+        },
+        {
+            question: "El tesorero presenta el presupuesto. MIKOU pregunta: '¿Para qué sirve la cuota sindical?' YOUSSEF responde:",
+            options: [
+                "Para pagar los salarios de la junta",
+                "Para financiar las acciones del sindicato",
+                "Para organizar viajes de negocios",
+                "Para comprar locales"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'La cuota sirve para financiar las acciones del sindicato: negociaciones, formaciones, comunicación, asistencia legal.' MIKOU: 'Entonces es una inversión para mi profesión.' YOUSSEF: 'Exactamente.'"
+        },
+        {
+            question: "El Dr. MIKOU lee en el expediente: 'El sindicato es independiente.' Pregunta a YOUSSEF: '¿Independiente de qué?'",
+            options: [
+                "Independiente de los dentistas",
+                "Independiente de los poderes públicos",
+                "Independiente de los pacientes",
+                "Independiente de los laboratorios"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato es independiente de los poderes públicos. Defiende la profesión sin ser influenciado por el gobierno.' MIKOU: '¿Entonces podemos criticar al Estado?' YOUSSEF: 'Sí, ese es nuestro papel.'"
+        },
+        {
+            question: "Se inicia un debate sobre el orden del día. MIKOU pregunta: '¿Quién decide el orden del día de las reuniones?'",
+            options: [
+                "El presidente solo",
+                "La junta sindical",
+                "Los miembros en asamblea",
+                "El ministerio de Salud"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'Es la junta quien fija el orden del día, con las propuestas de los miembros.' MIKOU: '¿Entonces puedo proponer temas?' YOUSSEF: 'Claro, cada miembro puede proponer.'"
+        },
+        {
+            question: "El Dr. YOUSSEF explica a MIKOU el concepto de 'mandato'. MIKOU pregunta: '¿Cuánto dura el mandato de la junta sindical?'",
+            options: [
+                "1 año",
+                "2 años",
+                "3 años",
+                "4 años"
+            ],
+            correct: 2,
+            explanation: "YOUSSEF: 'El mandato es de 3 años, renovable.' MIKOU: '¿Y el presidente también?' YOUSSEF: 'Sí, pero no puede hacer más de dos mandatos consecutivos.'"
+        },
+        {
+            question: "Un miembro pide una aclaración sobre la votación. MIKOU pregunta a YOUSSEF: '¿Cómo se realizan las votaciones?'",
+            options: [
+                "A mano alzada únicamente",
+                "A voto secreto o a mano alzada",
+                "Por aclamación solamente",
+                "Por sorteo"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'Las votaciones pueden ser a mano alzada para decisiones simples, y a voto secreto para elecciones o temas sensibles.' MIKOU: 'Como en la escuela, pero mejor.'"
+        },
+        {
+            question: "El Dr. MIKOU lee un artículo sobre las negociaciones. Pregunta: '¿El sindicato negocia con quién?' YOUSSEF responde:",
+            options: [
+                "Con la CNSS únicamente",
+                "Con los poderes públicos y los organismos sociales",
+                "Con los laboratorios farmacéuticos",
+                "Con las clínicas privadas"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato negocia con los poderes públicos, la CNSS, las mutualidades, y a veces los laboratorios.' MIKOU: '¿Entonces con todo el mundo?' YOUSSEF: 'Sí, para defender nuestros intereses.'"
+        },
+        {
+            question: "Se presenta un informe sobre el ejercicio ilegal. MIKOU pregunta: '¿Cómo lucha el sindicato contra el ejercicio ilegal?'",
+            options: [
+                "Denunciando los casos a las autoridades",
+                "Amenazando a los infractores",
+                "Demandándolos en juicio",
+                "Ignorándolos"
+            ],
+            correct: 0,
+            explanation: "YOUSSEF: 'El sindicato denuncia los casos de ejercicio ilegal a las autoridades competentes.' MIKOU: '¿Y funciona?' YOUSSEF: 'Lentamente pero seguro. Hay que ser paciente.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿El sindicato tiene relaciones con sindicatos extranjeros?' YOUSSEF responde:",
+            options: [
+                "No, es puramente nacional",
+                "Sí, colabora con sindicatos internacionales",
+                "Solo con los de la Unión Europea",
+                "No se permite ninguna relación"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'Sí, colaboramos con sindicatos internacionales para intercambiar buenas prácticas.' MIKOU: '¿Entonces aprendemos de los demás?' YOUSSEF: 'Exactamente, es importante.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿El sindicato publica información?' YOUSSEF responde:",
+            options: [
+                "No, todo es oral",
+                "Sí, a través de boletines y comunicados",
+                "Solo para los miembros de la junta",
+                "No se difunde ninguna información"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato publica boletines, comunicados de prensa y notas informativas.' MIKOU: '¿Entonces puedo mantenerme informado?' YOUSSEF: 'Sí, incluso es recomendable.'"
+        },
+        {
+            question: "Un miembro menciona la paridad. MIKOU pregunta: '¿Hay representación femenina en la junta sindical?' YOUSSEF responde:",
+            options: [
+                "No, es un sindicato masculino",
+                "Sí, la paridad es fomentada",
+                "Solo si una mujer se presenta",
+                "No es una prioridad"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'La paridad es fomentada en las instancias sindicales.' MIKOU: 'Es una buena cosa.' YOUSSEF: 'Sí, la profesión necesita todas las competencias.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿Cómo se comunica el sindicato con sus miembros?' YOUSSEF responde:",
+            options: [
+                "Por correo postal únicamente",
+                "Por email, sitio web y reuniones",
+                "Por teléfono solamente",
+                "No hay comunicación directa"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'Usamos emails, el sitio web, las reuniones y las redes sociales.' MIKOU: '¿Entonces recibiré información regularmente?' YOUSSEF: 'Sí, y podrás hacer preguntas.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿El sindicato tiene una posición sobre la telemedicina?' YOUSSEF responde:",
+            options: [
+                "No, no tiene opinión",
+                "Sí, sigue el tema de cerca",
+                "Está en contra de la telemedicina",
+                "Está a favor sin condiciones"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato sigue de cerca la evolución de la telemedicina. Es un tema importante para nuestra profesión.' MIKOU: '¿Entonces podemos innovar?' YOUSSEF: 'Sí, pero con salvaguardas.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿Los jóvenes dentistas están representados en la junta?' YOUSSEF responde:",
+            options: [
+                "No, son demasiado jóvenes",
+                "Sí, hay jóvenes en la junta",
+                "Solo si son elegidos",
+                "Tienen un representante dedicado"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'Sí, hay jóvenes en la junta. Es importante para la renovación.' MIKOU: '¿Entonces podría tener un asiento algún día?' YOUSSEF: 'Por qué no, si te implicas.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿El sindicato tiene una opinión sobre los precios de las prótesis?' YOUSSEF responde:",
+            options: [
+                "No, no interviene",
+                "Sí, defiende un precio justo",
+                "Fija los precios de las prótesis",
+                "Es indiferente"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato defiende un precio justo para las prótesis dentales.' MIKOU: '¿Entonces también protege a los protésicos?' YOUSSEF: 'Indirectamente, sí.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿Cómo se desarrolla una negociación con la CNSS?' YOUSSEF responde:",
+            options: [
+                "En una sola reunión",
+                "En varias sesiones de trabajo",
+                "Por correspondencia únicamente",
+                "Por decisión unilateral"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'Las negociaciones se hacen en varias sesiones de trabajo. Es un proceso largo y riguroso.' MIKOU: 'Entonces hay que ser paciente.' YOUSSEF: 'Sí, y perseverante.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿El sindicato tiene un servicio legal?' YOUSSEF responde:",
+            options: [
+                "No, no hay abogado",
+                "Sí, hay un servicio de asistencia legal",
+                "Solo para los miembros de la junta",
+                "Los abogados son externos"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato dispone de un servicio de asistencia legal para los miembros.' MIKOU: '¿Entonces puedo obtener consejos?' YOUSSEF: 'Sí, es una de las ventajas.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿El sindicato tiene un papel en la formación continua?' YOUSSEF responde:",
+            options: [
+                "No, está reservado al Colegio",
+                "Sí, organiza formaciones",
+                "Solo para los nuevos miembros",
+                "No tiene presupuesto para ello"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato organiza formaciones continuas para sus miembros.' MIKOU: '¿Entonces puedo formarme a menor coste?' YOUSSEF: 'Sí, está incluido en la cuota.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿Cuál es la posición del sindicato sobre los recién titulados?' YOUSSEF responde:",
+            options: [
+                "Los ignora",
+                "Los apoya y acompaña",
+                "Los pone en competencia",
+                "Les impone condiciones"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato apoya a los recién titulados y los acompaña en su instalación.' MIKOU: '¡Entonces he llegado al lugar adecuado!' YOUSSEF: 'Sí, has hecho la elección correcta.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿Puede el sindicato ayudar en caso de conflicto laboral?' YOUSSEF responde:",
+            options: [
+                "No, no es su papel",
+                "Sí, puede acompañar a los miembros",
+                "Solo si el conflicto es importante",
+                "Deja que la justicia actúe"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato puede acompañar a los miembros en caso de conflicto laboral.' MIKOU: '¿Entonces no estoy solo?' YOUSSEF: 'No, tienes el apoyo del sindicato.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿Cómo se llega a ser miembro de la junta sindical?' YOUSSEF responde:",
+            options: [
+                "Por nombramiento del presidente",
+                "Por elección de los miembros",
+                "Por concurso",
+                "Por antigüedad"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'Los miembros de la junta son elegidos por la asamblea general.' MIKOU: '¿Entonces puedo votar?' YOUSSEF: 'Sí, y presentarte como candidato algún día.'"
+        },
+        {
+            question: "El Dr. MIKOU pregunta: '¿El sindicato tiene locales?' YOUSSEF responde:",
+            options: [
+                "No, no tiene locales",
+                "Sí, tiene una sede social",
+                "Alquila espacios de reunión",
+                "No necesita locales"
+            ],
+            correct: 1,
+            explanation: "YOUSSEF: 'El sindicato dispone de una sede social con oficinas y una sala de reuniones.' MIKOU: '¿Entonces es una organización real?' YOUSSEF: 'Sí, estructurada y profesional.'"
+        },
+        {
+            question: "El Dr. MIKOU, al final de la reunión, dice: 'YOUSSEF, entiendo mejor la importancia del sindicato. Es una verdadera institución.' YOUSSEF responde: 'Ahora que lo has entendido, ¿qué opinas de tu afiliación?' MIKOU concluye:",
+            options: [
+                "El sindicato es una pérdida de tiempo",
+                "El sindicato es un pilar de la profesión",
+                "El sindicato es útil solo durante las crisis",
+                "El sindicato está reservado a los mayores"
+            ],
+            correct: 1,
+            explanation: "MIKOU: 'El sindicato es un pilar de la profesión. Estoy orgulloso de formar parte de él.' YOUSSEF: '¿Ves MIKOU, sabía que lo entenderías.' MIKOU: 'Gracias por abrirme los ojos.' YOUSSEF: 'Es el comienzo de una larga aventura.'"
+        }
+    ];
+
+    // ============================================
+    // =========== PUNTUACIÓN MÁXIMA CORREGIDA ==
+    // ============================================
+    const MAX_SCORE_WITH_BONUS = questions.length * 15; // 375 puntos (25 preguntas × 15 puntos)
+
+    // ============================================
+    // =========== MOTOR DEL QUIZ ================
+    // ============================================
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("syndicat_v1_debutant2_es", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("¡Tiempo agotado! Pasamos a la siguiente pregunta.", "es-ES");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        const correctedText = `Pregunta ${currentQuestion + 1} : ${questions[currentQuestion].question}`;
+        speak(correctedText, "es-ES");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header">
+                <h1>⚖️ Sindicato - Principiante Nivel 2</h1>
+                <div class="subtitle">Pregunta ${currentQuestion + 1}/${questions.length}</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explicación :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Tiempo restante : <span id="timer">${timeLeft}</span> segundos</div>
+                <div class="score">🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonar</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Siguiente →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`¡Respuesta correcta! +${pointsEarned} puntos.`, "es-ES");
+        } else {
+            speak(`Respuesta incorrecta. La respuesta correcta era : ${shuffledOptions[currentCorrectIndex]}.`, "es-ES");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Respuesta correcta : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Por favor seleccione una respuesta.", "es-ES"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    function goToMenu() {
+        window.location.href = "menu_es.html";
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../clasificaciones_dashboard_es.html";
+    }
+
+    // ============================================
+    // =========== endQuiz (BETA) ================
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        // 🔒 BETA : Nivel Intermedio 1 bloqueado
+        const isUnlocked = unlockLevel3(percentage);
+        
+        guardarValidacion('Sindicato', 'principiante2', score, MAX_SCORE_WITH_BONUS);
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 ¡Quiz terminado!</h1>
+                <div class="final-score">Puntuación : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Porcentaje : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${percentage >= 60 ?
+                        `<div class="unlock-badge">✅ ¡Nivel Principiante 2 validado! 🎊</div>
+                         <div class="locked-badge">🔒 BETA : La continuación (Intermedio & Experto) llegará después de 6 meses de evaluación.</div>` :
+                        `<div class="locked-badge">⚠️ Puntuación insuficiente (mínimo 60% requerido para validar el nivel)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${percentage >= 60 ?
+                        '📚 Ha validado los dos niveles Principiantes. ¡Gracias por su participación!' :
+                        `💪 Le falta un ${(60 - percentage).toFixed(1)}% para validar el nivel. ¡Vuelva a intentarlo!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Compartir mi puntuación</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Dar mi opinión</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Menú principal</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Clasificación mundial</button>
+                </div>
+            </div>
+        `;
+        
+        if (percentage >= 60) {
+            speak(`¡Felicitaciones! Ha validado el nivel Principiante 2 con una puntuación de ${percentage.toFixed(1)}%. La continuación estará disponible en la versión final.`, "es-ES");
+            
+            // Popup BETA después de 2 segundos
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Su puntuación es de ${percentage.toFixed(1)}%. Debe alcanzar el 60% para validar el nivel.`, "es-ES");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== RANKING MODAL ==================
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No hay puntuaciones registradas para este nivel por el momento.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Su clasificación</div>
+                        <div class="rank-number">${userRank}e posición</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} puntos (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Todavía no está en la clasificación de este nivel</div>
+                        <div>¡Vuelva a hacer el quiz para aparecer!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #daa520;">🏆 TOP 20 - Sindicato Principiante 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(218,165,32,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anónimo"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No hay puntuaciones para este nivel</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Error Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ No se pudo cargar la clasificación.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Error desconocido'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== POPUP DE EVALUACIÓN BETA ======
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 30px; width: 90%; max-width: 500px; padding: 35px 25px; text-align: center; animation: slideUp 0.3s ease; position: relative;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉🏆🎉</div>
+                <h2 style="color: #daa520; margin-bottom: 5px;">¡Felicitaciones ${userName}!</h2>
+                <p style="margin-bottom: 20px; font-size: 1rem;">
+                    Ha validado los <strong>dos niveles Principiantes</strong> con éxito.<br>
+                    ¡Qué trayectoria tan impresionante!
+                </p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Evalúe la versión BETA 🌟</p>
+                    <div id="starRating" style="display: flex; justify-content: center; gap: 12px; font-size: 3rem; cursor: pointer;">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p id="ratingMessage" style="margin-top: 10px; font-size: 0.85rem; color: #888;"></p>
+                </div>
+                
+                <div style="background: #fdf0e8; padding: 15px; border-radius: 20px; margin: 15px 0; border-left: 4px solid #daa520;">
+                    <p style="color: #8a2a2a; font-size: 0.95rem; margin: 0;">
+                        🚀 <strong>La continuación (Intermedio & Experto)</strong> llegará después de <strong>6 meses de evaluación</strong> de esta versión Beta.<br><br>
+                        Su opinión nos ayuda a mejorar ETEO. Gracias por su confianza, <strong>${userName}</strong>.
+                    </p>
+                </div>
+                
+                <button onclick="closeBetaPopup()" style="background: #8a2a2a; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 15px;">
+                    Volver al menú
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ ¡Gracias por su evaluación! Su opinión ha sido registrada.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'es',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ ¡Evaluación Beta enviada!");
+        } catch (error) {
+            console.error("❌ Error evaluación Beta:", error);
+        }
+    }
+
+    // ============================================
+    // =========== OTRAS FUNCIONES ===============
+    // ============================================
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("syndicat_v1_debutant2_es", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel3(partialPercentage);
+        guardarValidacion('Sindicato', 'principiante2', score, MAX_SCORE_WITH_BONUS);
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Quiz abandonado</h1><div class="final-score">Puntuación parcial : ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Porcentaje : ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 Esta puntuación ha sido registrada en la clasificación.</div><button class="menu-btn" onclick="goToMenu()">🏠 Volver al menú</button></div>`;
+        speak(`Quiz abandonado. Puntuación parcial : ${score} sobre ${MAX_SCORE_WITH_BONUS}.`, "es-ES");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Sindicato\nMi puntuación en el nivel Principiante 2 : ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\n¡Desafíame en ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Puntuación', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ ¡Puntuación copiada al portapapeles!");
+            }).catch(() => {
+                alert("📋 Para compartir, copie este texto :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        closeScenarioPopup();
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    // ============================================
+    // =========== INICIALIZACIÓN ================
+    // ============================================
+    showWelcomeScreen();
+
+    setTimeout(() => {
+        showScenarioPopup();
+    }, 800);
+
+    document.body.addEventListener('click', function firstClick() {
+        activateVoice();
+        document.body.removeEventListener('click', firstClick);
+    });
+</script>
+</body>
+</html>
