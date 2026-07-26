@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Photographie dentaire - Débutant 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT DU PLUGIN VOIX ========== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        window.TextToSpeech = TextToSpeech;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        console.log('✅ Plugin TextToSpeech chargé !');
+        console.log('📱 Mode mobile :', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a, #3a3a3a);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #0a0a0a, #1a1a1a, #2a2a2a); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover { background: #5a6fd6; }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            transform: scale(1.05);
+        }
+        .btn-progression {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-progression:hover {
+            background: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .btn-menu {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-menu:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+        
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #888;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .beta-info-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .close-btn:hover {
+            transform: scale(1.1);
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover {
+            background: #5a6fd6;
+        }
+
+        /* Animations pour la modale BETA */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator inactive" id="voiceIndicator">🔇 IA inactive</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de classement -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 VOTRE POSITION</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Chargement du classement...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Fermer</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURATION FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID POUR CE QUIZ
+    // ============================================
+    const LEVEL_ID = "photographie_v1_debutant2_fr";
+
+    // ============================================
+    // =========== 1. SYSTÈME VOCAL AVANCÉ =======
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+
+    // ============================================
+    // 🔥 FONCTION : RÉACTIVER TOUS LES BOUTONS
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Réactivation de tous les boutons");
+        
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Lire la question';
+            console.log("✅ voiceQuestionBtn réactivé");
+        }
+        
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Réécouter le retour';
+            console.log("✅ voiceFeedbackBtn réactivé");
+        }
+        
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Lire l\'explication';
+            console.log("✅ voiceExplanationBtn réactivé");
+        }
+        
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Écouter votre résultat';
+            console.log("✅ voiceResultBtn réactivé");
+        }
+        
+        isSpeaking = false;
+        updateVoiceIndicator('active');
+        console.log("✅ Tous les boutons vocaux sont ACTIFS !");
+    }
+
+    // ============================================
+    // 🔥 FONCTION : ARRÊTER LA PAROLE
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() appelé");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Arrêt Android exécuté");
+            }
+        } catch(e) { console.log("⚠️ Erreur arrêt Android:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Arrêt Web Speech exécuté");
+            }
+        } catch(e) { console.log("⚠️ Erreur arrêt Web Speech:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking réinitialisé à false");
+        
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 FONCTION : FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() appelé");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech non disponible");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'fr-FR';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const frenchVoice = voices.find(v => v.lang.startsWith('fr'));
+            if (frenchVoice) utterance.voice = frenchVoice;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Callback Web Speech exécuté");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech terminé (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Erreur Web Speech:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Forçage du callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Erreur dans fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FONCTION : PARLER (avec Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() appelé avec:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Texte vide, callback immédiat");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() exécuté");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Utilisation du plugin Capacitor TTS sur Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'fr-FR', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS terminé");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Erreur Capacitor TTS:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback vers Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Forçage du callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Utilisation de Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+            } else {
+                console.error("❌ Aucun moteur TTS disponible");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERREUR dans speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ACTIVATION DE LA VOIX
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() appelé");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            if (isAndroid) {
+                if (window.Capacitor?.Plugins?.TextToSpeech) {
+                    console.log("✅ Capacitor TTS disponible sur Android");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    updateVoiceIndicator('active');
+                } else {
+                    console.warn("⚠️ Capacitor TTS non trouvé sur Android");
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback vers Web Speech");
+                        voiceReady = true;
+                        voiceActivated = true;
+                        window.speechSynthesis.getVoices();
+                        updateVoiceIndicator('active');
+                    }
+                }
+            } else {
+                if (window.speechSynthesis) {
+                    console.log("✅ Web Speech disponible sur PC");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    window.speechSynthesis.getVoices();
+                    updateVoiceIndicator('active');
+                }
+            }
+            console.log("✅ Voix activée, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Voix déjà activée");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        if (indicator) {
+            if (status === 'active') {
+                indicator.textContent = '🎙️ IA active';
+                indicator.className = 'voice-indicator active';
+            } else if (status === 'speaking') {
+                indicator.textContent = '🎙️ Parle...';
+                indicator.className = 'voice-indicator speaking';
+            } else {
+                indicator.textContent = '🔇 IA inactive';
+                indicator.className = 'voice-indicator inactive';
+            }
+        }
+    }
+
+    // ============================================
+    // =========== FONCTIONS VOCALES ==============
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() appelé");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Question ${currentQuestion + 1} sur ${questions.length}: ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture...';
+            console.log("🔇 voiceQuestionBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakQuestionOnly() terminé");
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() appelé");
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `Bonne réponse ! C'est la bonne réponse ! +${lastPointsEarned} points.`;
+        } else {
+            text = `Désolé, ce n'est pas la bonne réponse. La bonne réponse était : ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture...';
+            console.log("🔇 voiceFeedbackBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakFeedback() terminé");
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() appelé");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Explication : ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture...';
+            console.log("🔇 voiceExplanationBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakExplanation() terminé");
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() appelé");
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Votre score final est de ${score} sur ${MAX_SCORE_WITH_BONUS}, ce qui fait ${percentage.toFixed(1)} pourcent. `;
+        if (isUnlocked) {
+            text += "Félicitations ! Vous avez validé le niveau Débutant 2. Bravo !";
+        } else {
+            text += `Il vous manque ${(60 - percentage).toFixed(1)} pourcent pour valider le niveau. Continuez à vous entraîner !`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture...';
+            console.log("🔇 voiceResultBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakFinalResult() terminé");
+        });
+    }
+
+    // ============================================
+    // =========== 2. INFOS UTILISATEUR ==========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "FR"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anonyme" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>📸 Photographie dentaire - Débutant Niveau 2</h1><p>Bienvenue Docteur !</p></div>
+                <div class="input-group">
+                    <label>👤 Votre nom (facultatif) :</label>
+                    <input type="text" id="userName" placeholder="Ex: Dr. Martin" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Votre pays (obligatoire) :</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="MA">🇲🇦 Maroc</option>
+                        <option value="CH">🇨🇭 Suisse</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="BE">🇧🇪 Belgique</option>
+                        <option value="SN">🇸🇳 Sénégal</option>
+                        <option value="CI">🇨🇮 Côte d'Ivoire</option>
+                        <option value="CM">🇨🇲 Cameroun</option>
+                        <option value="DZ">🇩🇿 Algérie</option>
+                        <option value="TN">🇹🇳 Tunisie</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="ES">🇪🇸 Spain</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turkiye</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">ou</div>
+                    <input type="text" id="otherCountry" placeholder="Entrez votre pays (ex: Brésil, Japon, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Commencer le quiz</button>
+                <div class="note">
+                    ⚠️ Règle : 60% minimum (225/375 points) pour débloquer le niveau <strong>Intermédiaire 1</strong>.<br>
+                    🎁 Bonus rapidité : +5 points si vous répondez avant la fin du timer.<br>
+                    📊 Score maximum possible avec bonus : 375 points (25 questions × 15 points)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ENVOI SCORE FIREBASE =======
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonyme";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score envoyé à Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Erreur Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. QUESTIONS (25) =============
+    // ============================================
+    const questions = [
+        {
+            question: "Dr RACHID appelle Dr REDA en urgence : 'Je n'arrive pas à capturer une photo intra-orale nette de la préparation prothétique !' Dr REDA répond calmement : 'As-tu vérifié la mise au point manuelle ?' Quelle est la meilleure approche pour la mise au point en macro ?",
+            options: [
+                "Utiliser la mise au point manuelle pour une précision absolue",
+                "Utiliser la mise au point automatique pour gagner du temps",
+                "Utiliser la mise au point automatique avec verrouillage",
+                "La mise au point n'est pas importante en macro"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'En macro, la profondeur de champ est très faible. La mise au point manuelle permet un contrôle précis sur le plan de netteté.' Dr RACHID : 'Je vais m'entraîner à la mise au point manuelle.'"
+        },
+        {
+            question: "Dr RACHID reçoit un patient pour une photo de sourire esthétique. Il demande à Dr REDA : 'Quel est le protocole pour une photo de sourire parfaite ?' Dr REDA répond : 'Il faut respecter les proportions et la symétrie.' Que faut-il contrôler ?",
+            options: [
+                "La ligne du sourire, la courbe de l'arcade et la symétrie faciale",
+                "Uniquement la couleur des dents",
+                "Uniquement la position des lèvres",
+                "Uniquement l'éclairage"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Une photo de sourire esthétique doit montrer la ligne du sourire, la courbe de l'arcade et la symétrie faciale pour une évaluation complète.' Dr RACHID : 'Je vais suivre ce protocole rigoureusement.'"
+        },
+        {
+            question: "Dr RACHID et Dr REDA discutent de l'importance du fond en photographie dentaire. Dr RACHID dit : 'Le fond n'a pas d'importance.' Dr REDA répond : 'Au contraire !' Pourquoi le fond est-il crucial ?",
+            options: [
+                "Un fond neutre élimine les distractions et permet de se concentrer sur les dents",
+                "Le fond doit être coloré pour être esthétique",
+                "Le fond n'a vraiment pas d'importance",
+                "Le fond doit être noir uniquement"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Un fond neutre (gris ou noir) permet de mettre en valeur les structures dentaires sans distraction.' Dr RACHID : 'Je vais investir dans un fond neutre.'"
+        },
+        {
+            question: "Dr RACHID appelle Dr REDA : 'J'ai une photo qui présente une dominante bleue !' Dr REDA répond : 'C'est un problème de balance des blancs.' Comment éviter ce problème ?",
+            options: [
+                "Utiliser un réglage personnalisé de la balance des blancs avec une charte de couleurs",
+                "Utiliser le mode automatique",
+                "Utiliser le mode 'Lumière du jour'",
+                "Ignorer le problème"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'La balance des blancs personnalisée avec une charte de couleurs garantit une reproduction fidèle des couleurs.' Dr RACHID : 'Je vais me procurer une charte de couleurs.'"
+        },
+        {
+            question: "Dr RACHID examine un patient avec une photo et dit : 'Les gencives semblent trop rouges.' Dr REDA lui demande : 'Est-ce que tu as vérifié les réglages ?' Quelle pourrait être la cause ?",
+            options: [
+                "Un excès de saturation ou une mauvaise balance des blancs",
+                "Un problème de mise au point",
+                "Un problème de vitesse d'obturation",
+                "Un problème d'ouverture"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Des gencives trop rouges indiquent souvent une saturation excessive ou une balance des blancs incorrecte.' Dr RACHID : 'Je vais ajuster mes paramètres.'"
+        },
+        {
+            question: "Dr RACHID demande à Dr REDA : 'Pourquoi utilises-tu un pare-soleil sur ton objectif macro ?' Dr REDA répond : 'Pour éviter les reflets et les aberrations.' Quel est l'avantage du pare-soleil ?",
+            options: [
+                "Il réduit les reflets et améliore le contraste",
+                "Il protège l'objectif uniquement",
+                "Il augmente la luminosité",
+                "Il n'a aucun avantage"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Le pare-soleil réduit les reflets parasites et améliore le contraste des images.' Dr RACHID : 'Je vais toujours utiliser mon pare-soleil.'"
+        },
+        {
+            question: "Dr RACHID appelle Dr REDA : 'Je n'arrive pas à faire une photo d'occlusion correcte !' Dr REDA répond : 'As-tu utilisé des écarteurs ?' Quels sont les écarteurs recommandés ?",
+            options: [
+                "Des écarteurs de joues (cheek retractors) pour une vue dégagée",
+                "Des doigts du patient",
+                "Des miroirs buccaux",
+                "Des pinces à lèvres"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Les écarteurs de joues permettent de visualiser toute l'arcade dentaire et d'éviter les ombres des joues.' Dr RACHID : 'Je vais m'équiper d'écarteurs de qualité.'"
+        },
+        {
+            question: "Dr RACHID prend une photo de la face d'un patient. Il demande à Dr REDA : 'Comment bien cadrer une photo de face ?' Dr REDA répond : 'Il faut respecter les proportions.' Quel est le bon cadrage ?",
+            options: [
+                "Le visage entier, de la racine des cheveux au menton",
+                "Uniquement le sourire",
+                "Uniquement les yeux",
+                "Uniquement le nez"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Le cadrage standard pour une photo de face inclut tout le visage, de la racine des cheveux au menton.' Dr RACHID : 'Je vais respecter ce cadrage.'"
+        },
+        {
+            question: "Dr RACHID et Dr REDA discutent des réglages de flash. Dr RACHID dit : 'Le flash intégré est suffisant.' Dr REDA répond : 'Pas du tout !' Pourquoi le flash annulaire est-il préféré ?",
+            options: [
+                "Il offre une lumière homogène sans ombre et un anneau lumineux sur les dents",
+                "Il est moins cher",
+                "Il est plus facile à utiliser",
+                "Il est plus petit"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Le flash annulaire donne une lumière homogène sans ombre et crée un anneau lumineux esthétique sur les dents.' Dr RACHID : 'Je vais investir dans un flash annulaire.'"
+        },
+        {
+            question: "Dr RACHID appelle Dr REDA : 'J'ai pris une photo mais l'arrière-plan est flou !' Dr REDA répond : 'C'est peut-être une bonne chose.' Pourquoi l'arrière-plan flou est-il parfois recherché ?",
+            options: [
+                "Il met en valeur le sujet principal (les dents) par un effet de profondeur",
+                "Il est esthétique uniquement",
+                "Il cache les défauts",
+                "Il n'a aucun intérêt"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Un arrière-plan flou (effet bokeh) met en valeur le sujet principal et crée une profondeur de champ agréable.' Dr RACHID : 'Je comprends mieux l'effet bokeh !'"
+        },
+        {
+            question: "Dr RACHID examine un patient et prend une photo de la dent en question. Il demande à Dr REDA : 'Comment obtenir une photo nette d'une dent isolée ?' Dr REDA répond : 'Il faut utiliser...'",
+            options: [
+                "Un objectif macro avec une mise au point précise et une distance de travail adaptée",
+                "Un téléphone portable",
+                "Un microscope",
+                "Une loupe binoculaire"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Pour une dent isolée, l'objectif macro est indispensable avec une mise au point manuelle précise.' Dr RACHID : 'Je vais m'entraîner sur des dents extraites.'"
+        },
+        {
+            question: "Dr RACHID demande à Dr REDA : 'Quelle est l'importance de la couleur en photographie dentaire ?' Dr REDA répond : 'La couleur est essentielle pour la communication et le diagnostic.' Comment garantir une bonne reproduction des couleurs ?",
+            options: [
+                "Utiliser une charte de couleurs et un bon éclairage",
+                "Utiliser un filtre coloré",
+                "Utiliser un logiciel de retouche",
+                "Ignorer les couleurs"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'La charte de couleurs et un éclairage standardisé garantissent une reproduction fidèle des couleurs.' Dr RACHID : 'Je vais toujours utiliser ma charte de couleurs.'"
+        },
+        {
+            question: "Dr RACHID appelle Dr REDA : 'J'ai une photo avec un reflet gênant sur une couronne !' Dr REDA répond : 'Utilise un filtre polariseur ou ajuste l'angle du flash.' Comment fonctionne un filtre polariseur ?",
+            options: [
+                "Il réduit les reflets en bloquant les ondes lumineuses réfléchies",
+                "Il augmente la luminosité",
+                "Il diminue la luminosité",
+                "Il change la couleur de l'image"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Le filtre polariseur bloque les ondes lumineuses réfléchies, réduisant ainsi les reflets.' Dr RACHID : 'Je vais m'équiper d'un filtre polariseur.'"
+        },
+        {
+            question: "Dr RACHID prend une photo de profil d'un patient. Il demande à Dr REDA : 'Quel est le protocole pour une photo de profil en dentisterie esthétique ?' Dr REDA répond :",
+            options: [
+                "Le patient doit être de profil parfait, regardant droit devant, les lèvres en occlusion",
+                "Le patient doit sourire",
+                "Le patient doit regarder le photographe",
+                "Le patient doit tourner la tête"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Pour une photo de profil, le patient doit être de profil parfait, regardant droit devant, les lèvres en occlusion.' Dr RACHID : 'Je vais suivre ce protocole.'"
+        },
+        {
+            question: "Dr RACHID demande à Dr REDA : 'Comment gérer la profondeur de champ en photographie dentaire ?' Dr REDA répond : 'Elle est cruciale pour la netteté.' Quel réglage contrôle la profondeur de champ ?",
+            options: [
+                "L'ouverture du diaphragme (f/stop)",
+                "La vitesse d'obturation",
+                "L'ISO",
+                "La balance des blancs"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'L'ouverture du diaphragme contrôle la profondeur de champ. Plus l'ouverture est petite (f/22, f/32), plus la profondeur de champ est grande.' Dr RACHID : 'Je vais ajuster mon ouverture.'"
+        },
+        {
+            question: "Dr RACHID appelle Dr REDA : 'J'ai une photo sous-exposée et une autre sur-exposée !' Dr REDA répond : 'La solution est le bracketing.' Qu'est-ce que le bracketing ?",
+            options: [
+                "Prendre plusieurs photos avec des expositions différentes pour choisir la meilleure",
+                "Prendre une seule photo",
+                "Ignorer le problème",
+                "Utiliser un filtre"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Le bracketing consiste à prendre plusieurs photos avec des expositions différentes pour garantir une exposition parfaite.' Dr RACHID : 'Je vais utiliser le bracketing !'"
+        },
+        {
+            question: "Dr RACHID prépare une photo pour un cas clinique. Il demande à Dr REDA : 'Quelles sont les photos à inclure dans un cas clinique complet ?' Dr REDA répond :",
+            options: [
+                "Vue de face, de profil, des arcades dentaires et des dents spécifiques",
+                "Une seule photo",
+                "Uniquement la photo de la dent",
+                "Uniquement la photo de face"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Un cas clinique complet nécessite des vues de face, de profil, des arcades dentaires et des détails spécifiques.' Dr RACHID : 'Je vais documenter tous mes cas de cette façon.'"
+        },
+        {
+            question: "Dr RACHID demande à Dr REDA : 'La retouche photo est-elle autorisée en dentisterie ?' Dr REDA répond : 'Oui, mais avec éthique.' Quelles sont les retouches acceptables ?",
+            options: [
+                "Ajustement de l'exposition, du contraste et de la balance des blancs",
+                "Ajout de dents inexistantes",
+                "Suppression de défauts",
+                "Modification de la couleur des dents"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Les retouches doivent être limitées à des ajustements techniques comme l'exposition, le contraste et la balance des blancs.' Dr RACHID : 'Je resterai éthique dans mes retouches.'"
+        },
+        {
+            question: "Dr RACHID appelle Dr REDA : 'Je n'arrive pas à photographier une dent avec une restauration métallique !' Dr REDA répond : 'Les reflets métalliques sont difficiles.' Comment les gérer ?",
+            options: [
+                "Utiliser un polariseur et ajuster l'angle du flash",
+                "Augmenter l'ISO",
+                "Diminuer l'ouverture",
+                "Utiliser un filtre coloré"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Les surfaces métalliques réfléchissent fortement. Un polariseur et un angle de flash adapté réduisent les reflets.' Dr RACHID : 'Je vais essayer avec un polariseur.'"
+        },
+        {
+            question: "Dr RACHID examine un patient avec une photo de la langue. Il demande à Dr REDA : 'Pourquoi photographier la langue ?' Dr REDA répond : 'La langue peut révéler des pathologies.' Quelle est l'utilité clinique ?",
+            options: [
+                "La langue peut montrer des signes de pathologies systémiques ou locales",
+                "La langue est juste esthétique",
+                "La langue n'a pas d'importance",
+                "La langue est toujours normale"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'La langue peut révéler des signes de carences, d'infections ou de maladies systémiques.' Dr RACHID : 'Je vais toujours photographier la langue.'"
+        },
+        {
+            question: "Dr RACHID demande à Dr REDA : 'Qu'est-ce que le rapport 1:1 en macro ?' Dr REDA répond : 'C'est le rapport de reproduction.' Que signifie 1:1 ?",
+            options: [
+                "La taille de l'image sur le capteur est égale à la taille réelle du sujet",
+                "L'image est deux fois plus grande",
+                "L'image est deux fois plus petite",
+                "L'image est floue"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Un rapport 1:1 signifie que l'image projetée sur le capteur a la même taille que le sujet réel.' Dr RACHID : 'Je comprends mieux le rapport de reproduction.'"
+        },
+        {
+            question: "Dr RACHID appelle Dr REDA : 'J'ai une photo avec un bruit numérique important !' Dr REDA répond : 'C'est à cause d'un ISO trop élevé.' Comment éviter le bruit numérique ?",
+            options: [
+                "Utiliser un ISO bas (100-200) et un bon éclairage",
+                "Augmenter l'ISO",
+                "Diminuer la vitesse",
+                "Utiliser un filtre"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Le bruit numérique est causé par un ISO élevé. Utilisez un ISO bas (100-200) et un éclairage suffisant.' Dr RACHID : 'Je vais baisser mon ISO.'"
+        },
+        {
+            question: "Dr RACHID prend une photo d'un sourire. Il demande à Dr REDA : 'Comment capturer un sourire naturel ?' Dr REDA répond : 'Il faut mettre le patient à l'aise.' Quelle est la meilleure approche ?",
+            options: [
+                "Faire parler ou rire le patient pour un sourire naturel et spontané",
+                "Demander un sourire forcé",
+                "Ne pas photographier le sourire",
+                "Utiliser un sourire artificiel"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Un sourire naturel est obtenu en mettant le patient à l'aise, en le faisant parler ou rire.' Dr RACHID : 'Je vais créer une ambiance détendue.'"
+        },
+        {
+            question: "Dr RACHID demande à Dr REDA : 'Quels sont les avantages de la photographie numérique vs argentique en dentisterie ?' Dr REDA répond : 'Le numérique offre un workflow rapide et une visualisation immédiate.' Quel est l'autre avantage majeur ?",
+            options: [
+                "La possibilité de retoucher et de partager instantanément les images",
+                "La meilleure qualité d'image",
+                "Le coût plus élevé",
+                "La difficulté d'utilisation"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Le numérique permet une visualisation immédiate, des retouches rapides et un partage instantané des images.' Dr RACHID : 'Le numérique est vraiment pratique !'"
+        },
+        {
+            question: "Dr RACHID appelle Dr REDA : 'J'ai une photo avec un flou de mouvement !' Dr REDA répond : 'C'est à cause d'une vitesse trop lente.' Comment corriger ce problème ?",
+            options: [
+                "Augmenter la vitesse d'obturation ou utiliser un trépied",
+                "Diminuer l'ISO",
+                "Augmenter l'ouverture",
+                "Utiliser un filtre"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'Le flou de mouvement est causé par une vitesse d'obturation trop lente. Augmentez la vitesse ou utilisez un trépied.' Dr RACHID : 'Je vais augmenter ma vitesse.'"
+        },
+        {
+            question: "Dr REDA et Dr RACHID discutent de l'avenir de la photographie dentaire. Dr RACHID dit : 'L'IA va remplacer la photographie !' Dr REDA répond : 'Pas si vite !' Quel est le rôle de l'IA en photographie dentaire ?",
+            options: [
+                "L'IA est un outil d'aide à l'analyse et à la retouche, mais ne remplace pas le clinicien",
+                "L'IA va remplacer le photographe",
+                "L'IA est inutile en photographie",
+                "L'IA ne sert qu'à faire des diagnostics"
+            ],
+            correct: 0,
+            explanation: "Dr REDA explique : 'L'IA peut aider à l'analyse des images et à la retouche, mais le clinicien reste indispensable pour l'interprétation et la prise de décision.' Dr RACHID : 'Je suis rassuré, on garde nos emplois !'"
+        }
+    ];
+
+    // ============================================
+    // =========== SCORE MAX =====================
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10;
+    const MAX_SCORE_WITH_BONUS = questions.length * 15;
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("photographie_v1_debutant2_fr", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== DÉBLOQUER INTERMÉDIAIRE 1 =====
+    // ============================================
+    function unlockIntermediate1(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("photographie_v1_intermediaire1_fr_unlocked", "true");
+            localStorage.setItem("photographie_v1_debutant2_fr_score", percentage.toFixed(1));
+            console.log("✅ Niveau Intermédiaire 1 DÉBLOQUÉ ! Score: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("photographie_v1_intermediaire1_fr_unlocked", "false");
+            console.log("❌ Niveau Intermédiaire 1 VERROUILLÉ. Score: " + percentage.toFixed(1) + "% (min " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 SAUVEGARDER LA VALIDATION POUR PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progressionData = JSON.parse(localStorage.getItem('eteo_progression') || '{}');
+            const key = specialite + '_' + niveau;
+            progressionData[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progressionData));
+            
+            console.log('✅ Validation sauvegardée pour progression.html');
+        }
+    }
+
+    // ============================================
+    // =========== GO TO PROGRESSION ==============
+    // ============================================
+    function goToProgression() {
+        console.log("🔍 goToProgression() appelé");
+        
+        const validationData = {
+            specialite: 'Photographie dentaire',
+            niveau: 'debutant2',
+            score: score,
+            total: MAX_SCORE_WITH_BONUS,
+            percentage: (score / MAX_SCORE_WITH_BONUS) * 100,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('eteo_validation', JSON.stringify(validationData));
+        console.log("✅ Validation sauvegardée pour progression");
+        
+        const url = 'progression_fr.html?valider=Photographie_dentaire_debutant2&score=' + score + '&total=' + MAX_SCORE_WITH_BONUS;
+        console.log("🔀 Redirection vers:", url);
+        window.location.href = url;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // ============================================
+    // =========== ATTACHER LES ÉVÉNEMENTS ========
+    // ============================================
+    function attachVoiceEvents() {
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Événement attaché pour voiceQuestionBtn");
+        }
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Événement attaché pour voiceExplanationBtn");
+        }
+    }
+
+    // ============================================
+    // =========== RENDER QUESTION ================
+    // ============================================
+    function renderQuestion() {
+        console.log("🔍 renderQuestion() - Question", currentQuestion + 1);
+        isSpeaking = false;
+        
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${letter}. ${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>📸 Photographie dentaire - Débutant Niveau 2</h1><p>Question ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Lire la question</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explication :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Lire l'explication</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Temps restant : <span id="timer">${timeLeft}</span> secondes</div>
+                <div class="score">🏆 Score actuel : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonner</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Suivant →</button>
+                </div>
+            </div>
+        `;
+        
+        attachVoiceEvents();
+        answerLocked = false;
+        startTimer();
+        lastAnswerCorrect = false;
+        lastCorrectAnswer = "";
+        lastPointsEarned = 0;
+        
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 1500);
+    }
+
+    // ============================================
+    // =========== CHECK ANSWER ===================
+    // ============================================
+    function checkAnswer(selectedIndex) {
+        console.log("🔍 checkAnswer() - Option", String.fromCharCode(65 + selectedIndex));
+        
+        stopSpeaking();
+        
+        if (answerLocked) {
+            console.log("⏳ Réponse déjà verrouillée");
+            return;
+        }
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            console.log("✅ Bonne réponse ! +", pointsEarned, "points");
+        } else {
+            console.log("❌ Mauvaise réponse. Bonne réponse:", shuffledOptions[currentCorrectIndex]);
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} points</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 point)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ Bonne réponse !' : '❌ Mauvaise réponse'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Réécouter le retour</button>
+                </div>
+            `;
+            
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Événement attaché pour voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Bonne réponse : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Score actuel : ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `Bonne réponse ! +${pointsEarned} points.`;
+        } else {
+            feedbackText = `Mauvaise réponse. La bonne réponse était : ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Lecture auto du feedback");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "fr-FR", function() {
+            console.log("✅ Auto-feedback terminé");
+        });
+    }
+
+    // ============================================
+    // =========== NEXT QUESTION ==================
+    // ============================================
+    function nextQuestion() {
+        console.log("🔍 nextQuestion() appelé");
+        
+        stopSpeaking();
+        
+        if (!answerLocked) {
+            console.log("⚠️ Veuillez sélectionner une réponse avant de continuer");
+            return;
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVIGATION =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_fr.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        console.log("🔍 endQuiz() appelé");
+        
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        const isUnlocked = unlockIntermediate1(percentage);
+        
+        sauvegarderValidation('Photographie dentaire', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Quiz terminé !</h1>
+                <div class="final-score">Score : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Pourcentage : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ? 
+                        `<div class="unlock-badge">✅ Niveau Intermédiaire 1 débloqué ! 🎊</div>
+                         <div class="beta-info-badge">🔒 BETA : La suite (Intermédiaire & Expert) arrivera après 6 mois d'évaluation.</div>` :
+                        `<div class="locked-badge">⚠️ Score insuffisant (minimum 60% requis pour débloquer le niveau suivant)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ? 
+                        '📚 Rendez-vous dans le menu pour accéder au niveau Intermédiaire 1.' : 
+                        `💪 Il vous manque ${(60 - percentage).toFixed(1)}% pour débloquer le niveau Intermédiaire 1. Réessayez !`}
+                </div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Écouter votre résultat</button>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0;">
+                    <button class="share-btn" onclick="shareScore()">📤 Partager mon score</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Donner mon avis</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Classement mondial</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Menu principal</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Voir ma progression</button>
+                </div>
+            </div>
+        `;
+        
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Événement attaché pour voiceResultBtn");
+        }
+        
+        if (isUnlocked) {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+            
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== POPUP CLASSEMENT MODAL ========
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anonyme";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 Aucun score enregistré pour ce niveau pour le moment.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Votre classement</div>
+                        <div class="rank-number">${userRank}e position</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} points (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Vous n'êtes pas encore dans le classement de ce niveau</div>
+                        <div>Refaites le quiz pour apparaître !</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Photographie dentaire Débutant 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anonyme"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 Aucun score pour ce niveau</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Erreur Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Impossible de charger le classement.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Erreur inconnue'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== BETA EVALUATION POPUP ==========
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Docteur";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.className = 'beta-popup-overlay';
+        modal.innerHTML = `
+            <div class="beta-popup-content">
+                <div class="big-icon">🎉🏆🎉</div>
+                <h2>Félicitations ${userName} !</h2>
+                <p>Vous avez validé les <strong>deux niveaux Débutants</strong> avec succès.<br>Quel parcours impressionnant !</p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Évaluez la version BETA 🌟</p>
+                    <div id="starRating" style="display: flex; justify-content: center; gap: 12px; font-size: 3rem; cursor: pointer;">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p id="ratingMessage" style="margin-top: 10px; font-size: 0.85rem; color: #888;"></p>
+                </div>
+                
+                <div class="beta-info">
+                    <p>🚀 <strong>La suite (Intermédiaire & Expert)</strong> arrivera après <strong>6 mois d'évaluation</strong> de cette version Beta.</p>
+                </div>
+                
+                <button class="beta-btn" onclick="closeBetaPopup()">Retour au menu</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ Merci pour votre évaluation ! Votre avis a bien été enregistré.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonyme";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'fr',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Évaluation Beta envoyée !");
+        } catch (error) {
+            console.error("❌ Erreur évaluation Beta:", error);
+        }
+    }
+
+    // ============================================
+    // =========== AUTRES FONCTIONS ===============
+    // ============================================
+    function abandonQuiz() {
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("photographie_v1_debutant2_fr", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockIntermediate1(partialPercentage);
+        
+        sauvegarderValidation('Photographie dentaire', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>❌ Quiz abandonné</h1>
+                <div class="final-score">Score partiel : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div>Pourcentage : ${partialPercentage.toFixed(1)}%</div>
+                <div style="margin:20px 0;">🏆 Ce score a été enregistré dans le classement.</div>
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Retour au menu</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Voir ma progression</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Photographie dentaire\nMon score au niveau Débutant 2 : ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\nDéfie-moi sur ETEO !`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Score copié dans le presse-papier !");
+            }).catch(() => {
+                alert("📋 Pour partager, copiez ce texte :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        console.log("🚀 startQuiz() appelé");
+        saveUserInfo();
+        console.log("🔊 Activation de la voix...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Quiz démarré");
+    }
+
+    // ============================================
+    // =========== INITIALISATION ==================
+    // ============================================
+    console.log("🚀 Page chargée - ETEO Quiz Photographie dentaire (FR) - Débutant 2");
+    console.log("📱 window.Capacitor =", window.Capacitor);
+    
+    if (window.Capacitor) {
+        console.log("📱 Platform =", window.Capacitor.getPlatform());
+        console.log("📱 Plugins =", Object.keys(window.Capacitor.Plugins || {}));
+    }
+    
+    document.body.addEventListener('click', function firstClick() { 
+        console.log("🖱️ Premier clic - Activation de la voix");
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>

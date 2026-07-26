@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Стоматологическая фотография - Начинающий 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a, #3a3a3a);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #0a0a0a, #1a1a1a, #2a2a2a); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ ИИ ожидает</div>
+
+<div class="container" id="app"></div>
+
+<!-- Модальное окно рейтинга -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 ВАША ПОЗИЦИЯ</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Загрузка рейтинга...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURATION FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID ДЛЯ ЭТОГО КВИЗА
+    // ============================================
+    const LEVEL_ID = "photographie_v1_debutant2_fr";
+
+
+    // ============================================
+    // =========== 1. ГОЛОСОВАЯ СИСТЕМА ==========
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'ru-RU';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ ИИ активирован";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "FR"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Аноним" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>📸 Стоматологическая фотография - Начинающий Уровень 2</h1><p>Добро пожаловать, Доктор!</p></div>
+                <div class="input-group">
+                    <label>👤 Ваше имя (необязательно):</label>
+                    <input type="text" id="userName" placeholder="Напр: Д-р Иванов" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Ваша страна (обязательно):</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 Франция</option>
+                        <option value="MA">🇲🇦 Марокко</option>
+                        <option value="CH">🇨🇭 Швейцария</option>
+                        <option value="CA">🇨🇦 Канада</option>
+                        <option value="BE">🇧🇪 Бельгия</option>
+                        <option value="SN">🇸🇳 Сенегал</option>
+                        <option value="CI">🇨🇮 Кот-д'Ивуар</option>
+                        <option value="CM">🇨🇲 Камерун</option>
+                        <option value="DZ">🇩🇿 Алжир</option>
+                        <option value="TN">🇹🇳 Тунис</option>
+                        <option value="US">🇺🇸 США</option>
+                        <option value="GB">🇬🇧 Великобритания</option>
+                        <option value="DE">🇩🇪 Германия</option>
+                        <option value="ES">🇪🇸 Испания</option>
+                        <option value="IT">🇮🇹 Италия</option>
+                        <option value="PT">🇵🇹 Португалия</option>
+                        <option value="TR">🇹🇷 Турция</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">или</div>
+                    <input type="text" id="otherCountry" placeholder="Введите вашу страну (напр: Бразилия, Япония, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Начать квиз</button>
+                <div class="note">
+                    ⚠️ Правило: минимум 60% (225/375 баллов) для разблокировки уровня <strong>Средний 1</strong>.<br>
+                    🎁 Бонус за скорость: +5 баллов, если вы ответите до конца таймера.<br>
+                    📊 Максимально возможный балл с бонусом: 375 баллов (25 вопросов × 15 баллов)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ОТПРАВКА РЕЗУЛЬТАТА В FIREBASE
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Результат отправлен в Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Ошибка Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. ВОПРОСЫ (25) - УРОВЕНЬ 2 ====
+    // ============================================
+    const questions = [
+        {
+            question: "Д-р РАШИД в срочном порядке звонит д-ру РЕДЕ: 'Я не могу сделать чёткую внутриротовую фотографию протезной препаровки!' Д-р РЕДА спокойно отвечает: 'Ты проверил ручную фокусировку?' Какой подход лучше всего подходит для фокусировки в макросъёмке?",
+            options: [
+                "Использовать ручную фокусировку для абсолютной точности",
+                "Использовать автофокусировку для экономии времени",
+                "Использовать автофокусировку с блокировкой",
+                "Фокусировка не важна в макросъёмке"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'В макросъёмке глубина резкости очень мала. Ручная фокусировка обеспечивает точный контроль над плоскостью резкости.' Д-р РАШИД: 'Я буду тренироваться в ручной фокусировке.'"
+        },
+        {
+            question: "К д-ру РАШИДУ приходит пациент для эстетической фотографии улыбки. Он спрашивает д-ра РЕДУ: 'Какой протокол для идеальной фотографии улыбки?' Д-р РЕДА отвечает: 'Нужно соблюдать пропорции и симметрию.' Что нужно контролировать?",
+            options: [
+                "Линию улыбки, кривизну дуги и симметрию лица",
+                "Только цвет зубов",
+                "Только положение губ",
+                "Только освещение"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Эстетическая фотография улыбки должна показывать линию улыбки, кривизну дуги и симметрию лица для полной оценки.' Д-р РАШИД: 'Я буду строго следовать этому протоколу.'"
+        },
+        {
+            question: "Д-р РАШИД и д-р РЕДА обсуждают важность фона в стоматологической фотографии. Д-р РАШИД говорит: 'Фон не имеет значения.' Д-р РЕДА отвечает: 'Наоборот!' Почему фон имеет решающее значение?",
+            options: [
+                "Нейтральный фон устраняет отвлекающие факторы и позволяет сконцентрироваться на зубах",
+                "Фон должен быть цветным для эстетики",
+                "Фон действительно не имеет значения",
+                "Фон должен быть только чёрным"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Нейтральный фон (серый или чёрный) позволяет выделить зубные структуры без отвлечения.' Д-р РАШИД: 'Я приобрету нейтральный фон.'"
+        },
+        {
+            question: "Д-р РАШИД звонит д-ру РЕДЕ: 'У меня есть фото с синим оттенком!' Д-р РЕДА отвечает: 'Это проблема баланса белого.' Как избежать этой проблемы?",
+            options: [
+                "Использовать пользовательскую настройку баланса белого с цветовой шкалой",
+                "Использовать автоматический режим",
+                "Использовать режим 'Дневной свет'",
+                "Игнорировать проблему"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Индивидуальная настройка баланса белого с цветовой шкалой гарантирует точную цветопередачу.' Д-р РАШИД: 'Я приобрету цветовую шкалу.'"
+        },
+        {
+            question: "Д-р РАШИД осматривает пациента с фотографией и говорит: 'Дёсны кажутся слишком красными.' Д-р РЕДА спрашивает его: 'Ты проверил настройки?' Какова может быть причина?",
+            options: [
+                "Чрезмерная насыщенность или неправильный баланс белого",
+                "Проблема с фокусировкой",
+                "Проблема с выдержкой",
+                "Проблема с диафрагмой"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Слишком красные дёсны часто указывают на чрезмерную насыщенность или неправильный баланс белого.' Д-р РАШИД: 'Я отрегулирую свои параметры.'"
+        },
+        {
+            question: "Д-р РАШИД спрашивает д-ра РЕДУ: 'Почему ты используешь бленду на макрообъективе?' Д-р РЕДА отвечает: 'Чтобы избежать бликов и аберраций.' В чём преимущество бленды?",
+            options: [
+                "Она уменьшает блики и улучшает контраст",
+                "Она только защищает объектив",
+                "Она увеличивает яркость",
+                "Она не имеет преимуществ"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Бленда уменьшает паразитные блики и улучшает контраст изображений.' Д-р РАШИД: 'Я всегда буду использовать бленду.'"
+        },
+        {
+            question: "Д-р РАШИД звонит д-ру РЕДЕ: 'Я не могу сделать правильное фото окклюзии!' Д-р РЕДА отвечает: 'Ты использовал ретракторы?' Какие ретракторы рекомендуются?",
+            options: [
+                "Щёчные ретракторы для свободного обзора",
+                "Пальцы пациента",
+                "Зеркала",
+                "Губные зажимы"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Щёчные ретракторы позволяют визуализировать всю зубную дугу и избежать теней от щёк.' Д-р РАШИД: 'Я приобрету качественные ретракторы.'"
+        },
+        {
+            question: "Д-р РАШИД делает фотографию лица пациента. Он спрашивает д-ра РЕДУ: 'Как правильно кадрировать фотографию лица?' Д-р РЕДА отвечает: 'Нужно соблюдать пропорции.' Каков правильный кадр?",
+            options: [
+                "Всё лицо, от корней волос до подбородка",
+                "Только улыбка",
+                "Только глаза",
+                "Только нос"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Стандартный кадр для фотографии лица включает всё лицо, от корней волос до подбородка.' Д-р РАШИД: 'Я буду соблюдать этот кадр.'"
+        },
+        {
+            question: "Д-р РАШИД и д-р РЕДА обсуждают настройки вспышки. Д-р РАШИД говорит: 'Встроенная вспышка достаточна.' Д-р РЕДА отвечает: 'Совсем нет!' Почему предпочитают кольцевую вспышку?",
+            options: [
+                "Она даёт однородный свет без теней и световое кольцо на зубах",
+                "Она дешевле",
+                "Она проще в использовании",
+                "Она меньше"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Кольцевая вспышка даёт однородный свет без теней и создаёт эстетическое световое кольцо на зубах.' Д-р РАШИД: 'Я приобрету кольцевую вспышку.'"
+        },
+        {
+            question: "Д-р РАШИД звонит д-ру РЕДЕ: 'Я сделал фото, но фон размыт!' Д-р РЕДА отвечает: 'Это, возможно, хорошо.' Почему размытый фон иногда желателен?",
+            options: [
+                "Он выделяет главный объект (зубы) эффектом глубины",
+                "Это просто эстетично",
+                "Это скрывает недостатки",
+                "Это не имеет значения"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Размытый фон (эффект боке) выделяет главный объект и создаёт приятную глубину резкости.' Д-р РАШИД: 'Теперь я лучше понимаю эффект боке!'"
+        },
+        {
+            question: "Д-р РАШИД осматривает пациента и фотографирует проблемный зуб. Он спрашивает д-ра РЕДУ: 'Как получить чёткое фото отдельного зуба?' Д-р РЕДА отвечает: 'Нужно использовать...'",
+            options: [
+                "Макрообъектив с точной фокусировкой и соответствующим рабочим расстоянием",
+                "Мобильный телефон",
+                "Микроскоп",
+                "Бинокулярную лупу"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Для отдельного зуба необходим макрообъектив с точной ручной фокусировкой.' Д-р РАШИД: 'Я буду тренироваться на удалённых зубах.'"
+        },
+        {
+            question: "Д-р РАШИД спрашивает д-ра РЕДУ: 'Какова важность цвета в стоматологической фотографии?' Д-р РЕДА отвечает: 'Цвет важен для коммуникации и диагностики.' Как гарантировать правильную цветопередачу?",
+            options: [
+                "Использовать цветовую шкалу и хорошее освещение",
+                "Использовать цветной фильтр",
+                "Использовать программу ретуши",
+                "Игнорировать цвета"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Цветовая шкала и стандартизированное освещение гарантируют точную цветопередачу.' Д-р РАШИД: 'Я всегда буду использовать цветовую шкалу.'"
+        },
+        {
+            question: "Д-р РАШИД звонит д-ру РЕДЕ: 'У меня есть фото с мешающим бликом на коронке!' Д-р РЕДА отвечает: 'Используй поляризационный фильтр или измени угол вспышки.' Как работает поляризационный фильтр?",
+            options: [
+                "Он уменьшает блики, блокируя отражённые световые волны",
+                "Он увеличивает яркость",
+                "Он уменьшает яркость",
+                "Он меняет цвет изображения"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Поляризационный фильтр блокирует отражённые световые волны, уменьшая блики.' Д-р РАШИД: 'Я приобрету поляризационный фильтр.'"
+        },
+        {
+            question: "Д-р РАШИД делает профильную фотографию пациента. Он спрашивает д-ра РЕДУ: 'Каков протокол для профильной фотографии в эстетической стоматологии?' Д-р РЕДА отвечает:",
+            options: [
+                "Пациент должен быть в идеальном профиле, смотреть прямо перед собой, губы сомкнуты",
+                "Пациент должен улыбаться",
+                "Пациент должен смотреть на фотографа",
+                "Пациент должен повернуть голову"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Для профильной фотографии пациент должен быть в идеальном профиле, смотреть прямо перед собой, губы сомкнуты.' Д-р РАШИД: 'Я буду следовать этому протоколу.'"
+        },
+        {
+            question: "Д-р РАШИД спрашивает д-ра РЕДУ: 'Как управлять глубиной резкости в стоматологической фотографии?' Д-р РЕДА отвечает: 'Она важна для чёткости.' Какой параметр контролирует глубину резкости?",
+            options: [
+                "Диафрагма",
+                "Выдержка",
+                "ISO",
+                "Баланс белого"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Диафрагма контролирует глубину резкости. Чем меньше отверстие диафрагмы (f/22, f/32), тем больше глубина резкости.' Д-р РАШИД: 'Я отрегулирую диафрагму.'"
+        },
+        {
+            question: "Д-р РАШИД звонит д-ру РЕДЕ: 'У меня есть недоэкспонированное и переэкспонированное фото!' Д-р РЕДА отвечает: 'Решение — брекетинг.' Что такое брекетинг?",
+            options: [
+                "Сделать несколько фото с разной экспозицией, чтобы выбрать лучшее",
+                "Сделать одно фото",
+                "Игнорировать проблему",
+                "Использовать фильтр"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Брекетинг — это съёмка нескольких кадров с разной экспозицией для гарантии идеальной экспозиции.' Д-р РАШИД: 'Я буду использовать брекетинг!'"
+        },
+        {
+            question: "Д-р РАШИД готовит фото для клинического случая. Он спрашивает д-ра РЕДУ: 'Какие фото нужно включить в полный клинический случай?' Д-р РЕДА отвечает:",
+            options: [
+                "Вид спереди, сбоку, зубных дуг и конкретных зубов",
+                "Только одно фото",
+                "Только фото зуба",
+                "Только фото спереди"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Полный клинический случай требует видов спереди, сбоку, зубных дуг и конкретных деталей.' Д-р РАШИД: 'Я буду документировать все свои случаи так.'"
+        },
+        {
+            question: "Д-р РАШИД спрашивает д-ра РЕДУ: 'Разрешена ли ретушь фото в стоматологии?' Д-р РЕДА отвечает: 'Да, но этично.' Какая ретушь допустима?",
+            options: [
+                "Корректировка экспозиции, контраста и баланса белого",
+                "Добавление несуществующих зубов",
+                "Удаление дефектов",
+                "Изменение цвета зубов"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Ретушь должна ограничиваться техническими корректировками, такими как экспозиция, контраст и баланс белого.' Д-р РАШИД: 'Я буду этичен в ретуши.'"
+        },
+        {
+            question: "Д-р РАШИД звонит д-ру РЕДЕ: 'Я не могу сфотографировать зуб с металлической реставрацией!' Д-р РЕДА отвечает: 'Металлические блики сложны.' Как с ними справиться?",
+            options: [
+                "Использовать поляризатор и отрегулировать угол вспышки",
+                "Увеличить ISO",
+                "Уменьшить диафрагму",
+                "Использовать цветной фильтр"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Металлические поверхности сильно отражают. Поляризатор и правильный угол вспышки уменьшают блики.' Д-р РАШИД: 'Я попробую с поляризатором.'"
+        },
+        {
+            question: "Д-р РАШИД осматривает пациента с фото языка. Он спрашивает д-ра РЕДУ: 'Зачем фотографировать язык?' Д-р РЕДА отвечает: 'Язык может выявить патологии.' Какова клиническая польза?",
+            options: [
+                "Язык может показывать признаки системных или местных патологий",
+                "Язык просто эстетичен",
+                "Язык не важен",
+                "Язык всегда нормальный"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Язык может выявить признаки дефицитов, инфекций или системных заболеваний.' Д-р РАШИД: 'Я всегда буду фотографировать язык.'"
+        },
+        {
+            question: "Д-р РАШИД спрашивает д-ра РЕДУ: 'Что такое соотношение 1:1 в макросъёмке?' Д-р РЕДА отвечает: 'Это коэффициент воспроизведения.' Что означает 1:1?",
+            options: [
+                "Размер изображения на сенсоре равен реальному размеру объекта",
+                "Изображение в два раза больше",
+                "Изображение в два раза меньше",
+                "Изображение размыто"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Соотношение 1:1 означает, что изображение, проецируемое на сенсор, имеет тот же размер, что и реальный объект.' Д-р РАШИД: 'Теперь я лучше понимаю коэффициент воспроизведения.'"
+        },
+        {
+            question: "Д-р РАШИД звонит д-ру РЕДЕ: 'У меня есть фото с сильным цифровым шумом!' Д-р РЕДА отвечает: 'Это из-за слишком высокого ISO.' Как избежать цифрового шума?",
+            options: [
+                "Использовать низкий ISO (100-200) и хорошее освещение",
+                "Увеличить ISO",
+                "Уменьшить выдержку",
+                "Использовать фильтр"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Цифровой шум вызван высоким ISO. Используйте низкий ISO (100-200) и достаточное освещение.' Д-р РАШИД: 'Я снижу ISO.'"
+        },
+        {
+            question: "Д-р РАШИД делает фото улыбки. Он спрашивает д-ра РЕДУ: 'Как запечатлеть естественную улыбку?' Д-р РЕДА отвечает: 'Нужно расположить пациента к себе.' Какой подход лучше всего?",
+            options: [
+                "Заставить пациента говорить или смеяться для естественной и спонтанной улыбки",
+                "Попросить натянутую улыбку",
+                "Не фотографировать улыбку",
+                "Использовать искусственную улыбку"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Естественная улыбка достигается путём создания комфортной атмосферы, когда пациент говорит или смеётся.' Д-р РАШИД: 'Я создам расслабленную обстановку.'"
+        },
+        {
+            question: "Д-р РАШИД спрашивает д-ра РЕДУ: 'Каковы преимущества цифровой фотографии перед плёночной в стоматологии?' Д-р РЕДА отвечает: 'Цифровая даёт быстрый рабочий поток и мгновенный просмотр.' Каково другое важное преимущество?",
+            options: [
+                "Возможность мгновенной ретуши и обмена изображениями",
+                "Лучшее качество изображения",
+                "Более высокая стоимость",
+                "Сложность использования"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Цифровая фотография позволяет мгновенный просмотр, быструю ретушь и мгновенный обмен изображениями.' Д-р РАШИД: 'Цифровая действительно удобна!'"
+        },
+        {
+            question: "Д-р РАШИД звонит д-ру РЕДЕ: 'У меня есть фото со смазыванием от движения!' Д-р РЕДА отвечает: 'Это из-за слишком медленной выдержки.' Как исправить эту проблему?",
+            options: [
+                "Увеличить выдержку или использовать штатив",
+                "Уменьшить ISO",
+                "Увеличить диафрагму",
+                "Использовать фильтр"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'Смазывание от движения вызвано слишком медленной выдержкой. Увеличьте выдержку или используйте штатив.' Д-р РАШИД: 'Я увеличу выдержку.'"
+        },
+        {
+            question: "Д-р РЕДА и д-р РАШИД обсуждают будущее стоматологической фотографии. Д-р РАШИД говорит: 'ИИ заменит фотографию!' Д-р РЕДА отвечает: 'Не так быстро!' Какова роль ИИ в стоматологической фотографии?",
+            options: [
+                "ИИ — это инструмент помощи в анализе и ретуши, но не заменяет клинициста",
+                "ИИ заменит фотографа",
+                "ИИ бесполезен в фотографии",
+                "ИИ нужен только для диагностики"
+            ],
+            correct: 0,
+            explanation: "Д-р РЕДА объясняет: 'ИИ может помочь в анализе изображений и ретуши, но клиницист остаётся незаменимым для интерпретации и принятия решений.' Д-р РАШИД: 'Я успокоился, наши рабочие места сохранены!'"
+        }
+    ];
+
+    // ============================================
+    // =========== МАКСИМАЛЬНЫЙ БАЛЛ =============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10;
+    const MAX_SCORE_WITH_BONUS = questions.length * 15;
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("photographie_v1_debutant2_fr", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== РАЗБЛОКИРОВКА СРЕДНИЙ 1 =======
+    // ============================================
+    function unlockIntermediate1(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("photographie_v1_intermediaire1_fr_unlocked", "true");
+            localStorage.setItem("photographie_v1_debutant2_fr_score", percentage.toFixed(1));
+            console.log("✅ Уровень Средний 1 РАЗБЛОКИРОВАН! Результат: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("photographie_v1_intermediaire1_fr_unlocked", "false");
+            console.log("❌ Уровень Средний 1 ЗАБЛОКИРОВАН. Результат: " + percentage.toFixed(1) + "% (мин " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 СОХРАНЕНИЕ ВАЛИДАЦИИ ДЛЯ PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progression = JSON.parse(localStorage.getItem('eteo_progression')) || {};
+            const key = specialite + '_' + niveau;
+            progression[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progression));
+            
+            console.log('✅ Валидация сохранена для progression.html');
+        }
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("Время вышло! Переходим к следующему вопросу.", "ru-RU");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Вопрос ${currentQuestion + 1} : ${questions[currentQuestion].question}`, "ru-RU");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>📸 Стоматологическая фотография - Начинающий Уровень 2</h1><p>Вопрос ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Объяснение:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Осталось времени: <span id="timer">${timeLeft}</span> секунд</div>
+                <div class="score">🏆 Текущий счёт: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Прервать</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Далее →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`Правильный ответ! +${pointsEarned} баллов.`, "ru-RU");
+        } else {
+            speak(`Неправильный ответ. Правильный ответ был: ${shuffledOptions[currentCorrectIndex]}.`, "ru-RU");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Правильный ответ: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Текущий счёт: ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Пожалуйста, выберите ответ.", "ru-RU"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 20;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== НАВИГАЦИЯ ======================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_fr.html";
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        const isUnlocked = unlockIntermediate1(percentage);
+        
+        sauvegarderValidation('Стоматологическая фотография', 'начинающий2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Квиз завершён!</h1>
+                <div class="final-score">Счёт: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Процент: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ? 
+                        '<div class="unlock-badge">✅ Уровень Средний 1 разблокирован! 🎊</div>' : 
+                        '<div class="locked-badge">⚠️ Недостаточно баллов (минимум 60% требуется для разблокировки следующего уровня)</div>'}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ? 
+                        '📚 Перейдите в меню, чтобы получить доступ к уровню Средний 1.' : 
+                        `💪 Вам не хватает ${(60 - percentage).toFixed(1)}% для разблокировки уровня Средний 1. Попробуйте снова!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Поделиться результатом</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Оставить отзыв</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Главное меню</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Мировой рейтинг</button>
+                </div>
+            </div>
+        `;
+        
+        if (isUnlocked) {
+            speak(`Поздравляем! Вы разблокировали уровень Средний 1 с результатом ${percentage.toFixed(1)}%.`, "ru-RU");
+        } else {
+            speak(`Ваш результат ${percentage.toFixed(1)}%. Необходимо достичь 60% для разблокировки уровня Средний 1.`, "ru-RU");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2000);
+    }
+
+    // ============================================
+    // =========== POPUP CLASSEMENT MODAL ========
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 На данный момент нет записей для этого уровня.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Ваше место</div>
+                        <div class="rank-number">${userRank}-е место</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} баллов (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Вы ещё не в рейтинге этого уровня</div>
+                        <div>Пройдите квиз, чтобы появиться!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 ТОП-20 - Стоматологическая фотография Начинающий 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Аноним"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 Нет записей для этого уровня</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Erreur Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Не удалось загрузить рейтинг.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Неизвестная ошибка'}</span></div>`;
+        }
+    }
+
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("photographie_v1_debutant2_fr", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockIntermediate1(partialPercentage);
+        
+        sauvegarderValidation('Стоматологическая фотография', 'начинающий2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Квиз прерван</h1><div class="final-score">Частичный счёт: ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Процент: ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 Этот результат был записан в рейтинг.</div><button class="menu-btn" onclick="goToMenu()">🏠 Вернуться в меню</button></div>`;
+        speak(`Квиз прерван. Частичный счёт: ${score} из ${MAX_SCORE_WITH_BONUS}.`, "ru-RU");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Стоматологическая фотография\nМой результат на уровне Начинающий 2: ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\nБрось мне вызов на ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Результат', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Результат скопирован в буфер обмена!");
+            }).catch(() => {
+                alert("📋 Для публикации скопируйте этот текст:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    document.body.addEventListener('click', function firstClick() { 
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
