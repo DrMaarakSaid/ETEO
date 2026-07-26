@@ -7,6 +7,11 @@
     <link rel="manifest" href="manifest.json">
     
     <!-- ============================================ -->
+    <!-- =========== TELEGRAM SDK ================== -->
+    <!-- ============================================ -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- ============================================ -->
     <!-- =========== TTS MANAGER ==================== -->
     <!-- ============================================ -->
     <script src="js/tts-manager.js"></script>
@@ -455,7 +460,30 @@
         }
 
         /* ============================================ */
-        /* =========== 13. RESPONSIVE ================ */
+        /* =========== 13. TELEGRAM INDICATOR ======== */
+        /* ============================================ */
+        .telegram-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(33, 150, 243, 0.9);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(33, 150, 243, 0.3);
+            display: none;
+        }
+
+        .telegram-indicator.active {
+            display: block;
+        }
+
+        /* ============================================ */
+        /* =========== 14. RESPONSIVE ================ */
         /* ============================================ */
         @media (max-width: 520px) {
             .container {
@@ -485,6 +513,13 @@
                 top: 15px;
                 right: 15px;
             }
+
+            .telegram-indicator {
+                top: 15px;
+                left: 15px;
+                font-size: 8px;
+                padding: 3px 10px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -506,6 +541,11 @@
     </style>
 </head>
 <body>
+
+<!-- ============================================ -->
+<!-- =========== INDICATEUR TELEGRAM ============ -->
+<!-- ============================================ -->
+<div class="telegram-indicator" id="telegramIndicator">📱 Telegram</div>
 
 <!-- ============================================ -->
 <!-- =========== INDICATEUR VOCAL =============== -->
@@ -699,7 +739,6 @@
         if (btn) {
             btn.disabled = true;
             btn.classList.add('listening');
-            const originalText = btn.innerHTML;
             btn.innerHTML = '🔊 Lecture...';
         }
 
@@ -774,7 +813,7 @@
         };
         showToast(`⏳ Redirection vers ${langNames[lang]}...`, 2000);
 
-        // Redirection UNIQUEMENT (SANS voix)
+        // Redirection
         setTimeout(() => {
             window.location.href = target;
         }, 1500);
@@ -790,7 +829,21 @@
             document.querySelector('.theme-btn').textContent = '☀️';
         }
 
-        // --- INITIALISATION DU TTS MANAGER (AUDIT SEULEMENT) ---
+        // --- INTEGRATION TELEGRAM ---
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            
+            document.getElementById('telegramIndicator').classList.add('active');
+            
+            if (tg.colorScheme === 'dark') {
+                document.body.classList.add('dark');
+                document.querySelector('.theme-btn').textContent = '☀️';
+            }
+        }
+
+        // --- INITIALISATION DU TTS MANAGER ---
         if (window.ETEO && window.ETEO.TTS) {
             window.ETEO.TTS.init();
             
