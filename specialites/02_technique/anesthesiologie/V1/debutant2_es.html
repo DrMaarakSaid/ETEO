@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Anestesiología - Principiante 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ IA en espera</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de clasificación -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 SU POSICIÓN</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Cargando clasificación...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURACIÓN FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID PARA ESTE QUIZ
+    // ============================================
+    const LEVEL_ID = "anesthesiologie_v1_debutant2_es";
+
+
+    // ============================================
+    // =========== 1. SISTEMA DE VOZ ==============
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'es-ES';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ IA activada";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. INFORMACIÓN USUARIO ========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "ES"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anónimo" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>💉 Anestesiología - Principiante Nivel 2</h1><p>¡Bienvenido Doctor!</p></div>
+                <div class="input-group">
+                    <label>👤 Su nombre (opcional) :</label>
+                    <input type="text" id="userName" placeholder="Ej: Dr. Martínez" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Su país (obligatorio) :</label>
+                    <select id="userCountry">
+                        <option value="ES">🇪🇸 España</option>
+                        <option value="MX">🇲🇽 México</option>
+                        <option value="AR">🇦🇷 Argentina</option>
+                        <option value="CO">🇨🇴 Colombia</option>
+                        <option value="PE">🇵🇪 Perú</option>
+                        <option value="CL">🇨🇱 Chile</option>
+                        <option value="VE">🇻🇪 Venezuela</option>
+                        <option value="EC">🇪🇨 Ecuador</option>
+                        <option value="GT">🇬🇹 Guatemala</option>
+                        <option value="CU">🇨🇺 Cuba</option>
+                        <option value="DO">🇩🇴 República Dominicana</option>
+                        <option value="PR">🇵🇷 Puerto Rico</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="MA">🇲🇦 Marruecos</option>
+                        <option value="TR">🇹🇷 Turquía</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">o</div>
+                    <input type="text" id="otherCountry" placeholder="Ingrese su país (ej: Brasil, Japón, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Comenzar el quiz</button>
+                <div class="note">
+                    ⚠️ Regla: 60% mínimo (225/375 puntos) para desbloquear el nivel <strong>Intermedio 1</strong>.<br>
+                    🎁 Bono de rapidez: +5 puntos si responde antes del final del temporizador.<br>
+                    📊 Puntuación máxima posible con bono: 375 puntos (25 preguntas × 15 puntos)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ENVÍO PUNTUACIÓN FIREBASE ==
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "ES";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Puntuación enviada a Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Error Firebase:", error);
+            return false;
+        }
+    }
+
+   // ============================================
+// =========== 4. PREGUNTAS (25) =============
+// ============================================
+const questions = [
+    { 
+        question: "¿Qué propiedad farmacocinética y estructural distingue a la articaína de otras amidas?", 
+        options: [
+            "Un metabolismo estrictamente hepático por los citocromos P450", 
+            "Una ausencia total de unión a proteínas plasmáticas", 
+            "Una difusión ósea superior favorecida por la presencia de un anillo tiofeno",
+            "Una solubilidad acuosa nula que requiere un disolvente lipídico"
+        ], 
+        correct: 2, 
+        explanation: "El anillo tiofeno de la articaína aumenta su liposolubilidad, lo que le permite atravesar más fácilmente los tejidos densos y la cortical ósea que el anillo bencénico de otras amidas." 
+    },
+    { 
+        question: "¿Cuál es la dosis máxima recomendada de articaína al 4% en un paciente adulto sano?", 
+        options: [
+            "7 mg/kg de peso corporal, sin superar un límite absoluto de 500 mg", 
+            "4,4 mg/kg de peso corporal, basada en el perfil de la mepivacaína", 
+            "10 mg/kg de peso corporal, debido a su baja toxicidad cardíaca", 
+            "2 mg/kg de peso corporal, para limitar el riesgo de metahemoglobinemia"
+        ], 
+        correct: 0, 
+        explanation: "La dosis máxima se fija en 7 mg/kg en el adulto, lo que representa un máximo de aproximadamente 6 a 7 cartuchos de 1,8 mL al 4% para un individuo estándar de 70 kg." 
+    },
+    { 
+        question: "¿Cuál es la indicación clínica privilegiada de la articaína 4% debido a su alto poder de difusión?", 
+        options: [
+            "La anestesia lingual aislada para biopsia de papilas", 
+            "La anestesia palatina transpapilar bilateral", 
+            "El bloqueo nervioso infraorbitario por vía intranasal", 
+            "La anestesia por infiltración paraperiostal para molares mandibulares en el adulto"
+        ], 
+        correct: 3, 
+        explanation: "Aunque el bloqueo del NAI es la referencia en la mandíbula, la gran difusibilidad de la articaína permite a menudo obtener una anestesia pulpar suficiente en molares o premolares mandibulares mediante simple infiltración vestibular." 
+    },
+    { 
+        question: "La mepivacaína al 3% se caracteriza clínicamente por:", 
+        options: [
+            "Una acción vasodilatadora intrínseca muy débil que permite su uso sin vasoconstrictor", 
+            "Un metabolismo exclusivamente renal que evita el hígado", 
+            "Una toxicidad sistémica tres veces superior a la de la lidocaína", 
+            "Una duración de acción pulpar prolongada superior a las tres horas"
+        ], 
+        correct: 0, 
+        explanation: "La mepivacaína posee una propiedad vasoconstrictora intrínseca ligera (o al menos una vasodilatación muy débil), lo que permite mantener una anestesia eficaz sin añadir epinefrina." 
+    },
+    { 
+        question: "¿Cuál es la indicación típica de la mepivacaína 3% pura (sin vasoconstrictor)?", 
+        options: [
+            "Las cirugías de implantes múltiples con colgajos extensos", 
+            "Los procedimientos cortos en pacientes con contraindicaciones mayores a las aminas simpaticomiméticas", 
+            "Los tratamientos endodónticos complejos en molares con pulpitis", 
+            "Las exodoncias programadas en odontopediatría en dientes permanentes inmaduros"
+        ], 
+        correct: 1, 
+        explanation: "Es ideal para procedimientos de corta duración (aproximadamente 20 a 30 min de anestesia pulpar) en pacientes hipertensos no controlados, coronarios inestables o diabéticos severos." 
+    },
+    { 
+        question: "¿Cuál es el riesgo farmacológico y hematológico mayor relacionado con una sobredosis de prilocaína?", 
+        options: [
+            "Una metahemoglobinemia inducida por su metabolito, la o-toluidina", 
+            "Una insuficiencia renal aguda por precipitación tubular", 
+            "Una necrosis miocárdica directa por bloqueo de los receptores beta", 
+            "Una reacción de alergia cruzada inmediata con todos los ésteres"
+        ], 
+        correct: 0, 
+        explanation: "La orto-toluidina, un metabolito de la prilocaína, oxida el hierro de la hemoglobina, transformándola en metahemoglobina incapaz de transportar oxígeno. Esto puede provocar cianosis a dosis altas." 
+    },
+    { 
+        question: "¿Cuál es la dosis máxima recomendada de prilocaína al 4% en el adulto sano?", 
+        options: [
+            "4 mg/kg de peso corporal, sin superar 300 mg", 
+            "8 mg/kg de peso corporal, sin superar un límite absoluto de 600 mg", 
+            "12 mg/kg de peso corporal, debido a un aclaramiento ultrarrápido", 
+            "1,5 mg/kg de peso corporal, para evitar riesgos de bradicardia"
+        ], 
+        correct: 1, 
+        explanation: "El límite de seguridad para la prilocaína se fija en 8 mg/kg (máx 600 mg) para prevenir el riesgo de aparición de una metahemoglobinemia clínica." 
+    },
+    { 
+        question: "El bloqueo mandibular clásico en la espina de Spix tiene como objetivo principal interrumpir la conducción de qué nervio?", 
+        options: [
+            "El nervio alveolar inferior", 
+            "El nervio bucal largo", 
+            "El nervio milohioideo", 
+            "El nervio mentoniano en su origen"
+        ], 
+        correct: 0, 
+        explanation: "Se dirige al tronco del nervio alveolar inferior justo antes de que entre en el foramen mandibular, desensibilizando así todos los dientes del cuadrante correspondiente." 
+    },
+    { 
+        question: "¿Cuál es el punto de referencia anatómico clave para posicionar la aguja durante un bloqueo mandibular directo?", 
+        options: [
+            "El foramen infraorbitario y el canino superior", 
+            "La tuberosidad maxilar detrás del canal palatino", 
+            "La altura de la depresión coronoides, el ligamento pterigomandibular y el plano oclusal de los molares", 
+            "El espacio desmodontal del primer molar inferior"
+        ], 
+        correct: 2, 
+        explanation: "La punción se realiza en la intersección de una línea horizontal que pasa por el punto más profundo de la escotadura coronoides (1 cm por encima del plano oclusal) y una línea vertical que pasa justo por fuera del pliegue pterigomandibular." 
+    },
+    { 
+        question: "¿Qué complicación neurológica transitoria está específicamente relacionada con un defecto de localización durante un bloqueo mandibular (Spix)?", 
+        options: [
+            "Una parálisis facial transitoria por depósito de la solución en la logia parotídea", 
+            "Una ceguera unilateral definitiva por difusión retrógrada", 
+            "Una pérdida inmediata de la audición por afectación del nervio vestibulococlear", 
+            "Una neuralgia del trigémino irreversible por sección axonal"
+        ], 
+        correct: 0, 
+        explanation: "Si la aguja se orienta demasiado atrás y no contacta con el hueso de la rama ascendente, penetra en la glándula parótida y el anestésico bloquea el nervio facial (VII), provocando una paresia facial temporal." 
+    },
+    { 
+        question: "La técnica de bloqueo mandibular según Gow-Gates se distingue principalmente por:", 
+        options: [
+            "Un abordaje en boca cerrada dirigido a la línea oblicua interna", 
+            "La inyección de la solución a nivel del cuello del cóndilo mandibular", 
+            "Una infiltración supraperióstica exclusiva a nivel de la sínfisis", 
+            "El uso de agujas ultracortas de 30 Gauges sin contacto óseo"
+        ], 
+        correct: 1, 
+        explanation: "La técnica de Gow-Gates es un bloqueo nervioso verdadero a nivel alto. El depósito se realiza en la cara anteromedial del cuello del cóndilo, lo que permite bloquear el NAI, el lingual, el bucal y el milohioideo en una sola inyección." 
+    },
+    { 
+        question: "La técnica de bloqueo mandibular de Vazirani-Akinosi está específicamente indicada en casos de:", 
+        options: [
+            "Trismus severo o limitación mayor de la apertura bucal (técnica en boca cerrada)", 
+            "Necesidad de anestesia simultánea del paladar y el velo", 
+            "Cirugía endodóntica exclusiva en incisivos maxilares", 
+            "Ausencia de referencias molares en el paciente totalmente edéntulo"
+        ], 
+        correct: 0, 
+        explanation: "La técnica de Akinosi se realiza en boca cerrada. La aguja avanza paralelamente al plano oclusal maxilar a la altura de la unión mucogingival superior, lo que es útil en casos de trismus de origen infeccioso o traumático." 
+    },
+    { 
+        question: "El bloqueo del nervio infraorbitario permite obtener una analgesia de qué estructuras?", 
+        options: [
+            "Los molares maxilares y el seno maxilar posterior", 
+            "Los incisivos, caninos y premolares maxilares del lado inyectado, así como el labio superior y el ala de la nariz", 
+            "La mucosa lingual y el piso bucal anterior", 
+            "El velo del paladar y los pilares amigdalinos"
+        ], 
+        correct: 1, 
+        explanation: "Al penetrar en el canal infraorbitario, la solución bloquea las ramas alveolares superiores anteriores y medias, asegurando una anestesia extensa del sector anterior maxilar." 
+    },
+    { 
+        question: "La anestesia del nervio nasopalatino a nivel del foramen incisivo se dirige principalmente a:", 
+        options: [
+            "La encía vestibular molar inferior", 
+            "La mucosa palatina anterior, de canino a canino", 
+            "El tercio posterior de la lengua y el istmo de la faringe", 
+            "El labio superior y el tabique nasal externo"
+        ], 
+        correct: 1, 
+        explanation: "El nervio nasopalatino emerge de la papila incisiva (foramen palatino anterior) e inerva los tejidos blandos palatinos del sector premaxilar (desde la cara mesial del primer premolar derecho hasta el izquierdo)." 
+    },
+    { 
+        question: "La anestesia del nervio palatino mayor a nivel del foramen palatino posterior es necesaria para insensibilizar:", 
+        options: [
+            "La mucosa palatina de la región de premolares y molares", 
+            "El piso bucal y la cara ventral de la lengua", 
+            "El esmalte de los incisivos centrales superiores únicamente", 
+            "El tabique medio del seno maxilar"
+        ], 
+        correct: 0, 
+        explanation: "El nervio palatino mayor emerge del foramen palatino posterior (situado a menudo a la altura del segundo o tercer molar superior) y asegura la inervación sensitiva de los tejidos blandos del paladar posterior." 
+    },
+    { 
+        question: "¿Por qué la aspiración (test de reflujo) se considera un paso obligatorio antes de cualquier inyección?", 
+        options: [
+            "Para medir la resistencia mecánica del tejido intersticial", 
+            "Para eliminar el exceso de presión dentro de la jeringa", 
+            "Para detectar una penetración intravascular accidental de la aguja", 
+            "Para asegurarse de que el bisel de la aguja está orientado hacia el hueso"
+        ], 
+        correct: 2, 
+        explanation: "La aspiración positiva (reflujo de sangre en el cartucho) indica que el extremo de la aguja se encuentra dentro de la luz de un vaso. Inyectar en ese lugar provocaría toxicidad sistémica inmediata." 
+    },
+    { 
+        question: "¿Cuál es la conducta clínica inmediata en caso de aspiración positiva menor?", 
+        options: [
+            "Retirar la aguja 1-2 mm, modificar ligeramente la angulación, re-aspirar e inyectar si la prueba se vuelve negativa", 
+            "Continuar la inyección acelerando el ritmo para vaciar el cartucho", 
+            "Retirar inmediatamente la aguja y abandonar definitivamente la sesión de tratamiento", 
+            "Inyectar una solución salina a presión para lavar el vaso afectado"
+        ], 
+        correct: 0, 
+        explanation: "Si la aspiración muestra un ligero hilo de sangre, un retroceso o desplazamiento milimétrico permite a menudo salir del vaso. Es imprescindible volver a aspirar antes de inyectar. Si el cartucho está masivamente teñido de sangre, hay que cambiarlo." 
+    },
+    { 
+        question: "La aparición de un hematoma inmediato después de una anestesia troncular resulta de:", 
+        options: [
+            "Una reacción inmunoalérgica local con liberación de histamina", 
+            "La laceración accidental de un vaso sanguíneo (arteria o vena) provocando el derrame de sangre en los tejidos blandos", 
+            "Una toxicidad química directa de la sal anestésica sobre las células musculares", 
+            "Una infección bacteriana fulgurante introducida por la aguja"
+        ], 
+        correct: 1, 
+        explanation: "La lesión de un vaso (como la arteria alveolar inferior o el plexo pterigoideo) provoca una hemorragia intratisular inmediata, manifestándose por una hinchazón y una equimosis postoperatoria." 
+    },
+    { 
+        question: "La parestesia postanestésica se define clínicamente como:", 
+        options: [
+            "Una pérdida total de la motricidad de los músculos de la mímica facial", 
+            "Un dolor fulgurante y punzante durante la apertura bucal", 
+            "Una alteración o persistencia de la pérdida de sensibilidad nerviosa más allá de la duración de acción teórica del producto", 
+            "Una erupción cutánea vesiculosa localizada a lo largo del trayecto nervioso"
+        ], 
+        correct: 2, 
+        explanation: "La parestesia se caracteriza por sensaciones anormales (entumecimiento, hormigueo, disestesia) que persisten días, semanas o meses después de la inyección, indicando una afectación nerviosa." 
+    },
+    { 
+        question: "¿Cuáles son los dos principales factores etiológicos implicados en la aparición de una parestesia?", 
+        options: [
+            "El uso de una aguja demasiado fina (30G) o un ritmo de inyección demasiado lento", 
+            "Un traumatismo mecánico directo (contacto aguja-nervio) o una neurotoxicidad química relacionada con el producto (especialmente soluciones de alta concentración como al 4%)", 
+            "Una infección periodontal preexistente o un grabado ácido previo", 
+            "Un shock térmico tisular o una mala orientación del bisel hacia la mucosa"
+        ], 
+        correct: 1, 
+        explanation: "El contacto directo de la aguja con el fascículo nervioso o la neurotoxicidad intrínseca de moléculas altamente concentradas (como la articaína 4% o la prilocaína 4% reportadas en la literatura durante bloqueos) son las causas principales." 
+    },
+    { 
+        question: "¿Cuál es el manejo inicial recomendado ante una parestesia persistente del nervio lingual después de una exodoncia de tercer molar?", 
+        options: [
+            "Una reexploración quirúrgica inmediata con microsutura nerviosa", 
+            "Una vigilancia clínica rigurosa, tranquilizar al paciente, mapear la zona y eventualmente una corticoterapia inicial", 
+            "La prescripción inmediata de una antibioticoterapia de amplio espectro durante un mes", 
+            "Inyecciones locales de lidocaína repetidas para estimular el rebrote axonal"
+        ], 
+        correct: 1, 
+        explanation: "La mayoría de las parestesias iatrogénicas se resuelven espontáneamente en menos de 8 a 12 semanas. El manejo se basa en el seguimiento, la evaluación de la recuperación sensorial y el apoyo psicológico al paciente." 
+    },
+    { 
+        question: "El trismus postanestésico es principalmente secundario a:", 
+        options: [
+            "Un traumatismo directo o un hematoma en el músculo pterigoideo medial durante un bloqueo", 
+            "Una reacción de hipersensibilidad inmediata de tipo IV que afecta la articulación", 
+            "Una fractura microscópica no desplazada del cuello del cóndilo", 
+            "La inhibición prolongada de las motoneuronas centrales por la sal de amida"
+        ], 
+        correct: 0, 
+        explanation: "Las inyecciones repetidas o mal orientadas durante un bloqueo de Spix pueden atravesar o lesionar el músculo pterigoideo medial. La inflamación o el hematoma intramuscular resultante provoca una contractura refleja dolorosa que limita la apertura bucal." 
+    },
+    { 
+        question: "¿Qué precaución técnica es imperativa al realizar una anestesia en un paciente con hemofilia severa?", 
+        options: [
+            "Utilizar sistemáticamente bloqueos regionales profundos (tronculares)", 
+            "Preferir las técnicas de infiltración local, intraligamentaria o intraósea para evitar el riesgo de hematoma en espacios profundos", 
+            "Aumentar masivamente las concentraciones de adrenalina hasta 1:50.000", 
+            "Exigir la suspensión completa de sus perfusiones de factor de coagulación 48 horas antes"
+        ], 
+        correct: 1, 
+        explanation: "Los bloqueos tronculares (como el Spix) están contraindicados en pacientes con trastornos severos de la hemostasia sin sustitución previa, ya que pueden provocar un hematoma faríngeo o retrofaríngeo asfixiante. Se privilegian las inyecciones locales." 
+    },
+    { 
+        question: "¿Cuál es la actitud clínica contemporánea respecto a la anestesia local en un paciente bajo tratamiento anticoagulante oral bien equilibrado (ej: AVK con INR estable entre 2 y 3, o AOD)?", 
+        options: [
+            "Contraindicar formalmente cualquier intervención de cirugía bucal bajo anestesia local", 
+            "Exigir la suspensión sistemática del tratamiento anticoagulante tres días antes de la sesión", 
+            "Realizar infiltraciones locales o técnicas intraóseas sin modificar el tratamiento anticoagulante, asegurando una hemostasia local cuidadosa", 
+            "Sustituir el anticoagulante por una antibioprofilaxis intensiva por vía intravenosa"
+        ], 
+        correct: 2, 
+        explanation: "Las recomendaciones actuales desaconsejan la suspensión injustificada de anticoagulantes para procedimientos de rutina en odontología general debido al riesgo tromboembólico mayor. Las técnicas de infiltración local presentan un riesgo hemorrágico muy bajo y perfectamente controlable localmente." 
+    },
+    { 
+        question: "¿Qué síntomas señalan el paso sistémico rápido (inyección intravascular accidental) de la epinefrina contenida en el cartucho?", 
+        options: [
+            "Una taquicardia inmediata, palpitaciones, un brote de ansiedad y cefaleas transitorias", 
+            "Una bradicardia marcada asociada a una letargia muscular profunda", 
+            "Una caída tensional catastrófica que simula un estado de muerte aparente", 
+            "Un prurito generalizado con erupciones cutáneas maculopapulares"
+        ], 
+        correct: 0, 
+        explanation: "La epinefrina inyectada directamente en la red vascular produce un efecto sistémico inmediato (efecto bolo adrenérgico) estimulando los receptores beta-1 cardíacos, manifestándose por palpitaciones intensas y ansiedad brusca pero breve (algunos minutos)." 
+    }
+];
+    // ============================================
+    // =========== SCORE MAX CORREGIDO ============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10; // 250 puntos (sin bono)
+    const MAX_SCORE_WITH_BONUS = questions.length * 15; // 375 puntos (con bono)
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("anesthesiologie_v1_debutant2_es", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== DESBLOQUEAR NIVEL INTERMEDIO 1 ==
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("anesthesiologie_v1_intermediaire1_es_unlocked", "true");
+            localStorage.setItem("anesthesiologie_v1_debutant2_es_score", percentage.toFixed(1));
+            console.log("✅ Nivel Intermedio 1 DESBLOQUEADO ! Puntuación: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("anesthesiologie_v1_intermediaire1_es_unlocked", "false");
+            console.log("❌ Nivel Intermedio 1 BLOQUEADO. Puntuación: " + percentage.toFixed(1) + "% (mín " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 GUARDAR VALIDACIÓN PARA PROGRESION.HTML (CORREGIDO)
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            // 1. Guardar en eteo_validation
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            // 2. 🔥 Actualizar eteo_progression
+            const progression = JSON.parse(localStorage.getItem('eteo_progression')) || {};
+            const key = specialite + '_' + niveau;
+            progression[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progression));
+            
+            console.log('✅ Validación guardada para progresion.html');
+        }
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("¡Tiempo agotado! Pasamos a la siguiente pregunta.", "es-ES");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Pregunta ${currentQuestion + 1} : ${questions[currentQuestion].question}`, "es-ES");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>💉 Anestesiología - Principiante Nivel 2</h1><p>Pregunta ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explicación :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Tiempo restante : <span id="timer">${timeLeft}</span> segundos</div>
+                <div class="score">🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonar</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Siguiente →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`¡Respuesta correcta! +${pointsEarned} puntos.`, "es-ES");
+        } else {
+            speak(`Respuesta incorrecta. La respuesta correcta era : ${shuffledOptions[currentCorrectIndex]}.`, "es-ES");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Respuesta correcta : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Por favor, seleccione una respuesta.", "es-ES"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 20;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVEGACIÓN =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_es.html";
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz CORREGIDO ==============
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        // === VERSIÓN BETA : El siguiente nivel está bloqueado ===
+        const isUnlocked = false; // Siempre false en BETA
+        // =================================
+        
+        // 🔥 Guardar validación para progresion.html
+        sauvegarderValidation('Anestesiologia_Dental', 'principiante2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 ¡Quiz finalizado!</h1>
+                <div class="final-score">Puntuación : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Porcentaje : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${percentage >= 60 ?
+                        `<div class="unlock-badge">✅ ¡Nivel Principiante 2 validado! 🎊</div>
+                         <div class="locked-badge">🔒 BETA : La continuación (Intermedio & Experto) llegará tras 6 meses de evaluación.</div>` :
+                        `<div class="locked-badge">⚠️ Puntuación insuficiente (mínimo 60% requerido para validar el nivel)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${percentage >= 60 ?
+                        '📚 Has validado los dos niveles Principiantes. ¡Gracias por tu participación!' :
+                        `💪 Te falta un ${(60 - percentage).toFixed(1)}% para validar el nivel. ¡Vuelve a intentarlo!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Compartir mi puntuación</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Dar mi opinión</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Menú principal</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Clasificación mundial</button>
+                </div>
+            </div>
+        `;
+        
+        if (percentage >= 60) {
+            speak(`¡Felicidades! Has validado el nivel Principiante 2 con una puntuación de ${percentage.toFixed(1)}%. La continuación estará disponible en la versión final.`, "es-ES");
+            
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Su puntuación es de ${percentage.toFixed(1)}%. Debe alcanzar el 60% para validar el nivel.`, "es-ES");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== POPUP CLASIFICACIÓN MODAL =====
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No hay puntuaciones registradas para este nivel por el momento.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Su clasificación</div>
+                        <div class="rank-number">${userRank}ª posición</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} puntos (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Todavía no estás en la clasificación de este nivel</div>
+                        <div>¡Vuelve a hacer el quiz para aparecer!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Anestesiología Principiante 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anónimo"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No hay puntuaciones para este nivel</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Error Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ No se puede cargar la clasificación.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Error desconocido'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== BETA EVALUATION POPUP ==========
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 30px; width: 90%; max-width: 500px; padding: 35px 25px; text-align: center; animation: slideUp 0.3s ease; position: relative;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉🏆🎉</div>
+                <h2 style="color: #667eea; margin-bottom: 5px;">¡Felicidades ${userName}!</h2>
+                <p style="margin-bottom: 20px; font-size: 1rem;">
+                    Has validado los <strong>dos niveles Principiantes</strong> con éxito.<br>
+                    ¡Qué recorrido tan impresionante!
+                </p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Evalúa la versión BETA 🌟</p>
+                    <div id="starRating" style="display: flex; justify-content: center; gap: 12px; font-size: 3rem; cursor: pointer;">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p id="ratingMessage" style="margin-top: 10px; font-size: 0.85rem; color: #888;"></p>
+                </div>
+                
+                <div style="background: #f0f8ff; padding: 15px; border-radius: 20px; margin: 15px 0; border-left: 4px solid #667eea;">
+                    <p style="color: #ff5722; font-size: 0.95rem; margin: 0;">
+                        🚀 <strong>La continuación (Intermedio & Experto)</strong> llegará tras <strong>6 meses de evaluación</strong> de esta versión Beta.<br><br>
+                        Tu opinión nos ayuda a mejorar ETEO. ¡Gracias por tu confianza, <strong>${userName}</strong>!
+                    </p>
+                </div>
+                
+                <button onclick="closeBetaPopup()" style="background: #4caf50; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 15px;">
+                    Volver al menú
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ ¡Gracias por tu evaluación! Tu opinión ha sido registrada.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "ES";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'es',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Evaluación Beta enviada !");
+        } catch (error) {
+            console.error("❌ Error evaluación Beta:", error);
+        }
+    }
+
+    // ============================================
+    // =========== OTRAS FUNCIONES ===============
+    // ============================================
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("anesthesiologie_v1_debutant2_es", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        // BETA : el siguiente nivel está bloqueado
+        // unlockLevel3(partialPercentage); // Desactivado en BETA
+
+        // 🔥 Guardar validación incluso en caso de abandono (si score ≥ 60%)
+        sauvegarderValidation('Anestesiologia_Dental', 'principiante2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Quiz abandonado</h1><div class="final-score">Puntuación parcial : ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Porcentaje : ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 Esta puntuación ha sido registrada en la clasificación.</div><button class="menu-btn" onclick="goToMenu()">🏠 Volver al menú</button></div>`;
+        speak(`Quiz abandonado. Puntuación parcial : ${score} sobre ${MAX_SCORE_WITH_BONUS}.`, "es-ES");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Anestesiología\nMi puntuación en el nivel Principiante 2 : ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\n¡Desafíame en ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ ¡Puntuación copiada al portapapeles!");
+            }).catch(() => {
+                alert("📋 Para compartir, copia este texto :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    document.body.addEventListener('click', function firstClick() { 
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Anestesiología Dental V1</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT STATIC CAPACITOR ======== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { Capacitor } from '@capacitor/core';
+        window.Capacitor = Capacitor;
+        window.isMobile = Capacitor.isNativePlatform();
+        console.log('🔵 Capacitor cargado, isMobile =', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* TEMA ANESTESIOLOGÍA - AZUL PROFUNDO / CIAN */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a2a4a, #1a4a7a, #2a6a9a);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+        body.dark { background: linear-gradient(135deg, #051a2a, #0a2a4a, #1a4a7a); }
+        
+        .container { max-width: 800px; margin: 0 auto; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; padding: 10px 20px; border-radius: 30px; color: white; cursor: pointer; font-size: 0.9rem; backdrop-filter: blur(4px); }
+        .ranking-nav-btn { background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.3); padding: 10px 20px; border-radius: 30px; color: #ffd700; cursor: pointer; font-size: 0.9rem; backdrop-filter: blur(4px); transition: 0.2s; }
+        .ranking-nav-btn:hover { background: rgba(255,215,0,0.3); transform: scale(1.02); }
+        .theme-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 2rem; color: #8acce0; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .header p { color: #aaddf0; font-size: 0.9rem; margin-top: 5px; }
+
+        /* ============================================ */
+        /* =========== VOICE INDICATOR ================ */
+        /* ============================================ */
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2a7aba;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            color: white;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            color: white;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            color: white;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* BANDEAU BETA ANESTESIOLOGÍA */
+        .beta-banner {
+            background: linear-gradient(120deg, #d0e8f8 0%, #c0ddf0 100%);
+            border-radius: 20px;
+            padding: 14px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 6px 14px rgba(0, 64, 128, 0.1);
+            border: 1px solid rgba(64, 128, 192, 0.5);
+        }
+        body.dark .beta-banner {
+            background: linear-gradient(120deg, #1a4a6a, #2a5a7a);
+            border-color: #4a8aaa;
+        }
+        .beta-icon { font-size: 1.6rem; }
+        .beta-text {
+            flex: 1;
+            font-weight: 500;
+            color: #1a6a9a;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+        body.dark .beta-text { color: #c0e0f0; }
+        .beta-text strong {
+            background: rgba(64, 128, 192, 0.2);
+            padding: 2px 8px;
+            border-radius: 24px;
+            font-weight: 700;
+            color: #2a7aba;
+        }
+        body.dark .beta-text strong {
+            background: #3a7a9a;
+            color: #d0e8f8;
+        }
+        .beta-badge {
+            background: #2a7aba;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        body.dark .beta-badge { background: #1a6aaa; }
+        
+        /* TARJETAS */
+        .level-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            transition: 0.2s;
+            border-left: 4px solid #2a7aba;
+        }
+        body.dark .level-card { background: #1a4a6a; border-left-color: #5aaade; }
+        .level-info h3 { font-size: 1.2rem; color: #1a6a9a; }
+        body.dark .level-info h3 { color: #c0e0f0; }
+        .level-info p { color: #6a9aba; font-size: 0.8rem; margin-top: 5px; }
+        body.dark .level-info p { color: #a0c0d8; }
+        .level-status { font-size: 0.75rem; margin-top: 5px; }
+        .status-unlocked { color: #4a9a6a; font-weight: 500; }
+        .status-locked { color: #da6a4a; font-weight: 500; }
+        .status-completed { color: #2a7a4d; font-weight: 600; }
+        .score { font-size: 0.8rem; color: #2a7aba; font-weight: bold; margin-top: 5px; }
+        .start-btn {
+            background: #2a7aba;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .start-btn:hover { background: #1a5a9a; transform: scale(1.02); }
+        .start-btn.disabled { background: #aac0d0; cursor: not-allowed; transform: none; }
+        .start-btn.completed { background: #2a7a4d; }
+        .footer { text-align: center; margin-top: 30px; color: #a0c0d8; font-size: 0.7rem; }
+
+        /* ============================================ */
+        /* =========== POPUP STYLES =================== */
+        /* ============================================ */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 20, 40, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .popup-box {
+            background: white;
+            border-radius: 30px;
+            max-width: 580px;
+            width: 94%;
+            position: relative;
+            box-shadow: 0 50px 100px rgba(5, 20, 40, 0.6);
+            transform: scale(0.85) translateY(30px);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
+            opacity: 0;
+            border-left: 6px solid #2a7aba;
+            max-height: 96vh;
+            overflow-y: auto;
+        }
+        .popup-overlay.active .popup-box {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        body.dark .popup-box {
+            background: #0a2a4a;
+            border-left-color: #5aaade;
+        }
+        .popup-close {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            font-size: 1.6rem;
+            color: #1a4a7a;
+            cursor: pointer;
+            transition: 0.3s;
+            line-height: 1;
+            font-weight: 300;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+        body.dark .popup-close { 
+            color: #c0e0f0; 
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+        .popup-close:hover { 
+            transform: rotate(90deg) scale(1.1);
+            background: #2a7aba;
+            color: white;
+        }
+        body.dark .popup-close:hover {
+            background: #5aaade;
+            color: #051a2a;
+        }
+
+        /* BANNER DECORATIVO - ANESTESIOLOGÍA */
+        .popup-banner {
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(135deg, #0a2a4a, #2a6a9a, #4a8aba);
+            border-radius: 30px 30px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .popup-banner::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            background: rgba(255, 215, 0, 0.05);
+            transform: rotate(25deg);
+            border-radius: 50%;
+        }
+        .popup-banner::before {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -10%;
+            width: 50%;
+            height: 150%;
+            background: rgba(255, 255, 255, 0.05);
+            transform: rotate(-15deg);
+            border-radius: 50%;
+        }
+        .popup-banner-emoji {
+            position: relative;
+            z-index: 2;
+            animation: popupPulse 2s ease-in-out infinite;
+        }
+        @keyframes popupPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .popup-content {
+            padding: 0 34px 28px 34px;
+        }
+        .popup-badge-wrapper {
+            text-align: center;
+            margin-top: -12px;
+            position: relative;
+            z-index: 3;
+        }
+        .popup-badge {
+            display: inline-block;
+            background: #0a2a4a;
+            color: #8acce0;
+            padding: 4px 18px;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        body.dark .popup-badge { background: #8acce0; color: #0a2a4a; }
+        .popup-title {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #0a2a4a;
+            text-align: center;
+            margin-top: 6px;
+            margin-bottom: 2px;
+        }
+        body.dark .popup-title { color: #8acce0; }
+        .popup-subtitle {
+            font-size: 0.95rem;
+            color: #2a6a9a;
+            text-align: center;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+        body.dark .popup-subtitle { color: #a0c0d8; }
+        .popup-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #2a7aba, transparent);
+            margin: 6px 0 16px;
+            border-radius: 6px;
+            opacity: 0.4;
+        }
+        .popup-text {
+            font-size: 0.92rem;
+            color: #1a4a7a;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        body.dark .popup-text { color: #b0d0e0; }
+        .popup-text strong {
+            color: #0a2a4a;
+            background: rgba(42, 122, 186, 0.12);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+        body.dark .popup-text strong { color: #8acce0; background: rgba(42, 122, 186, 0.1); }
+
+        .popup-cta-question {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #0a2a4a;
+            text-align: center;
+            padding: 10px 0 14px 0;
+            letter-spacing: 1px;
+        }
+        body.dark .popup-cta-question { color: #8acce0; }
+        .popup-cta-question span {
+            background: rgba(42, 122, 186, 0.15);
+            padding: 4px 14px;
+            border-radius: 30px;
+            display: inline-block;
+            animation: popupCtaPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes popupCtaPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
+        .popup-relisten {
+            background: none;
+            border: 1.5px solid #2a7aba;
+            color: #0a2a4a;
+            padding: 8px 22px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.25s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        body.dark .popup-relisten { color: #a0c0d8; border-color: #5aaade; }
+        .popup-relisten:hover {
+            background: #2a7aba;
+            color: white;
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(42, 122, 186, 0.3);
+        }
+        body.dark .popup-relisten:hover { background: #5aaade; color: #051a2a; }
+        .popup-relisten:active { transform: scale(0.95); }
+        
+        .popup-relisten.speaking {
+            background: #2a7aba;
+            color: white;
+            animation: pulseVoice 1s ease-in-out infinite;
+        }
+        body.dark .popup-relisten.speaking {
+            background: #5aaade;
+            color: #051a2a;
+        }
+        @keyframes pulseVoice {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .popup-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2a7aba, #1a5a9a);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.25s;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 4px;
+        }
+        .popup-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(42, 122, 186, 0.4);
+        }
+        body.dark .popup-btn {
+            background: linear-gradient(135deg, #5aaade, #2a7aba);
+            color: #051a2a;
+        }
+        body.dark .popup-btn:hover {
+            box-shadow: 0 8px 30px rgba(90, 170, 222, 0.4);
+        }
+        .popup-btn:active { transform: scale(0.97); }
+
+        .popup-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .popup-box::-webkit-scrollbar { width: 5px; }
+        .popup-box::-webkit-scrollbar-track { background: transparent; }
+        .popup-box::-webkit-scrollbar-thumb { background: #2a7aba; border-radius: 10px; }
+        body.dark .popup-box::-webkit-scrollbar-thumb { background: #5aaade; }
+    </style>
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- =========== VOICE INDICATOR ================= -->
+<!-- ============================================ -->
+<div class="voice-indicator-container">
+    <div class="voice-indicator" id="voiceIndicator">
+        <span class="dot"></span>
+        <span class="status-text" id="voiceStatus">🔊 Listo</span>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- =========== POPUP =========================== -->
+<!-- ============================================ -->
+<div class="popup-overlay" id="welcomePopup">
+    <div class="popup-box">
+        <button class="popup-close" id="popupCloseBtn">✕</button>
+        
+        <div class="popup-banner">
+            <span class="popup-banner-emoji">💉</span>
+        </div>
+        
+        <div class="popup-content">
+            <div class="popup-badge-wrapper">
+                <span class="popup-badge">🇲🇦 Marruecos · Anestésicos locales</span>
+            </div>
+            <div class="popup-title">La Anestesia, un Arte al Servicio del Confort</div>
+            <div class="popup-subtitle">Dr Samir & Dra Leila cuentan con usted</div>
+            <div class="popup-divider"></div>
+            
+            <div class="popup-text" id="popupStoryText">
+                <strong>¡Bienvenido, Doctor!</strong> <br><br>
+                <strong>Dr Samir</strong> acaba de abrir su consulta. Quiere ofrecer a sus pacientes tratamientos sin dolor. Pero descubre que la anestesia es un <strong>verdadero arte</strong>.<br><br>
+                Entre las <strong>moléculas</strong>, los <strong>vasoconstrictores</strong>, las <strong>dosis máximas</strong>, las <strong>técnicas de inyección</strong>, la <strong>toxicidad</strong> y las <strong>alergias</strong>… el tema es complejo.<br><br>
+                Una anestesia fallida, un paciente con dolor, y es <strong>la confianza del paciente</strong> la que se tambalea. <br><br>
+                El confort del paciente, la calidad de la atención, la reputación de la consulta recaen sobre <strong>SUS HOMBROS</strong>.
+            </div>
+
+            <div class="popup-cta-question">
+                <span>💉 ¿SABRÁ DOMINAR EL ARTE DE LA ANESTESIA?</span>
+            </div>
+
+            <div class="popup-actions">
+                <button class="popup-relisten" id="popupRelistenBtn">🔊 Re-escuchar</button>
+                <button class="popup-btn" id="popupStartBtn">💉 ¡Vamos!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- =========== CONTENIDO PRINCIPAL ============ -->
+<!-- ============================================ -->
+<div class="container">
+    <div class="nav-bar">
+        <button class="back-btn" onclick="goBack()">← Volver especialidades</button>
+        <button class="ranking-nav-btn" onclick="goToDashboard()">🏆 Clasificación mundial</button>
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+    <div class="header">
+        <h1>Anestesiología Dental V1</h1>
+        <p>Anestésicos locales, técnicas, sedación, urgencias</p>
+    </div>
+    
+    <div class="beta-banner">
+        <span class="beta-icon">⏱️</span>
+        <div class="beta-text">
+            <strong>Versión BETA · 6 meses</strong><br>
+            Solo los niveles <strong>Principiante Nivel 1</strong> y <strong>Principiante Nivel 2</strong> están accesibles.<br>
+            <span style="font-size:0.8rem;">🌐 Francés & Inglés · Niveles Intermedio / Experto bloqueados</span>
+        </div>
+        <div class="beta-badge">Acceso limitado</div>
+    </div>
+    
+    <div id="levelsContainer"></div>
+    
+    <div class="footer">
+        <p>🎙️ Asistente vocal IA | ⏱️ 20 segundos por pregunta | Bonus rapidez +5</p>
+        <p>📤 Comparte tus puntuaciones | 🏆 Desbloquea niveles con puntuación ≥ 60%</p>
+        <p>© 2026 - Dr. SAID MAARAK 🇲🇦</p>
+    </div>
+</div>
+
+<script>
+    // ================================================================
+    // 🔥 TEXT-TO-SPEECH - UNIQUEMENT POUR LA POPUP
+    // ================================================================
+    
+    let isSpeaking = false;
+
+    // ============================================
+    // 🔥 FUNCTION: STOP SPEAKING
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() llamado");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Detención Android realizada");
+            }
+        } catch(e) { console.log("⚠️ Error detención Android:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Detención Web Speech realizada");
+            }
+        } catch(e) { console.log("⚠️ Error detención Web Speech:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking restablecido a false");
+        updateVoiceIndicator('active');
+    }
+
+    // ============================================
+    // 🔥 FUNCTION: FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() llamado");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech no disponible");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'es-ES';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            // ✅ NO FORZAR LA VOZ
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Callback Web Speech ejecutado");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech terminado (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Error Web Speech:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Forzando callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Error en fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FUNCTION: SPEAK (Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() llamado con:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Texto vacío, callback inmediato");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() ejecutado");
+                isSpeaking = false;
+                if (callback) callback();
+                updateVoiceIndicator('active');
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Usando plugin Capacitor TTS en Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'es-ES', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS terminado");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Error Capacitor TTS:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback a Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Forzando callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Usando Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+                
+            } else {
+                console.error("❌ No hay motor TTS disponible");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERROR en speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 VOICE INDICATOR
+    // ============================================
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        const statusText = document.getElementById('voiceStatus');
+        
+        if (!indicator) return;
+        
+        indicator.classList.remove('active', 'speaking');
+        
+        if (status === 'inactive') {
+            indicator.style.display = 'none';
+            return;
+        }
+        
+        indicator.style.display = 'flex';
+        
+        if (status === 'active') {
+            indicator.classList.add('active');
+            statusText.textContent = '🔊 Listo';
+        } else if (status === 'speaking') {
+            indicator.classList.add('speaking');
+            statusText.textContent = '🔊 Hablando...';
+        }
+    }
+
+    // ============================================
+    // 🔥 POPUP STORY TEXT
+    // ============================================
+    
+    const STORY_TEXT = `Bienvenido Doctor! El Dr Samir acaba de abrir su consulta. Quiere ofrecer a sus pacientes tratamientos sin dolor. Pero descubre que la anestesia es un verdadero arte. Entre las moléculas, los vasoconstrictores, las dosis máximas, las técnicas de inyección, la toxicidad y las alergias… el tema es complejo. Una anestesia fallida, un paciente con dolor, y es la confianza del paciente la que se tambalea. El confort del paciente, la calidad de la atención, la reputación de la consulta recaen sobre SUS HOMBROS.`;
+
+    // ============================================
+    // 🔥 PLAY STORY
+    // ============================================
+    
+    function playStory() {
+        const listenBtn = document.getElementById('popupRelistenBtn');
+        
+        if (listenBtn) {
+            if (isSpeaking) {
+                stopSpeaking();
+                return;
+            }
+            listenBtn.classList.add('speaking');
+            listenBtn.innerHTML = '⏹️ Detener';
+        }
+        
+        speak(STORY_TEXT, 'es-ES', function() {
+            if (listenBtn) {
+                listenBtn.classList.remove('speaking');
+                listenBtn.innerHTML = '🔊 Re-escuchar';
+            }
+            updateVoiceIndicator('active');
+        });
+    }
+
+    // ============================================
+    // 🔥 SHOW POPUP
+    // ============================================
+    
+    function showPopup() {
+        const popup = document.getElementById('welcomePopup');
+        popup.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // ✅ PARLE AUTOMATIQUEMENT !
+        setTimeout(function() {
+            isSpeaking = true;
+            updateVoiceIndicator('speaking');
+            speak(STORY_TEXT, 'es-ES', function() {
+                console.log("✅ Auto story finished");
+                updateVoiceIndicator('active');
+            });
+        }, 900);
+    }
+    
+    function hidePopup() {
+        const popup = document.getElementById('welcomePopup');
+        popup.classList.remove('active');
+        document.body.style.overflow = '';
+        stopSpeaking();
+        sessionStorage.setItem('eteo_popup_anesthesiologie_es', 'seen');
+    }
+    
+    function initPopup() {
+        const dejaVu = sessionStorage.getItem('eteo_popup_anesthesiologie_es');
+        const validationData = localStorage.getItem('eteo_validation');
+        if (validationData) return;
+        
+        if (!dejaVu) {
+            setTimeout(showPopup, 600);
+        }
+        
+        document.getElementById('popupCloseBtn').addEventListener('click', hidePopup);
+        document.getElementById('popupStartBtn').addEventListener('click', hidePopup);
+        document.getElementById('popupRelistenBtn').addEventListener('click', function() {
+            playStory();
+        });
+        
+        document.getElementById('welcomePopup').addEventListener('click', function(e) {
+            if (e.target === this) hidePopup();
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') hidePopup();
+        });
+    }
+
+    // ============================================
+    // 5. LEVELS LOGIC (NON MODIFIÉ)
+    // ============================================
+    
+    const LEVEL1_KEY = "anesthesiologie_v1_debutant1_es";
+    const LEVEL2_KEY = "anesthesiologie_v1_debutant2_es";
+    const UNLOCK_KEY = "anesthesiologie_v1_debutant2_es_unlocked";
+    const UNLOCK_INTER_KEY = "anesthesiologie_v1_intermediaire1_es_unlocked";
+    
+    const levels = [
+        { id: LEVEL1_KEY, name: "Principiante Nivel 1", description: "Fundamentos básicos - Anestésicos locales, vasoconstrictores", unlocked: true, file: "debutant1_es.html", betaAccessible: true },
+        { id: LEVEL2_KEY, name: "Principiante Nivel 2", description: "Técnicas de anestesia - Infiltración, troncular", unlocked: false, file: "debutant2_es.html", betaAccessible: true },
+        { id: "anesthesiologie_v1_intermediaire1_es", name: "Intermedio Nivel 1", description: "Anestesia regional - Bloqueos mandibulares, maxilares", unlocked: false, file: "intermediaire1_es.html", betaAccessible: false },
+        { id: "anesthesiologie_v1_intermediaire2_es", name: "Intermedio Nivel 2", description: "Complicaciones y toxicidades - Alergias, sobredosis", unlocked: false, file: "intermediaire2_es.html", betaAccessible: false },
+        { id: "anesthesiologie_v1_expert1_es", name: "Experto Nivel 1", description: "Sedación consciente - MEOPA, benzodiazepinas", unlocked: false, file: "expert1_es.html", betaAccessible: false },
+        { id: "anesthesiologie_v1_expert2_es", name: "Experto Nivel 2", description: "Urgencias y reanimación - Conducta a seguir", unlocked: false, file: "expert2_es.html", betaAccessible: false }
+    ];
+    
+    // ================================================================
+    // 6. PENDING VALIDATION
+    // ================================================================
+    
+    function verifierValidationEnAttente() {
+        const validationData = localStorage.getItem('eteo_validation');
+        if (validationData) {
+            try {
+                const data = JSON.parse(validationData);
+                if (Date.now() - data.timestamp < 300000) {
+                    localStorage.removeItem('eteo_validation');
+                    window.location.href = `../../../../progresion_es.html?valider=${data.specialite}_${data.niveau}&score=${data.score}&total=${data.total}`;
+                    return true;
+                } else {
+                    localStorage.removeItem('eteo_validation');
+                }
+            } catch(e) {
+                localStorage.removeItem('eteo_validation');
+            }
+        }
+        return false;
+    }
+    
+    function loadScores() {
+        levels.forEach(level => {
+            const savedScore = localStorage.getItem(level.id);
+            if (savedScore) {
+                try {
+                    const scoreData = JSON.parse(savedScore);
+                    level.score = scoreData.score;
+                    level.maxScore = scoreData.maxScore || 375;
+                    level.percentage = scoreData.percentage || 0;
+                } catch(e) {
+                    level.score = null;
+                    level.maxScore = 375;
+                }
+            } else { 
+                level.score = null; 
+                level.maxScore = 375; 
+            }
+        });
+        
+        const unlockStatus = localStorage.getItem(UNLOCK_KEY);
+        if (unlockStatus === "true") {
+            const level2 = levels.find(l => l.id === LEVEL2_KEY);
+            if (level2) level2.unlocked = true;
+        }
+        
+        const level1 = levels.find(l => l.id === LEVEL1_KEY);
+        if (level1 && level1.percentage && level1.percentage >= 60) {
+            const level2 = levels.find(l => l.id === LEVEL2_KEY);
+            if (level2) {
+                level2.unlocked = true;
+                localStorage.setItem(UNLOCK_KEY, "true");
+            }
+        }
+        
+        const unlockInterStatus = localStorage.getItem(UNLOCK_INTER_KEY);
+        if (unlockInterStatus === "true") {
+            const levelInter = levels.find(l => l.id === "anesthesiologie_v1_intermediaire1_es");
+            if (levelInter) levelInter.unlocked = true;
+        }
+        
+        const level2 = levels.find(l => l.id === LEVEL2_KEY);
+        if (level2 && level2.percentage && level2.percentage >= 60) {
+            const levelInter = levels.find(l => l.id === "anesthesiologie_v1_intermediaire1_es");
+            if (levelInter && levelInter.betaAccessible) {
+                levelInter.unlocked = true;
+                localStorage.setItem(UNLOCK_INTER_KEY, "true");
+            }
+        }
+        
+        levels.forEach(level => { 
+            if (!level.betaAccessible) level.unlocked = false; 
+        });
+        levels[0].unlocked = true;
+    }
+    
+    function renderLevels() {
+        const container = document.getElementById('levelsContainer');
+        container.innerHTML = '';
+        levels.forEach((level) => {
+            const card = document.createElement('div'); 
+            card.className = 'level-card';
+            
+            const percentage = level.score ? (level.score / level.maxScore * 100).toFixed(0) : 0;
+            const scoreText = level.score ? `Puntuación: ${level.score}/${level.maxScore} (${percentage}%)` : 'No comenzado';
+            
+            const isEffectivelyUnlocked = level.unlocked && level.betaAccessible;
+            const statusClass = isEffectivelyUnlocked ? 'status-unlocked' : 'status-locked';
+            
+            let statusText = "";
+            let isCompleted = false;
+            
+            if (!level.betaAccessible && level.id !== LEVEL1_KEY) {
+                statusText = '🔒 Bloqueado - Beta';
+            } else if (isEffectivelyUnlocked) {
+                if (level.id === LEVEL2_KEY) {
+                    statusText = '✅ Desbloqueado';
+                } else if (level.id === "anesthesiologie_v1_intermediaire1_es") {
+                    statusText = '✅ Desbloqueado';
+                } else {
+                    if (level.score && percentage >= 60) {
+                        statusText = '✅ Completado';
+                        isCompleted = true;
+                    } else {
+                        statusText = '📚 Disponible';
+                    }
+                }
+            } else {
+                if (level.id === LEVEL2_KEY) {
+                    statusText = '🔒 Bloqueado (60% requerido en Nivel 1)';
+                } else if (level.id === "anesthesiologie_v1_intermediaire1_es") {
+                    statusText = '🔒 Bloqueado (60% requerido en Nivel 2)';
+                } else {
+                    statusText = '🔒 Bloqueado';
+                }
+            }
+            
+            const isDisabled = (!level.betaAccessible && level.id !== LEVEL1_KEY) || !isEffectivelyUnlocked;
+            const btnClass = isCompleted ? 'start-btn completed' : (isDisabled ? 'start-btn disabled' : 'start-btn');
+            
+            card.innerHTML = `
+                <div class="level-info">
+                    <h3>${level.name}</h3>
+                    <p>${level.description}</p>
+                    <div class="score">${scoreText}</div>
+                    <div class="level-status ${statusClass}">${statusText}</div>
+                </div>
+                <button class="${btnClass}" 
+                        data-file="${level.file}" 
+                        data-levelname="${level.name}" 
+                        ${isDisabled ? 'disabled' : ''}>
+                    ${isCompleted ? '✅ Terminado' : (isDisabled ? '🔒 Bloqueado' : '🚀 Comenzar')}
+                </button>
+            `;
+            container.appendChild(card);
+        });
+        
+        // ✅ ATTACH EVENTS (NON MODIFIÉ)
+        document.querySelectorAll('.start-btn:not(.disabled)').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const file = btn.getAttribute('data-file');
+                const levelName = btn.getAttribute('data-levelname');
+                window.location.href = file;
+            });
+        });
+    }
+
+    // ============================================
+    // 7. NAVIGATION (NON MODIFIÉ)
+    // ============================================
+    
+    function goBack() {
+        window.location.href = "../../../../choix_specialite_es.html";
+    }
+    
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+    
+    function toggleTheme() { 
+        document.body.classList.toggle('dark'); 
+    }
+    
+    function resetUnlock() {
+        localStorage.removeItem(UNLOCK_KEY);
+        localStorage.removeItem(UNLOCK_INTER_KEY);
+        localStorage.removeItem(LEVEL1_KEY);
+        localStorage.removeItem(LEVEL2_KEY);
+        console.log("🔄 Reinicio de datos");
+        loadScores();
+        renderLevels();
+    }
+    
+    window.resetUnlock = resetUnlock;
+
+    // ================================================================
+    // 8. EXPOSE GLOBAL FUNCTIONS
+    // ================================================================
+
+    window.goBack = goBack;
+    window.goToDashboard = goToDashboard;
+    window.toggleTheme = toggleTheme;
+    window.resetUnlock = resetUnlock;
+    window.stopSpeaking = stopSpeaking;
+    window.playStory = playStory;
+
+    // ================================================================
+    // 9. INITIALIZATION
+    // ================================================================
+    
+    const validationTrouvee = verifierValidationEnAttente();
+
+    if (!validationTrouvee) {
+        loadScores(); 
+        renderLevels();
+        initPopup();
+    }
+
+    // Stop voice on navigation
+    window.addEventListener('beforeunload', () => {
+        stopSpeaking();
+    });
+
+    console.log('🎯 Anestesiología Dental ES - TTS Capacitor + Web Speech fallback para POPUP solamente');
+    console.log('✅ Popup habla automáticamente con Capacitor TTS!');
+</script>
+</body>
+</html>
