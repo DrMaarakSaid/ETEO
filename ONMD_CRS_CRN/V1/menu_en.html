@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - National Order & Councils V1</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT STATIC CAPACITOR ======== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { Capacitor } from '@capacitor/core';
+        window.Capacitor = Capacitor;
+        window.isMobile = Capacitor.isNativePlatform();
+        console.log('🔵 Capacitor loaded, isMobile =', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* THEME ONMD - ROYAL BLUE / GOLD */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a2a4a, #1a3a5a, #2a4a6a);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+        body.dark { background: linear-gradient(135deg, #051a2a, #0a2a4a, #1a3a5a); }
+        
+        .container { max-width: 800px; margin: 0 auto; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; padding: 10px 20px; border-radius: 30px; color: white; cursor: pointer; font-size: 0.9rem; backdrop-filter: blur(4px); }
+        .theme-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; }
+        .ranking-btn {
+            background: rgba(255, 215, 0, 0.3);
+            border: 2px solid #ffd700;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: #ffd700;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .ranking-btn:hover { background: #ffd700; color: #0a2a4a; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 2rem; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .header p { color: #c0d0e0; font-size: 0.9rem; margin-top: 5px; }
+
+        /* ============================================
+           VOICE INDICATOR INTEGRATED
+           ============================================ */
+        .voice-indicator-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .voice-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            font-size: 11px;
+            color: #b0b0b0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(128, 128, 128, 0.15);
+        }
+        .voice-indicator.active {
+            display: flex;
+            background: rgba(218, 165, 32, 0.2);
+            border-color: rgba(218, 165, 32, 0.3);
+            color: #ffd700;
+        }
+        .voice-indicator.speaking {
+            display: flex;
+            background: rgba(218, 165, 32, 0.3);
+            border-color: rgba(218, 165, 32, 0.5);
+            color: #ffe080;
+            animation: pulseVoice 1s ease-in-out infinite;
+        }
+        @keyframes pulseVoice {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .voice-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            transition: all 0.3s ease;
+        }
+        .voice-indicator.active .dot {
+            background: #daa520;
+        }
+        .voice-indicator.speaking .dot {
+            background: #ffd700;
+            animation: blinkVoice 0.8s ease-in-out infinite;
+        }
+        @keyframes blinkVoice {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.2; transform: scale(0.6); }
+        }
+        .voice-indicator .status-text {
+            font-weight: 500;
+        }
+        
+        /* BETA BANNER */
+        .beta-banner {
+            background: linear-gradient(120deg, #e8eef4 0%, #d8e4f0 100%);
+            border-radius: 20px;
+            padding: 14px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 6px 14px rgba(0, 32, 64, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+        }
+        body.dark .beta-banner {
+            background: linear-gradient(120deg, #2a4a6a, #3a5a7a);
+            border-color: #e0b060;
+        }
+        .beta-icon { font-size: 1.6rem; }
+        .beta-text {
+            flex: 1;
+            font-weight: 500;
+            color: #3a6a9a;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+        body.dark .beta-text { color: #d0e0f0; }
+        .beta-text strong {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 24px;
+            font-weight: 700;
+            color: #daa520;
+        }
+        body.dark .beta-text strong {
+            background: #6a8aaa;
+            color: #ffd700;
+        }
+        .beta-badge {
+            background: #daa520;
+            color: #0a2a4a;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        body.dark .beta-badge { background: #c09030; color: #051a2a; }
+        
+        /* CARDS */
+        .level-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            transition: 0.2s;
+            border-left: 5px solid #daa520;
+        }
+        body.dark .level-card { background: #2a4a6a; border-left-color: #e0b060; }
+        .level-info h3 { font-size: 1.2rem; color: #1a4a6a; }
+        body.dark .level-info h3 { color: #ffd700; }
+        .level-info p { color: #6a8aaa; font-size: 0.8rem; margin-top: 5px; }
+        body.dark .level-info p { color: #b0c8e0; }
+        .level-status { font-size: 0.75rem; margin-top: 5px; }
+        .status-unlocked { color: #4a9a6a; font-weight: 500; }
+        .status-locked { color: #da6a4a; font-weight: 500; }
+        .status-completed { color: #2a7a4d; font-weight: 600; }
+        .score { font-size: 0.8rem; color: #daa520; font-weight: bold; margin-top: 5px; }
+        .start-btn {
+            background: #daa520;
+            color: #0a2a4a;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .start-btn:hover { background: #c09020; transform: scale(1.02); color: white; }
+        .start-btn.disabled { background: #a0b8d0; color: #6a8aaa; cursor: not-allowed; transform: none; }
+        .start-btn.completed { background: #2a7a4d; color: white; }
+        .footer { text-align: center; margin-top: 30px; color: #b0c8e0; font-size: 0.7rem; }
+
+        /* ============================================ */
+        /* =========== POPUP STYLES =================== */
+        /* ============================================ */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 15, 30, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .popup-box {
+            background: white;
+            border-radius: 30px;
+            max-width: 580px;
+            width: 94%;
+            position: relative;
+            box-shadow: 0 50px 100px rgba(5, 15, 30, 0.6);
+            transform: scale(0.85) translateY(30px);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
+            opacity: 0;
+            border-left: 6px solid #daa520;
+            max-height: 96vh;
+            overflow-y: auto;
+        }
+        .popup-overlay.active .popup-box {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        body.dark .popup-box {
+            background: #1a2a4a;
+            border-left-color: #e0b060;
+        }
+        .popup-close {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            font-size: 1.6rem;
+            color: #0a2a4a;
+            cursor: pointer;
+            transition: 0.3s;
+            line-height: 1;
+            font-weight: 300;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+        body.dark .popup-close { 
+            color: #d0e0f0; 
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+        .popup-close:hover { 
+            transform: rotate(90deg) scale(1.1);
+            background: #daa520;
+            color: #0a2a4a;
+        }
+        body.dark .popup-close:hover {
+            background: #e0b060;
+            color: #051a2a;
+        }
+
+        /* BANNER DECORATIVE - ONMD */
+        .popup-banner {
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(135deg, #0a2a4a, #2a4a6a, #4a6a8a);
+            border-radius: 30px 30px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .popup-banner::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            background: rgba(255, 215, 0, 0.05);
+            transform: rotate(25deg);
+            border-radius: 50%;
+        }
+        .popup-banner::before {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -10%;
+            width: 50%;
+            height: 150%;
+            background: rgba(255, 255, 255, 0.05);
+            transform: rotate(-15deg);
+            border-radius: 50%;
+        }
+        .popup-banner-emoji {
+            position: relative;
+            z-index: 2;
+            animation: popupPulse 2s ease-in-out infinite;
+        }
+        @keyframes popupPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .popup-content {
+            padding: 0 34px 28px 34px;
+        }
+        .popup-badge-wrapper {
+            text-align: center;
+            margin-top: -12px;
+            position: relative;
+            z-index: 3;
+        }
+        .popup-badge {
+            display: inline-block;
+            background: #0a2a4a;
+            color: #ffd700;
+            padding: 4px 18px;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        body.dark .popup-badge { background: #ffd700; color: #0a2a4a; }
+        .popup-title {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #0a2a4a;
+            text-align: center;
+            margin-top: 6px;
+            margin-bottom: 2px;
+        }
+        body.dark .popup-title { color: #ffd700; }
+        .popup-subtitle {
+            font-size: 0.95rem;
+            color: #3a5a7a;
+            text-align: center;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+        body.dark .popup-subtitle { color: #b0c8e0; }
+        .popup-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #daa520, transparent);
+            margin: 6px 0 16px;
+            border-radius: 6px;
+            opacity: 0.4;
+        }
+        .popup-text {
+            font-size: 0.92rem;
+            color: #1a3a5a;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        body.dark .popup-text { color: #c0d0e0; }
+        .popup-text strong {
+            color: #0a2a4a;
+            background: rgba(218, 165, 32, 0.12);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+        body.dark .popup-text strong { color: #ffd700; background: rgba(218, 165, 32, 0.1); }
+
+        .popup-cta-question {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #0a2a4a;
+            text-align: center;
+            padding: 10px 0 14px 0;
+            letter-spacing: 1px;
+        }
+        body.dark .popup-cta-question { color: #ffd700; }
+        .popup-cta-question span {
+            background: rgba(218, 165, 32, 0.15);
+            padding: 4px 14px;
+            border-radius: 30px;
+            display: inline-block;
+            animation: popupCtaPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes popupCtaPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
+        .popup-relisten {
+            background: none;
+            border: 1.5px solid #daa520;
+            color: #0a2a4a;
+            padding: 8px 22px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.25s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        body.dark .popup-relisten { color: #b0c8e0; border-color: #e0b060; }
+        .popup-relisten:hover {
+            background: #daa520;
+            color: white;
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(218, 165, 32, 0.3);
+        }
+        body.dark .popup-relisten:hover { background: #e0b060; color: #051a2a; }
+        .popup-relisten:active { transform: scale(0.95); }
+        
+        .popup-relisten.speaking {
+            background: #daa520;
+            color: white;
+            animation: pulseVoice 1s ease-in-out infinite;
+        }
+        body.dark .popup-relisten.speaking {
+            background: #e0b060;
+            color: #051a2a;
+        }
+
+        .popup-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #daa520, #c09020);
+            color: #0a2a4a;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.25s;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 4px;
+        }
+        .popup-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(218, 165, 32, 0.4);
+            color: white;
+        }
+        body.dark .popup-btn {
+            background: linear-gradient(135deg, #e0b060, #daa520);
+            color: #051a2a;
+        }
+        body.dark .popup-btn:hover {
+            box-shadow: 0 8px 30px rgba(224, 176, 96, 0.4);
+        }
+        .popup-btn:active { transform: scale(0.97); }
+
+        .popup-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .popup-box::-webkit-scrollbar { width: 5px; }
+        .popup-box::-webkit-scrollbar-track { background: transparent; }
+        .popup-box::-webkit-scrollbar-thumb { background: #daa520; border-radius: 10px; }
+        body.dark .popup-box::-webkit-scrollbar-thumb { background: #e0b060; }
+    </style>
+</head>
+<body>
+
+<!-- ============================================
+     VOICE INDICATOR INTEGRATED
+     ============================================ -->
+<div class="voice-indicator-container">
+    <div class="voice-indicator" id="voiceIndicator">
+        <span class="dot"></span>
+        <span class="status-text" id="voiceStatus">🔊 Ready</span>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- =========== POPUP =========================== -->
+<!-- ============================================ -->
+<div class="popup-overlay" id="welcomePopup">
+    <div class="popup-box">
+        <button class="popup-close" id="popupCloseBtn">✕</button>
+        
+        <div class="popup-banner">
+            <span class="popup-banner-emoji">📜</span>
+        </div>
+        
+        <div class="popup-content">
+            <div class="popup-badge-wrapper">
+                <span class="popup-badge">🇲🇦 Morocco · Law 07-05</span>
+            </div>
+            <div class="popup-title">The Diploma and the Order</div>
+            <div class="popup-subtitle">Dr. Taki & Dr. Touitou are counting on you</div>
+            <div class="popup-divider"></div>
+            
+            <div class="popup-text" id="popupStoryText">
+                <strong>Welcome, Doctor!</strong> <br><br>
+                <strong>Dr. Taki</strong> has just earned his doctorate in dental medicine. His dream: to open his own practice. But he discovers that a diploma alone is not enough...<br><br>
+                To practice legally, he must be <strong>registered on the roll of the National Order of Dental Surgeons</strong>.<br><br>
+                Between registration, regional and national councils, elections, fees and disciplinary sanctions… the path is full of obstacles.<br><br>
+                A missed registration, a forgotten declaration, and it's <strong>illegal practice</strong> that awaits him. <br><br>
+                The legality of his practice, his credibility, his future rest on <strong>YOUR shoulders</strong>.
+            </div>
+
+            <div class="popup-cta-question">
+                <span>📜 WILL YOU HELP HIM CROSS THE DOORS OF THE ORDER?</span>
+            </div>
+
+            <div class="popup-actions">
+                <button class="popup-relisten" id="popupRelistenBtn">🔊 Re-listen</button>
+                <button class="popup-btn" id="popupStartBtn">📜 Let's go!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- =========== MAIN CONTENT =================== -->
+<!-- ============================================ -->
+<div class="container">
+    <div class="nav-bar">
+        <button class="back-btn" onclick="goBack()">← Back to specialties</button>
+        <button class="ranking-btn" onclick="goToDashboard()">🏆 World ranking</button>
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+    <div class="header">
+        <h1>National Order & Councils V1</h1>
+        <p>Structure, missions, regional and national councils</p>
+    </div>
+    
+    <div class="beta-banner">
+        <span class="beta-icon">🏛️</span>
+        <div class="beta-text">
+            <strong>BETA Version · 6 months</strong><br>
+            Only <strong>Beginner Level 1</strong> and <strong>Beginner Level 2</strong> are accessible.<br>
+            <span style="font-size:0.8rem;">🌐 French & English · Intermediate / Expert levels locked</span>
+        </div>
+        <div class="beta-badge">Limited access</div>
+    </div>
+    
+    <div id="levelsContainer"></div>
+    
+    <div class="footer">
+        <p>🎙️ AI Voice Assistant | ⏱️ 20 seconds per question | Speed bonus +5</p>
+        <p>📤 Share your scores | 🏆 Unlock levels with a score ≥ 60%</p>
+        <p>© 2026 - Dr. SAID MAARAK 🇲🇦</p>
+    </div>
+</div>
+
+<script>
+    // ================================================================
+    // 🔥 TEXT-TO-SPEECH - UNIQUEMENT POUR LA POPUP
+    // ================================================================
+    
+    let isSpeaking = false;
+
+    // ============================================
+    // 🔥 FUNCTION: STOP SPEAKING
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() called");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Android stop performed");
+            }
+        } catch(e) { console.log("⚠️ Android stop error:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Web Speech stop performed");
+            }
+        } catch(e) { console.log("⚠️ Web Speech stop error:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking reset to false");
+        updateVoiceIndicator('active');
+    }
+
+    // ============================================
+    // 🔥 FUNCTION: FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() called");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech not available");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Web Speech callback executed");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech finished (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Web Speech error:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Forcing callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Error in fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FUNCTION: SPEAK (Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() called with:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Empty text, immediate callback");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() executed");
+                isSpeaking = false;
+                if (callback) callback();
+                updateVoiceIndicator('active');
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Using Capacitor TTS plugin on Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'en-US', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS finished");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Capacitor TTS error:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback to Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Forcing callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Using Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+                
+            } else {
+                console.error("❌ No TTS engine available");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERROR in speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 VOICE INDICATOR
+    // ============================================
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        const statusText = document.getElementById('voiceStatus');
+        
+        if (!indicator) return;
+        
+        indicator.classList.remove('active', 'speaking');
+        
+        if (status === 'inactive') {
+            indicator.style.display = 'none';
+            return;
+        }
+        
+        indicator.style.display = 'flex';
+        
+        if (status === 'active') {
+            indicator.classList.add('active');
+            statusText.textContent = '🔊 Ready';
+        } else if (status === 'speaking') {
+            indicator.classList.add('speaking');
+            statusText.textContent = '🔊 Speaking...';
+        }
+    }
+
+    // ============================================
+    // 🔥 POPUP STORY TEXT
+    // ============================================
+    
+    const STORY_TEXT = `Welcome Doctor! Dr. Taki has just earned his doctorate in dental medicine. His dream: to open his own practice. But he discovers that a diploma alone is not enough... To practice legally, he must be registered on the roll of the National Order of Dental Surgeons. Between registration, regional and national councils, elections, fees and disciplinary sanctions… the path is full of obstacles. A missed registration, a forgotten declaration, and it's illegal practice that awaits him. The legality of his practice, his credibility, his future rest on YOUR shoulders.`;
+
+    // ============================================
+    // 🔥 PLAY STORY
+    // ============================================
+    
+    function playStory() {
+        const listenBtn = document.getElementById('popupRelistenBtn');
+        
+        if (listenBtn) {
+            if (isSpeaking) {
+                stopSpeaking();
+                return;
+            }
+            listenBtn.classList.add('speaking');
+            listenBtn.innerHTML = '⏹️ Stop';
+        }
+        
+        speak(STORY_TEXT, 'en-US', function() {
+            if (listenBtn) {
+                listenBtn.classList.remove('speaking');
+                listenBtn.innerHTML = '🔊 Re-listen';
+            }
+            updateVoiceIndicator('active');
+        });
+    }
+
+    // ============================================
+    // 🔥 SHOW POPUP
+    // ============================================
+    
+    function showPopup() {
+        const popup = document.getElementById('welcomePopup');
+        popup.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // ✅ PARLE AUTOMATIQUEMENT !
+        setTimeout(function() {
+            isSpeaking = true;
+            updateVoiceIndicator('speaking');
+            speak(STORY_TEXT, 'en-US', function() {
+                console.log("✅ Auto story finished");
+                updateVoiceIndicator('active');
+            });
+        }, 900);
+    }
+    
+    function hidePopup() {
+        const popup = document.getElementById('welcomePopup');
+        popup.classList.remove('active');
+        document.body.style.overflow = '';
+        stopSpeaking();
+        sessionStorage.setItem('eteo_popup_onmd_en', 'seen');
+    }
+    
+    function initPopup() {
+        const dejaVu = sessionStorage.getItem('eteo_popup_onmd_en');
+        const validationData = localStorage.getItem('eteo_validation');
+        if (validationData) return;
+        
+        if (!dejaVu) {
+            setTimeout(showPopup, 600);
+        }
+        
+        document.getElementById('popupCloseBtn').addEventListener('click', hidePopup);
+        document.getElementById('popupStartBtn').addEventListener('click', hidePopup);
+        document.getElementById('popupRelistenBtn').addEventListener('click', function() {
+            playStory();
+        });
+        
+        document.getElementById('welcomePopup').addEventListener('click', function(e) {
+            if (e.target === this) hidePopup();
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') hidePopup();
+        });
+    }
+
+    // ============================================================
+    // 5. LEVELS LOGIC (NON MODIFIÉ)
+    // ============================================================
+    
+    const LEVEL1_KEY = "onmd_v1_debutant1_en";
+    const LEVEL2_KEY = "onmd_v1_debutant2_en";
+    const UNLOCK_KEY = "onmd_v1_debutant2_en_unlocked";
+    const UNLOCK_INTER_KEY = "onmd_v1_intermediaire1_en_unlocked";
+    
+    const levels = [
+        { id: LEVEL1_KEY, name: "Beginner Level 1", description: "Presentation of the Order - Missions and structure", unlocked: true, file: "debutant1_en.html", betaAccessible: true },
+        { id: LEVEL2_KEY, name: "Beginner Level 2", description: "Regional and National Councils - Roles and competencies", unlocked: false, file: "debutant2_en.html", betaAccessible: true },
+        { id: "onmd_v1_intermediaire1_en", name: "Intermediate Level 1", description: "Order operations - Disciplinary procedures", unlocked: false, file: "intermediaire1_en.html", betaAccessible: false },
+        { id: "onmd_v1_intermediaire2_en", name: "Intermediate Level 2", description: "Order relations - Institutions - Partnerships", unlocked: false, file: "intermediaire2_en.html", betaAccessible: false },
+        { id: "onmd_v1_expert1_en", name: "Expert Level 1", description: "Litigation and order jurisprudence", unlocked: false, file: "expert1_en.html", betaAccessible: false },
+        { id: "onmd_v1_expert2_en", name: "Expert Level 2", description: "Ethics and governance of the Order", unlocked: false, file: "expert2_en.html", betaAccessible: false }
+    ];
+    
+    // ================================================================
+    // 6. PENDING VALIDATION
+    // ================================================================
+    
+    function verifierValidationEnAttente() {
+        const validationData = localStorage.getItem('eteo_validation');
+        if (validationData) {
+            try {
+                const data = JSON.parse(validationData);
+                if (Date.now() - data.timestamp < 300000) {
+                    localStorage.removeItem('eteo_validation');
+                    window.location.href = `../../../../progression_en.html?valider=${data.specialite}_${data.niveau}&score=${data.score}&total=${data.total}`;
+                    return true;
+                } else {
+                    localStorage.removeItem('eteo_validation');
+                }
+            } catch(e) {
+                localStorage.removeItem('eteo_validation');
+            }
+        }
+        return false;
+    }
+    
+    function loadScores() {
+        levels.forEach(level => {
+            const savedScore = localStorage.getItem(level.id);
+            if (savedScore) {
+                try {
+                    const scoreData = JSON.parse(savedScore);
+                    level.score = scoreData.score;
+                    level.maxScore = scoreData.maxScore || 375;
+                    level.percentage = scoreData.percentage || 0;
+                } catch(e) {
+                    level.score = null;
+                    level.maxScore = 375;
+                }
+            } else { 
+                level.score = null; 
+                level.maxScore = 375; 
+            }
+        });
+        
+        const unlockStatus = localStorage.getItem(UNLOCK_KEY);
+        if (unlockStatus === "true") {
+            const level2 = levels.find(l => l.id === LEVEL2_KEY);
+            if (level2) level2.unlocked = true;
+        }
+        
+        const level1 = levels.find(l => l.id === LEVEL1_KEY);
+        if (level1 && level1.percentage && level1.percentage >= 60) {
+            const level2 = levels.find(l => l.id === LEVEL2_KEY);
+            if (level2) {
+                level2.unlocked = true;
+                localStorage.setItem(UNLOCK_KEY, "true");
+            }
+        }
+        
+        const unlockInterStatus = localStorage.getItem(UNLOCK_INTER_KEY);
+        if (unlockInterStatus === "true") {
+            const levelInter = levels.find(l => l.id === "onmd_v1_intermediaire1_en");
+            if (levelInter) levelInter.unlocked = true;
+        }
+        
+        const level2 = levels.find(l => l.id === LEVEL2_KEY);
+        if (level2 && level2.percentage && level2.percentage >= 60) {
+            const levelInter = levels.find(l => l.id === "onmd_v1_intermediaire1_en");
+            if (levelInter && levelInter.betaAccessible) {
+                levelInter.unlocked = true;
+                localStorage.setItem(UNLOCK_INTER_KEY, "true");
+            }
+        }
+        
+        levels.forEach(level => { 
+            if (!level.betaAccessible) level.unlocked = false; 
+        });
+        levels[0].unlocked = true;
+    }
+    
+    function renderLevels() {
+        const container = document.getElementById('levelsContainer');
+        container.innerHTML = '';
+        levels.forEach((level) => {
+            const card = document.createElement('div'); 
+            card.className = 'level-card';
+            
+            const percentage = level.score ? (level.score / level.maxScore * 100).toFixed(0) : 0;
+            const scoreText = level.score ? `Score: ${level.score}/${level.maxScore} (${percentage}%)` : 'Not started';
+            
+            const isEffectivelyUnlocked = level.unlocked && level.betaAccessible;
+            const statusClass = isEffectivelyUnlocked ? 'status-unlocked' : 'status-locked';
+            
+            let statusText = "";
+            let isCompleted = false;
+            
+            if (!level.betaAccessible && level.id !== LEVEL1_KEY) {
+                statusText = '🔒 Locked - Beta';
+            } else if (isEffectivelyUnlocked) {
+                if (level.id === LEVEL2_KEY) {
+                    statusText = '✅ Unlocked';
+                } else if (level.id === "onmd_v1_intermediaire1_en") {
+                    statusText = '✅ Unlocked';
+                } else {
+                    if (level.score && percentage >= 60) {
+                        statusText = '✅ Completed';
+                        isCompleted = true;
+                    } else {
+                        statusText = '📚 Available';
+                    }
+                }
+            } else {
+                if (level.id === LEVEL2_KEY) {
+                    statusText = '🔒 Locked (60% required at Level 1)';
+                } else if (level.id === "onmd_v1_intermediaire1_en") {
+                    statusText = '🔒 Locked (60% required at Level 2)';
+                } else {
+                    statusText = '🔒 Locked';
+                }
+            }
+            
+            const isDisabled = (!level.betaAccessible && level.id !== LEVEL1_KEY) || !isEffectivelyUnlocked;
+            const btnClass = isCompleted ? 'start-btn completed' : (isDisabled ? 'start-btn disabled' : 'start-btn');
+            
+            card.innerHTML = `
+                <div class="level-info">
+                    <h3>${level.name}</h3>
+                    <p>${level.description}</p>
+                    <div class="score">${scoreText}</div>
+                    <div class="level-status ${statusClass}">${statusText}</div>
+                </div>
+                <button class="${btnClass}" 
+                        data-file="${level.file}" 
+                        data-levelname="${level.name}" 
+                        ${isDisabled ? 'disabled' : ''}>
+                    ${isCompleted ? '✅ Done' : (isDisabled ? '🔒 Locked' : '🚀 Start')}
+                </button>
+            `;
+            container.appendChild(card);
+        });
+        
+        // ✅ ATTACH EVENTS (NON MODIFIÉ)
+        document.querySelectorAll('.start-btn:not(.disabled)').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const file = btn.getAttribute('data-file');
+                const levelName = btn.getAttribute('data-levelname');
+                window.location.href = file;
+            });
+        });
+    }
+
+    // ============================================================
+    // 7. NAVIGATION (NON MODIFIÉ)
+    // ============================================================
+    
+    function goBack() {
+        window.location.href = "../../../../choix_specialite_en.html";
+    }
+    
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+    
+    function toggleTheme() { 
+        document.body.classList.toggle('dark'); 
+    }
+    
+    function resetUnlock() {
+        localStorage.removeItem(UNLOCK_KEY);
+        localStorage.removeItem(UNLOCK_INTER_KEY);
+        localStorage.removeItem(LEVEL1_KEY);
+        localStorage.removeItem(LEVEL2_KEY);
+        console.log("🔄 Data reset");
+        loadScores();
+        renderLevels();
+    }
+    
+    window.resetUnlock = resetUnlock;
+
+    // ============================================================
+    // 8. EXPOSE GLOBAL FUNCTIONS
+    // ============================================================
+
+    window.goBack = goBack;
+    window.goToDashboard = goToDashboard;
+    window.toggleTheme = toggleTheme;
+    window.resetUnlock = resetUnlock;
+    window.stopSpeaking = stopSpeaking;
+    window.playStory = playStory;
+
+    // ================================================================
+    // 9. INITIALIZATION
+    // ================================================================
+    
+    const validationTrouvee = verifierValidationEnAttente();
+
+    if (!validationTrouvee) {
+        loadScores(); 
+        renderLevels();
+        initPopup();
+    }
+
+    // Stop voice on navigation
+    window.addEventListener('beforeunload', () => {
+        stopSpeaking();
+    });
+
+    console.log('🎯 National Order & Councils EN - TTS Capacitor + Web Speech fallback for POPUP only');
+    console.log('✅ Popup speaks automatically with Capacitor TTS!');
+</script>
+</body>
+</html>
