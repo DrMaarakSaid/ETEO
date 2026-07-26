@@ -7,11 +7,6 @@
     <link rel="manifest" href="manifest.json">
     
     <!-- ============================================ -->
-    <!-- =========== SDK TELEGRAM ================== -->
-    <!-- ============================================ -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- ============================================ -->
     <!-- =========== TTS MANAGER ==================== -->
     <!-- ============================================ -->
     <script src="js/tts-manager.js"></script>
@@ -38,7 +33,6 @@
             align-items: center;
             padding: 20px;
             margin: 0;
-            transition: background 0.3s ease;
         }
 
         body.dark {
@@ -58,9 +52,6 @@
             padding: 50px 30px 40px;
             text-align: center;
             backdrop-filter: blur(10px);
-            transition: background 0.3s ease, color 0.3s ease;
-            position: relative;
-            z-index: 1;
         }
 
         body.dark .container {
@@ -139,7 +130,6 @@
             color: #555;
             text-transform: uppercase;
             position: relative;
-            transition: color 0.3s ease;
         }
 
         body.dark .header .subtitle {
@@ -239,7 +229,6 @@
             font-weight: 700;
             color: #2c3e50;
             letter-spacing: 1px;
-            transition: color 0.3s ease;
         }
 
         body.dark .lang-btn .lang-label {
@@ -357,84 +346,7 @@
         }
 
         /* ============================================ */
-        /* =========== 9. SPÉCIALITÉS ================ */
-        /* ============================================ */
-        .specialites-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin: 20px 0 30px;
-        }
-
-        .specialite-btn {
-            background: rgba(33, 150, 243, 0.1);
-            border: 2px solid rgba(33, 150, 243, 0.2);
-            border-radius: 16px;
-            padding: 14px 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-        }
-
-        .specialite-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
-            border-color: #2196F3;
-        }
-
-        .specialite-btn:active {
-            transform: scale(0.95);
-        }
-
-        body.dark .specialite-btn {
-            background: rgba(100, 181, 246, 0.1);
-            border-color: rgba(100, 181, 246, 0.2);
-        }
-
-        .specialite-btn .icon {
-            font-size: 2rem;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .specialite-btn .name {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        body.dark .specialite-btn .name {
-            color: #ecf0f1;
-        }
-
-        .specialite-btn .sub {
-            font-size: 0.55rem;
-            color: #999;
-            display: block;
-            margin-top: 2px;
-        }
-
-        body.dark .specialite-btn .sub {
-            color: #666;
-        }
-
-        /* Couleurs par spécialité */
-        .specialite-btn.endo { border-color: #e91e63; }
-        .specialite-btn.endo:hover { background: rgba(233, 30, 99, 0.1); border-color: #e91e63; }
-        
-        .specialite-btn.implantologie { border-color: #4CAF50; }
-        .specialite-btn.implantologie:hover { background: rgba(76, 175, 80, 0.1); border-color: #4CAF50; }
-        
-        .specialite-btn.esthetique { border-color: #FF9800; }
-        .specialite-btn.esthetique:hover { background: rgba(255, 152, 0, 0.1); border-color: #FF9800; }
-        
-        .specialite-btn.chirurgie { border-color: #9C27B0; }
-        .specialite-btn.chirurgie:hover { background: rgba(156, 39, 176, 0.1); border-color: #9C27B0; }
-
-        /* ============================================ */
-        /* =========== 10. FOOTER ==================== */
+        /* =========== 9. FOOTER ==================== */
         /* ============================================ */
         .footer {
             margin-top: 25px;
@@ -442,7 +354,6 @@
             border-top: 2px solid #e0e0e0;
             font-size: 0.7rem;
             color: #aaa;
-            transition: border-color 0.3s ease;
         }
 
         body.dark .footer {
@@ -454,7 +365,7 @@
         }
 
         /* ============================================ */
-        /* =========== 11. VOICE INDICATOR =========== */
+        /* =========== 10. VOICE INDICATOR =========== */
         /* ============================================ */
         .voice-indicator {
             position: fixed;
@@ -465,7 +376,7 @@
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 10px;
-            z-index: 1000;
+            z-index: 999;
             opacity: 0.8;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
@@ -484,7 +395,7 @@
         }
 
         /* ============================================ */
-        /* =========== 12. TOAST ====================== */
+        /* =========== 11. TOAST ====================== */
         /* ============================================ */
         .toast {
             position: fixed;
@@ -496,13 +407,12 @@
             padding: 12px 28px;
             border-radius: 30px;
             font-size: 0.85rem;
-            z-index: 9999;
+            z-index: 1000;
             opacity: 0;
             transition: opacity 0.4s ease;
             pointer-events: none;
             white-space: nowrap;
             box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-            max-width: 90%;
         }
 
         .toast.show {
@@ -510,7 +420,7 @@
         }
 
         /* ============================================ */
-        /* =========== 13. THEME TOGGLE ============== */
+        /* =========== 12. THEME TOGGLE ============== */
         /* ============================================ */
         .theme-btn {
             position: fixed;
@@ -545,36 +455,7 @@
         }
 
         /* ============================================ */
-        /* =========== 14. TELEGRAM INDICATOR ======== */
-        /* ============================================ */
-        .telegram-indicator {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(33, 150, 243, 0.9);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(33, 150, 243, 0.3);
-            display: none;
-        }
-
-        .telegram-indicator.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ============================================ */
-        /* =========== 15. RESPONSIVE ================ */
+        /* =========== 13. RESPONSIVE ================ */
         /* ============================================ */
         @media (max-width: 520px) {
             .container {
@@ -592,11 +473,6 @@
                 gap: 15px;
             }
 
-            .specialites-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-
             .listen-btn {
                 font-size: 0.75rem;
                 padding: 8px 10px;
@@ -609,24 +485,12 @@
                 top: 15px;
                 right: 15px;
             }
-
-            .telegram-indicator {
-                top: 15px;
-                left: 15px;
-                font-size: 8px;
-                padding: 3px 10px;
-            }
         }
 
         @media (max-width: 400px) {
             .languages-grid {
                 grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
                 gap: 10px;
-            }
-
-            .specialites-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
             }
 
             .header h1 {
@@ -638,22 +502,10 @@
                 font-size: 0.65rem;
                 padding: 6px 8px;
             }
-
-            .specialite-btn .icon {
-                font-size: 1.5rem;
-            }
-            .specialite-btn .name {
-                font-size: 0.6rem;
-            }
         }
     </style>
 </head>
 <body>
-
-<!-- ============================================ -->
-<!-- =========== INDICATEUR TELEGRAM ============ -->
-<!-- ============================================ -->
-<div class="telegram-indicator" id="telegramIndicator">📱 Telegram</div>
 
 <!-- ============================================ -->
 <!-- =========== INDICATEUR VOCAL =============== -->
@@ -751,35 +603,6 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- =========== SPÉCIALITÉS DENTAIRES ========== -->
-    <!-- ============================================ -->
-    <div style="margin: 10px 0 5px; text-align: left;">
-        <span style="font-size: 0.8rem; font-weight: 700; color: #2196F3; text-transform: uppercase; letter-spacing: 1px;">🦷 Spécialités dentaires</span>
-    </div>
-    <div class="specialites-grid">
-        <a href="specialites/endodontie.html" class="specialite-btn endo">
-            <span class="icon">🦷</span>
-            <span class="name">Endodontie</span>
-            <span class="sub">Traitement canalaire</span>
-        </a>
-        <a href="specialites/implantologie.html" class="specialite-btn implantologie">
-            <span class="icon">🔩</span>
-            <span class="name">Implantologie</span>
-            <span class="sub">Implants dentaires</span>
-        </a>
-        <a href="specialites/esthetique.html" class="specialite-btn esthetique">
-            <span class="icon">✨</span>
-            <span class="name">Esthétique</span>
-            <span class="sub">Sourire parfait</span>
-        </a>
-        <a href="specialites/chirurgie.html" class="specialite-btn chirurgie">
-            <span class="icon">🔬</span>
-            <span class="name">Chirurgie</span>
-            <span class="sub">Chirurgie orale</span>
-        </a>
-    </div>
-
-    <!-- ============================================ -->
     <!-- =========== FOOTER ======================== -->
     <!-- ============================================ -->
     <div class="footer">
@@ -795,76 +618,31 @@
 <!-- ============================================ -->
 <script>
     // ============================================
-    // =========== 0. INTÉGRATION TELEGRAM ========
-    // ============================================
-    document.addEventListener("DOMContentLoaded", function() {
-        // Vérifier si l'application s'ouvre bien dans Telegram
-        if (window.Telegram && window.Telegram.WebApp) {
-            const tg = window.Telegram.WebApp;
-            
-            tg.ready();
-            tg.expand();
-            
-            const indicator = document.getElementById('telegramIndicator');
-            indicator.textContent = '📱 Telegram';
-            indicator.classList.add('active');
-            
-            if (tg.colorScheme === 'dark') {
-                document.body.classList.add('dark');
-                document.querySelector('.theme-btn').textContent = '☀️';
-            } else {
-                document.body.classList.remove('dark');
-                document.querySelector('.theme-btn').textContent = '🌙';
-            }
-            
-            const user = tg.initDataUnsafe?.user;
-            if (user) {
-                console.log("👤 Utilisateur Telegram :", user.first_name);
-            }
-            
-            tg.onEvent('themeChanged', function() {
-                if (tg.colorScheme === 'dark') {
-                    document.body.classList.add('dark');
-                    document.querySelector('.theme-btn').textContent = '☀️';
-                } else {
-                    document.body.classList.remove('dark');
-                    document.querySelector('.theme-btn').textContent = '🌙';
-                }
-            });
-            
-            console.log('✅ ETEO intégré à Telegram');
-        } else {
-            console.log('ℹ️ Mode web');
-        }
-        
-        // Initialiser le TTS
-        initTTS();
-        
-        // Déverrouillage audio au premier clic sur la page
-        document.addEventListener('click', function firstClick() {
-            unlockAudio();
-            document.removeEventListener('click', firstClick);
-        }, { once: true });
-    });
-
-    // ============================================
-    // =========== 1. CONFIGURATION ==============
+    // =========== 1. CONFIGURATION DES LANGUES ====
     // ============================================
     const langConfig = {
         fr: {
             message: "Bienvenue sur ETEO, l'application d'apprentissage en ligne. Choisissez le français pour commencer votre inscription.",
+            label: 'français',
+            flag: '🇫🇷',
             toastMessage: '✅ Message lu en français'
         },
         en: {
             message: "Welcome to ETEO, the online learning application. Choose English to start your registration.",
+            label: 'english',
+            flag: '🇬🇧',
             toastMessage: '✅ Message read in English'
         },
         es: {
             message: "Bienvenido a ETEO, la aplicación de aprendizaje en línea. Elige español para comenzar tu registro.",
+            label: 'espagnol',
+            flag: '🇪🇸',
             toastMessage: '✅ Mensaje leído en español'
         },
         ru: {
             message: "Добро пожаловать в ETEO, приложение для онлайн-обучения. Выберите русский язык, чтобы начать регистрацию.",
+            label: 'russe',
+            flag: '🇷🇺',
             toastMessage: '✅ Сообщение прочитано на русском'
         }
     };
@@ -900,69 +678,16 @@
     }
 
     // ============================================
-    // =========== 4. TTS ========================
-    // ============================================
-    function initTTS() {
-        if (window.ETEO && window.ETEO.TTS) {
-            window.ETEO.TTS.init();
-            
-            const indicator = document.getElementById('voiceIndicator');
-            if (window.ETEO.TTS.engine === 'capacitor') {
-                indicator.textContent = '🎙️ Capacitor (Natife)';
-                indicator.className = 'voice-indicator capacitor';
-            } else if (window.ETEO.TTS.engine === 'web') {
-                indicator.textContent = '🎙️ Web Speech';
-                indicator.className = 'voice-indicator web';
-            } else {
-                indicator.textContent = '❌ Aucune voix';
-                indicator.className = 'voice-indicator error';
-            }
-        }
-    }
-
-    // ============================================
-    // =========== 5. DÉVERROUILLAGE AUDIO =======
-    // ============================================
-    let audioUnlocked = false;
-
-    function unlockAudio() {
-        if (audioUnlocked) return;
-        
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.frequency.value = 440;
-            gainNode.gain.value = 0.001;
-            oscillator.start();
-            oscillator.stop(0.01);
-            
-            audioUnlocked = true;
-            console.log('🔓 Audio débloqué');
-        } catch (e) {
-            console.log('⚠️ Audio déjà actif');
-        }
-    }
-
-    // ============================================
-    // =========== 6. BOUTON ÉCOUTER =============
+    // =========== 4. BOUTON ÉCOUTER =============
     // ============================================
     function listenLanguage(lang, event) {
         const btn = event ? event.currentTarget : null;
         
+        // Vérifier que le TTS est disponible
         if (!window.ETEO || !window.ETEO.TTS) {
             showToast('❌ Système vocal non disponible', 3000);
             return;
         }
-
-        // Déverrouiller l'audio à chaque lecture
-        unlockAudio();
 
         const config = langConfig[lang];
         if (!config) {
@@ -970,20 +695,18 @@
             return;
         }
 
+        // Désactiver le bouton pendant la lecture
         if (btn) {
             btn.disabled = true;
             btn.classList.add('listening');
+            const originalText = btn.innerHTML;
             btn.innerHTML = '🔊 Lecture...';
         }
 
-        const langMap = {
-            fr: 'fr-FR',
-            en: 'en-US',
-            es: 'es-ES',
-            ru: 'ru-RU'
-        };
-
-        window.ETEO.TTS.speak(config.message, langMap[lang])
+        // Lire le message
+        window.ETEO.TTS.speak(config.message, lang === 'fr' ? 'fr-FR' : 
+                                       lang === 'en' ? 'en-US' :
+                                       lang === 'es' ? 'es-ES' : 'ru-RU')
             .then(() => {
                 if (btn) {
                     btn.disabled = false;
@@ -995,7 +718,7 @@
                 showToast(config.toastMessage, 2000);
             })
             .catch((error) => {
-                console.error('Erreur TTS:', error);
+                console.error('Erreur lors de la lecture :', error);
                 if (btn) {
                     btn.disabled = false;
                     btn.classList.remove('listening');
@@ -1003,9 +726,10 @@
                                     lang === 'en' ? '🔊 Listen' :
                                     lang === 'es' ? '🔊 Escuchar' : '🔊 Слушать';
                 }
-                showToast('❌ Erreur: ' + (error.message || 'Lecture impossible'), 3000);
+                showToast('❌ Erreur lors de la lecture', 3000);
             });
 
+        // Fallback
         setTimeout(() => {
             if (btn && btn.disabled) {
                 btn.disabled = false;
@@ -1018,7 +742,7 @@
     }
 
     // ============================================
-    // =========== 7. REDIRECTION ================
+    // =========== 5. REDIRECTION ================
     // ============================================
     function redirectToLanguage(lang) {
         const target = pages[lang];
@@ -1027,18 +751,21 @@
             return;
         }
 
+        // Désactiver tous les boutons de langue
         const langBtns = document.querySelectorAll('.lang-btn');
         langBtns.forEach(btn => {
             btn.style.opacity = '0.5';
             btn.style.pointerEvents = 'none';
         });
 
+        // Désactiver tous les boutons Écouter
         const listenBtns = document.querySelectorAll('.listen-btn');
         listenBtns.forEach(btn => {
             btn.disabled = true;
             btn.style.opacity = '0.5';
         });
 
+        // Feedback
         const langNames = {
             fr: 'français',
             en: 'anglais',
@@ -1047,24 +774,52 @@
         };
         showToast(`⏳ Redirection vers ${langNames[lang]}...`, 2000);
 
+        // Redirection UNIQUEMENT (SANS voix)
         setTimeout(() => {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.close();
-            }
             window.location.href = target;
         }, 1500);
     }
 
     // ============================================
-    // =========== 8. INITIALISATION =============
+    // =========== 6. INITIALISATION =============
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
+        // --- THÈME ---
         if (localStorage.getItem('eteo_theme') === 'dark') {
             document.body.classList.add('dark');
             document.querySelector('.theme-btn').textContent = '☀️';
         }
+
+        // --- INITIALISATION DU TTS MANAGER (AUDIT SEULEMENT) ---
+        if (window.ETEO && window.ETEO.TTS) {
+            window.ETEO.TTS.init();
+            
+            const indicator = document.getElementById('voiceIndicator');
+            if (window.ETEO.TTS.engine === 'capacitor') {
+                indicator.textContent = '🎙️ Capacitor (Natife)';
+                indicator.className = 'voice-indicator capacitor';
+                console.log('✅ VOIX NATIVE CAPACITOR DÉTECTÉE !');
+            } else if (window.ETEO.TTS.engine === 'web') {
+                indicator.textContent = '🎙️ Web Speech (Secours)';
+                indicator.className = 'voice-indicator web';
+                console.log('⚠️ Secours Web Speech activé');
+            } else {
+                indicator.textContent = '❌ Aucune voix';
+                indicator.className = 'voice-indicator error';
+                console.error('❌ Aucun moteur TTS disponible');
+            }
+        } else {
+            console.error('❌ TTS Manager non chargé !');
+            const indicator = document.getElementById('voiceIndicator');
+            indicator.textContent = '❌ Erreur TTS';
+            indicator.className = 'voice-indicator error';
+        }
+
         console.log('🚀 ETEO Accueil prêt !');
+        console.log('🔈 Cliquez sur les boutons "Écouter" pour entendre les messages.');
     });
+
+    // ⚠️ PAS DE VOIX AUTOMATIQUE - L'utilisateur décide !
 </script>
 </body>
 </html>
