@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Public Health - Beginner 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .unlock-badge {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .locked-badge {
+            background: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ AI waiting</div>
+
+<div class="container" id="app"></div>
+
+<!-- Ranking Modal -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 YOUR POSITION</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Loading ranking...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURATION FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID FOR THIS QUIZ
+    // ============================================
+    const LEVEL_ID = "sante_publique_v1_debutant2_en";
+
+
+    // ============================================
+    // =========== 1. VOICE SYSTEM ===============
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ AI activated";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. USER INFO ==================
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "FR"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anonymous" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>🏛️ Public Health - Beginner Level 2</h1><p>Welcome Doctor!</p></div>
+                <div class="input-group">
+                    <label>👤 Your name (optional):</label>
+                    <input type="text" id="userName" placeholder="Ex: Dr. Smith" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Your country (required):</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="MA">🇲🇦 Morocco</option>
+                        <option value="CH">🇨🇭 Switzerland</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="BE">🇧🇪 Belgium</option>
+                        <option value="SN">🇸🇳 Senegal</option>
+                        <option value="CI">🇨🇮 Ivory Coast</option>
+                        <option value="CM">🇨🇲 Cameroon</option>
+                        <option value="DZ">🇩🇿 Algeria</option>
+                        <option value="TN">🇹🇳 Tunisia</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="ES">🇪🇸 Spain</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turkiye</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">or</div>
+                    <input type="text" id="otherCountry" placeholder="Enter your country (e.g., Brazil, Japan...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Start Quiz</button>
+                <div class="note">
+                    ⚠️ Rule: 60% minimum (225/375 points) to unlock <strong>Intermediate Level 1</strong>.<br>
+                    🎁 Speed bonus: +5 points if you answer before the timer ends.<br>
+                    📊 Maximum possible score with bonus: 375 points (25 questions × 15 points)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. FIREBASE SCORE =============
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score sent to Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Firebase error:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. QUESTIONS (25) =============
+    // ============================================
+ const questions = [
+    {
+        question: "Dr. Hafssi is a member of the ONMD. According to Law 07-05, what is the status of the National Order of Dental Surgeons?",
+        options: [
+            "A public body attached to the Ministry of Health",
+            "A private law body entrusted with a public service mission",
+            "A non-profit professional association",
+            "A trade union defending the interests of liberal dentists"
+        ],
+        correct: 1,
+        explanation: "The ONMD is a private law body entrusted with a public service mission, with legal personality and governed by Law 07-05 promulgated by the Dahir of April 17, 2007."
+    },
+    {
+        question: "According to Law 07-05, are all dentists practicing in Morocco mandatory members of the ONMD?",
+        options: [
+            "No, membership in the Order is optional",
+            "Yes, the Order includes all dentists practicing in the private sector",
+            "Yes, but only dentists practicing in the public sector",
+            "No, only Moroccan nationality dentists are concerned"
+        ],
+        correct: 1,
+        explanation: "Article 1 of Law 07-05 provides that the ONMD includes all dental surgeons practicing their profession in the private sector in Morocco."
+    },
+    {
+        question: "Dr. Fadli is registered on the ONMD roll. According to a study on dentists' perception, which aspect of the Order's roll management received the highest satisfaction?",
+        options: [
+            "Control of professional plaque wording",
+            "Review of collaboration contracts",
+            "Facilitation of registration on the Order's roll",
+            "Organization of on-call duty"
+        ],
+        correct: 2,
+        explanation: "A study conducted in 2016-2017 showed that 67.5% of dentists were satisfied with the facilitation of registration on the Order's roll, compared to only 21.9% for plaque control."
+    },
+    {
+        question: "According to the same study, which aspect of the ONMD's regulation is considered insufficient by the majority of dentists?",
+        options: [
+            "Issuance of replacement authorizations",
+            "Control of professional plaque wording",
+            "Review of national diplomas",
+            "Organization of on-call duty"
+        ],
+        correct: 1,
+        explanation: "48.2% of dentists surveyed expressed dissatisfaction with the control of professional plaque wording, making it the most criticized point."
+    },
+    {
+        question: "Dr. Hafssi is concerned about illegal practice. According to the ONMD, how many illegal dentists are practicing in Morocco?",
+        options: [
+            "Approximately 500",
+            "Approximately 1,000",
+            "More than 3,300",
+            "More than 10,000"
+        ],
+        correct: 2,
+        explanation: "According to the ONMD, more than 3,300 fake dental surgeons are practicing illegally in Morocco, daily endangering citizens' lives."
+    },
+    {
+        question: "Dr. Fadli is alerted by the practices of certain 'dental prosthesis manufacturers'. According to the ONMD, what is the main problem?",
+        options: [
+            "They manufacture poor quality prostheses",
+            "They receive patients for pseudo-medical treatments outside their authorization",
+            "They sell prostheses at too high prices",
+            "They do not declare their fiscal income"
+        ],
+        correct: 1,
+        explanation: "The ONMD alerts about 'dental prosthesis manufacturers' who receive patients for pseudo-medical treatments carried out in flagrant illegality, outside the scope of their authorization which is limited to manufacturing on prescription."
+    },
+    {
+        question: "According to the ONMD, what are the consequences of illegal practices in dental medicine?",
+        options: [
+            "Only inadequate quality of care",
+            "Deaths, permanent disabilities and infectious diseases",
+            "Higher costs for patients",
+            "Simple unfair competition for legal dentists"
+        ],
+        correct: 1,
+        explanation: "The ONMD denounces dramatic incidents: deaths due to the use of falsified or expired anesthetic products, random overdoses, permanent disabilities or infectious diseases contracted in deplorable hygiene conditions."
+    },
+    {
+        question: "Dr. Hafssi is wondering about Bill 25-14. According to the ONMD, what is the main objective of this text?",
+        options: [
+            "Increase dental procedure fees",
+            "Protect legal and regulated practice and fight against usurpers",
+            "Create new dental faculties",
+            "Modify the conditions for registration with the Order"
+        ],
+        correct: 1,
+        explanation: "Bill No. 25-14 aims to protect the legal and regulated practice of the professions of preparers and handlers of health products, including that of dental prosthetists, to remove usurpers."
+    },
+    {
+        question: "According to the ONMD, why are dental charlatans leading a campaign against Bill 25-14?",
+        options: [
+            "To obtain better remuneration",
+            "To create confusion and attempt to amend the text",
+            "To protest against working conditions",
+            "To request academic training"
+        ],
+        correct: 1,
+        explanation: "The ONMD denounces a disinformation campaign by charlatans, aimed at creating confusion among citizens and parliamentarians to attempt to amend the bill."
+    },
+    {
+        question: "Dr. Fadli has learned that several regions of Morocco face a shortage of dentists. What solution has been put in place to remedy this?",
+        options: [
+            "Recruitment of foreign dentists only",
+            "Contracting of private sector dentists via Decree 2.12.507",
+            "Closure of practices in rural areas",
+            "Increase in consultation fees"
+        ],
+        correct: 1,
+        explanation: "Decree No. 2.12.507 allows the Ministry of Health to use private sector dentists to work part-time in public hospitals, particularly for on-call duty."
+    },
+    {
+        question: "According to Decree 2.12.507, what is the monthly remuneration ceiling for a contracted dentist?",
+        options: [
+            "5,000 DH",
+            "7,143 DH",
+            "10,000 DH",
+            "15,000 DH"
+        ],
+        correct: 1,
+        explanation: "Decree 2.12.507 sets the maximum gross monthly remuneration at 7,143 DH, payable at term within the limit of 11 months per year."
+    },
+    {
+        question: "Dr. Hafssi wishes to sign an agreement. According to Article 6 of Decree 2.12.507, what are the eligibility conditions?",
+        options: [
+            "Be under 30 years old",
+            "Be registered with the Order and not have been subject to disciplinary sanctions",
+            "Practice exclusively in rural areas",
+            "Have more than 10 years of experience"
+        ],
+        correct: 1,
+        explanation: "Article 6 of Decree 2.12.507 stipulates that candidates must be registered with the professional order, not have been subject to disciplinary sanctions, and not have been convicted of crimes against persons or offenses against public morality."
+    },
+    {
+        question: "According to Decree 2.12.507, what is the maximum duration of a standard agreement?",
+        options: [
+            "6 months",
+            "11 months, tacitly renewable 3 times",
+            "2 years",
+            "5 years"
+        ],
+        correct: 1,
+        explanation: "In accordance with Article 5 of Decree 2.12.507, the agreement is concluded for a maximum duration of eleven months, tacitly renewable three times at most."
+    },
+    {
+        question: "Dr. Fadli is contracted and works at the hospital. According to Decree 2.12.507, to which authority is he subject?",
+        options: [
+            "Only to the National Order of Dental Surgeons",
+            "To the authority of the hierarchical head of the public health establishment",
+            "To no authority, he is independent",
+            "To the Ministry of Commerce"
+        ],
+        correct: 1,
+        explanation: "Article 9 of Decree 2.12.507 specifies that the contracted dentist is subject to the authority of the hierarchical head of the health establishment."
+    },
+    {
+        question: "According to Decree 2.12.507, what are the obligations of a contracted dentist regarding responsibility?",
+        options: [
+            "They are not responsible for their acts",
+            "They direct and supervise the work of interns placed under their authority",
+            "Responsibility lies solely with the hospital",
+            "They are exempt from any responsibility"
+        ],
+        correct: 1,
+        explanation: "Article 9 of Decree 2.12.507 provides that contracted dentists direct and supervise the work of interns and staff placed directly under their authority."
+    },
+    {
+        question: "According to the ONMD, what is the impact of illegal practice on Morocco's international reputation?",
+        options: [
+            "No impact, the phenomenon is marginal",
+            "Some foreign embassies have issued alerts to their nationals",
+            "Morocco is praised for its fight against this phenomenon",
+            "Tourists are attracted by low prices"
+        ],
+        correct: 1,
+        explanation: "Some foreign embassies have issued official alerts to their nationals, warning them against the risks of receiving care in unaccredited establishments in Morocco."
+    },
+    {
+        question: "Dr. Hafssi is interested in the fight against illegal practice. What type of premises is particularly targeted by the ONMD?",
+        options: [
+            "Dental practices in rural areas",
+            "Establishments known as 'dental prosthesis manufacturers'",
+            "Private accredited dental clinics",
+            "Dental departments of public hospitals"
+        ],
+        correct: 1,
+        explanation: "The ONMD alerts about premises known as 'dental prosthesis manufacturers' where citizens are received for pseudo-medical treatments carried out in flagrant illegality."
+    },
+    {
+        question: "According to demographic data, what is the disparity in the distribution of dentists in the public sector in Morocco?",
+        options: [
+            "It is perfectly balanced",
+            "It varies from 1 dentist for 12,631 to 1 for 728,634 inhabitants depending on the region",
+            "All regions have a similar ratio",
+            "Rural areas are better served than urban areas"
+        ],
+        correct: 1,
+        explanation: "The proportion of public dentists varies considerably, ranging from 1 dentist for 12,631 inhabitants in some regions to 1 dentist for 728,634 inhabitants in others."
+    },
+    {
+        question: "According to the ONMD, what is the impact of illegal practices on public health?",
+        options: [
+            "A minimal risk for patients",
+            "A direct threat to citizens' health and the security of the national health system",
+            "A simple problem of economic competition",
+            "An exclusively ethical issue"
+        ],
+        correct: 1,
+        explanation: "The ONMD considers these practices as a 'direct threat to citizens' health and the security of the national health system', calling for urgent action."
+    },
+    {
+        question: "According to the ONMD, what is the role of dental prosthetists within the legal framework?",
+        options: [
+            "They can receive patients for consultations",
+            "Their authorization is limited to manufacturing prostheses on prescription from the dentist",
+            "They can perform medical acts in their laboratory",
+            "They are authorized to place dental implants"
+        ],
+        correct: 1,
+        explanation: "The ONMD reminds that the authorization of dental prosthetists is limited to manufacturing prostheses on prescription from the dental surgeon, without receiving patients or performing medical acts."
+    },
+    {
+        question: "Dr. Fadli wishes to know the opinion of the FDI on illegal practice in Morocco. What is its position?",
+        options: [
+            "It supports the charlatans in their approach",
+            "It has expressed its indignation and supports the ONMD's action",
+            "It is neutral on the issue",
+            "It has not taken a position"
+        ],
+        correct: 1,
+        explanation: "The FDI, which brings together 900,000 dental surgeons in 137 countries, expressed its 'indignation' in a letter to the ONMD president, supporting the fight against illegal practice."
+    },
+    {
+        question: "According to a study on dentists' perception, what percentage of them consider it necessary to establish permanent control commissions?",
+        options: [
+            "50 %",
+            "76.3 %",
+            "21.9 %",
+            "67.5 %"
+        ],
+        correct: 1,
+        explanation: "The study showed that 76.3% of dentists surveyed considered it necessary to establish permanent control commissions to fight against illegal practices."
+    },
+    {
+        question: "According to Law 07-05, what are the main missions of the ONMD?",
+        options: [
+            "Only the management of the Order's roll",
+            "Regulation, complaint management, fight against illegal practice, continuing education, and public-private partnership",
+            "Setting dental procedure fees",
+            "Management of dental mutual funds"
+        ],
+        correct: 1,
+        explanation: "The missions of the ONMD described in Article 13 of Law 07-05 cover roll management, regulation, complaints, fight against illegal practice, continuing education, public-private partnership, and social welfare."
+    },
+    {
+        question: "Dr. Hafssi is wondering about Morocco's role in dental health in Africa. What is the Kingdom's ambition according to the ONMD?",
+        options: [
+            "To become a reference medical hub in Africa",
+            "To limit itself to training dentists for the local market",
+            "To reduce the number of dental faculties",
+            "To limit access to dental care"
+        ],
+        correct: 0,
+        explanation: "The ONMD emphasizes that Morocco aims to become a reference medical hub in Africa, which requires fighting against illegal practices that harm this image."
+    },
+    {
+        question: "According to Decree 2.12.507, what can lead to the termination of a contracted dentist's agreement?",
+        options: [
+            "A simple request from the dentist without notice",
+            "An absence for three work sessions without valid reason",
+            "A disagreement with working hours",
+            "A request from the ministry at any time"
+        ],
+        correct: 1,
+        explanation: "Article 10 of Decree 2.12.507 provides that any absence for three work sessions, without prior information and without valid reason, is grounds for termination of the agreement by the administration without notice."
+    },
+    {
+        question: "According to the ONMD, what is the link between major international events and the fight against illegal practice?",
+        options: [
+            "No link, the events are not concerned",
+            "Morocco is preparing to host tourists, which requires reinforced health vigilance",
+            "Events only attract legal dentists",
+            "Illegal practice is only a local problem"
+        ],
+        correct: 1,
+        explanation: "The ONMD emphasizes that Morocco is preparing to host major tourist and sporting international events, making reinforced vigilance essential to guarantee health safety standards."
+    }
+];
+    // ============================================
+    // =========== SCORE MAX CORRIGÉ =============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10; // 250 points (sans bonus)
+    const MAX_SCORE_WITH_BONUS = questions.length * 15; // 375 points (avec bonus)
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("sante_publique_v1_debutant2_en", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== UNLOCK INTERMEDIATE LEVEL 1 ====
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("sante_publique_v1_intermediaire1_en_unlocked", "true");
+            localStorage.setItem("sante_publique_v1_debutant2_en_score", percentage.toFixed(1));
+            console.log("✅ Intermediate Level 1 UNLOCKED! Score: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("sante_publique_v1_intermediaire1_en_unlocked", "false");
+            console.log("❌ Intermediate Level 1 LOCKED. Score: " + percentage.toFixed(1) + "% (min " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 SAUVEGARDER LA VALIDATION POUR PROGRESSION.HTML (CORRIGÉ)
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            // 1. Sauvegarder dans eteo_validation
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            // 2. 🔥 AJOUT : Sauvegarder dans eteo_progression
+            const progressionData = JSON.parse(localStorage.getItem('eteo_progression') || '{}');
+            const key = specialite + '_' + niveau;
+            progressionData[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progressionData));
+            
+            console.log('✅ Validation sauvegardée pour progression.html');
+        }
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("Time's up! Moving to next question.", "en-US");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Question ${currentQuestion + 1}: ${questions[currentQuestion].question}`, "en-US");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>🏛️ Public Health - Beginner Level 2</h1><p>Question ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explanation:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Time left: <span id="timer">${timeLeft}</span> seconds</div>
+                <div class="score">🏆 Current score: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandon</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Next →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`Correct! +${pointsEarned} points.`, "en-US");
+        } else {
+            speak(`Wrong answer. The correct answer was: ${shuffledOptions[currentCorrectIndex]}.`, "en-US");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Correct answer: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Current score: ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Please select an answer.", "en-US"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 20;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVIGATION =====================
+    // ============================================
+    
+    function goToMenu() {
+        // 🔥 AVEC TIMESTAMP POUR EVITER LE CACHE
+        window.location.href = "menu_en.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz CORRIGÉ ================
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        // === VERSION BETA : Le niveau suivant est verrouillé ===
+        // Le déblocage du niveau Intermédiaire 1 est désactivé en BETA.
+        // Les utilisateurs pourront débloquer les niveaux supérieurs dans la version finale (6 mois).
+        // const isUnlocked = unlockLevel3(percentage); // DÉSACTIVÉ EN BETA
+        const isUnlocked = false; // Toujours false en BETA pour les niveaux > Débutant 2
+        // =================================
+        
+        // 🔥 Sauvegarder la validation pour progression.html - NOM CORRIGÉ
+        sauvegarderValidation('Public Health', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Quiz completed!</h1>
+                <div class="final-score">Score: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Percentage: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${percentage >= 60 ?
+                        `<div class="unlock-badge">✅ Beginner Level 2 validated! 🎊</div>
+                         <div class="locked-badge">🔒 BETA: The next levels (Intermediate & Expert) will arrive after 6 months of evaluation.</div>` :
+                        `<div class="locked-badge">⚠️ Insufficient score (minimum 60% required to validate the level)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${percentage >= 60 ?
+                        '📚 You have validated both Beginner levels. Thank you for your participation!' :
+                        `💪 You need ${(60 - percentage).toFixed(1)}% more to validate the level. Try again!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Share my score</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Give feedback</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Main menu</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 World ranking</button>
+                </div>
+            </div>
+        `;
+        
+        if (percentage >= 60) {
+            speak(`Congratulations! You validated Beginner Level 2 with a score of ${percentage.toFixed(1)}%. The rest will be available in the final version.`, "en-US");
+            
+            // Popup BETA après 2 secondes
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Your score is ${percentage.toFixed(1)}%. You need 60% to validate the level.`, "en-US");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== POPUP RANKING MODAL ============
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No scores recorded for this level yet.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Your ranking</div>
+                        <div class="rank-number">${userRank}e position</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} points (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 You are not yet in the ranking for this level</div>
+                        <div>Take the quiz to appear!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Public Health Beginner 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anonymous"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No scores for this level</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Firestore error:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Unable to load ranking.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Unknown error'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== BETA EVALUATION POPUP ==========
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 30px; width: 90%; max-width: 500px; padding: 35px 25px; text-align: center; animation: slideUp 0.3s ease; position: relative;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉🏆🎉</div>
+                <h2 style="color: #667eea; margin-bottom: 5px;">Congratulations ${userName}!</h2>
+                <p style="margin-bottom: 20px; font-size: 1rem;">
+                    You have successfully completed <strong>both Beginner levels</strong>.<br>
+                    What an impressive journey!
+                </p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Rate the BETA version 🌟</p>
+                    <div id="starRating" style="display: flex; justify-content: center; gap: 12px; font-size: 3rem; cursor: pointer;">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p id="ratingMessage" style="margin-top: 10px; font-size: 0.85rem; color: #888;"></p>
+                </div>
+                
+                <div style="background: #f0f8ff; padding: 15px; border-radius: 20px; margin: 15px 0; border-left: 4px solid #667eea;">
+                    <p style="color: #ff5722; font-size: 0.95rem; margin: 0;">
+                        🚀 <strong>Intermediate & Expert</strong> will arrive after <strong>6 months of evaluation</strong> of this Beta version.<br><br>
+                        Your feedback helps us improve ETEO. Thank you for your trust, <strong>${userName}</strong>!
+                    </p>
+                </div>
+                
+                <button onclick="closeBetaPopup()" style="background: #4caf50; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 15px;">
+                    Back to menu
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ Thank you for your rating! Your feedback has been recorded.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'en',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Beta evaluation sent!");
+        } catch (error) {
+            console.error("❌ Beta evaluation error:", error);
+        }
+    }
+
+    // ============================================
+    // =========== OTHER FUNCTIONS ================
+    // ============================================
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("sante_publique_v1_debutant2_en", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        // BETA : le niveau suivant est verrouillé
+        // unlockLevel3(partialPercentage); // Désactivé en BETA
+
+        // 🔥 Sauvegarder la validation même en cas d'abandon - NOM CORRIGÉ
+        sauvegarderValidation('Public Health', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Quiz abandoned</h1><div class="final-score">Partial score: ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Percentage: ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 This score has been recorded in the ranking.</div><button class="menu-btn" onclick="goToMenu()">🏠 Back to menu</button></div>`;
+        speak(`Quiz abandoned. Partial score: ${score} out of ${MAX_SCORE_WITH_BONUS}.`, "en-US");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Public Health Beginner 2\nMy score: ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\nChallenge me on ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Score copied to clipboard!");
+            }).catch(() => {
+                alert("📋 To share, copy this text:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    document.body.addEventListener('click', function firstClick() { 
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>

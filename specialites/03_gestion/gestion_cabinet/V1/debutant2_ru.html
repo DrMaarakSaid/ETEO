@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ЭТЕО - Управление кабинетом - Начинающий 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ ИИ ожидает</div>
+
+<div class="container" id="app"></div>
+
+<!-- Модальное окно рейтинга -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 ВАША ПОЗИЦИЯ</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Загрузка рейтинга...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== КОНФИГУРАЦИЯ FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID ДЛЯ ЭТОЙ ВИКТОРИНЫ
+    // ============================================
+    const LEVEL_ID = "gestion_cabinet_v1_debutant2_fr";
+
+
+    // ============================================
+    // =========== 1. ГОЛОСОВАЯ СИСТЕМА ==========
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'ru-RU';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ ИИ активирован";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ =
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "FR"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Аноним" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>📊 Управление кабинетом - Начинающий Уровень 2</h1><p>Добро пожаловать, Доктор!</p></div>
+                <div class="input-group">
+                    <label>👤 Ваше имя (необязательно):</label>
+                    <input type="text" id="userName" placeholder="Напр: Др. Иванов" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Ваша страна (обязательно):</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 Франция</option>
+                        <option value="MA">🇲🇦 Марокко</option>
+                        <option value="CH">🇨🇭 Швейцария</option>
+                        <option value="CA">🇨🇦 Канада</option>
+                        <option value="BE">🇧🇪 Бельгия</option>
+                        <option value="SN">🇸🇳 Сенегал</option>
+                        <option value="CI">🇨🇮 Кот-д'Ивуар</option>
+                        <option value="CM">🇨🇲 Камерун</option>
+                        <option value="DZ">🇩🇿 Алжир</option>
+                        <option value="TN">🇹🇳 Тунис</option>
+                        <option value="US">🇺🇸 США</option>
+                        <option value="GB">🇬🇧 Великобритания</option>
+                        <option value="DE">🇩🇪 Германия</option>
+                        <option value="ES">🇪🇸 Испания</option>
+                        <option value="IT">🇮🇹 Италия</option>
+                        <option value="PT">🇵🇹 Португалия</option>
+                        <option value="TR">🇹🇷 Турция</option>
+                        <option value="RU">🇷🇺 Россия</option>
+                        <option value="UA">🇺🇦 Украина</option>
+                        <option value="KZ">🇰🇿 Казахстан</option>
+                        <option value="BY">🇧🇾 Беларусь</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">или</div>
+                    <input type="text" id="otherCountry" placeholder="Введите вашу страну (напр: Бразилия, Япония...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Начать викторину</button>
+                <div class="note">
+                    ⚠️ Правило: минимум 60% (225/375 баллов) для открытия уровня <strong>Средний 1</strong>.<br>
+                    🎁 Бонус за скорость: +5 баллов, если ответите до окончания таймера.<br>
+                    📊 Максимально возможный результат с бонусом: 375 баллов (25 вопросов × 15 баллов)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ОТПРАВКА БАЛЛОВ В FIREBASE =
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Баллы отправлены в Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Ошибка Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. ВОПРОСЫ (25) ===============
+    // ============================================
+ const questions = [
+    {
+        question: "У др. Шуми есть ассистентка по срочному трудовому договору на 8 месяцев. Она беременна и хочет взять отпуск по беременности и родам. Согласно статьям 32 и 159, прекратится ли действие договора ассистентки по истечении срока?",
+        options: [
+            "Нет, договор автоматически приостанавливается на время отпуска по беременности",
+            "Да, срочный договор прекращается по истечении срока, даже во время отпуска по беременности",
+            "Да, но она может получить компенсационную выплату",
+            "Нет, срочный договор автоматически преобразуется в бессрочный"
+        ],
+        correct: 1,
+        explanation: "Статья 159, последний абзац, предусматривает, что защитные положения для беременной женщины не препятствуют истечению срока срочного трудового договора."
+    },
+    {
+        question: "Др. Фарук хочет уволить свою ассистентку после 18 месяцев работы по экономическим причинам. Согласно статье 52, имеет ли ассистентка право на выходное пособие?",
+        options: [
+            "Нет, так как она не достигла 2 лет стажа",
+            "Да, так как она проработала не менее 6 месяцев",
+            "Да, но только если увольнение по вине работника",
+            "Нет, экономические причины исключают выходное пособие"
+        ],
+        correct: 1,
+        explanation: "Статья 52 предусматривает, что работник по бессрочному трудовому договору имеет право на выходное пособие в случае увольнения после шести месяцев работы в одном предприятии."
+    },
+    {
+        question: "Др. Шуми платит своей ассистентке помесячно. Согласно статье 13, если он хочет прекратить испытательный срок, какой срок предупреждения он должен соблюсти?",
+        options: [
+            "Никакого, прекращение свободно",
+            "Срок предупреждения 2 дня",
+            "Срок предупреждения 8 дней",
+            "Срок предупреждения 15 дней"
+        ],
+        correct: 2,
+        explanation: "Статья 13 гласит, что если работник получает помесячную оплату, требуется предупреждение за восемь дней до прекращения испытательного срока."
+    },
+    {
+        question: "У др. Фарука есть ассистентка по бессрочному договору. Он хочет отстранить ее от работы в дисциплинарном порядке на 5 дней. Согласно статье 37, разрешено ли это?",
+        options: [
+            "Да, без ограничения по сроку",
+            "Да, но отстранение не может превышать 8 дней",
+            "Нет, отстранение запрещено",
+            "Да, но только с согласия работника"
+        ],
+        correct: 1,
+        explanation: "Статья 37 предусматривает отстранение как дисциплинарное взыскание на срок не более восьми дней."
+    },
+    {
+        question: "Др. Шуми рассматривает увольнение своей ассистентки за грубый проступок. Согласно статье 61, какие пособия он должен ей выплатить?",
+        options: [
+            "Никаких пособий, увольнение за грубый проступок освобождает от всех выплат",
+            "Только выходное пособие",
+            "Только компенсацию за неиспользованный отпуск",
+            "Предупреждение и выходное пособие"
+        ],
+        correct: 0,
+        explanation: "Статья 61 предусматривает, что в случае грубого проступка работник может быть уволен без предупреждения, выходного пособия и выплаты компенсации."
+    },
+    {
+        question: "Др. Фарук, работодатель с 12 сотрудниками, хочет изменить внутренний трудовой регламент. Согласно статье 138, какова процедура?",
+        options: [
+            "Он может изменить его свободно без формальностей",
+            "Он должен сообщить его делегатам персонала и представить на утверждение министерства",
+            "Он должен вынести его на голосование сотрудников",
+            "Он должен просто вывесить его в кабинете"
+        ],
+        correct: 1,
+        explanation: "Статья 138 обязывает работодателя сообщить внутренний трудовой регламент делегатам персонала перед представлением на утверждение государственному органу по труду."
+    },
+    {
+        question: "Согласно статье 138, каков срок для составления внутреннего трудового регламента после открытия кабинета с не менее чем 10 сотрудниками?",
+        options: [
+            "6 месяцев",
+            "1 год",
+            "2 года",
+            "3 года"
+        ],
+        correct: 2,
+        explanation: "Статья 138 предусматривает, что любой работодатель, постоянно имеющий не менее десяти сотрудников, обязан в течение двух лет после открытия составить внутренний трудовой регламент."
+    },
+    {
+        question: "У др. Шуми есть ассистентка, которая работает 44 часа в неделю. Она выполняет 4 часа сверхурочной работы. Согласно статье 201, по какой ставке оплачиваются эти часы?",
+        options: [
+            "15%",
+            "25%",
+            "50%",
+            "75%"
+        ],
+        correct: 1,
+        explanation: "Статья 201 предусматривает надбавку 25% за сверхурочные часы, выполняемые с 6 до 21 часа в несельскохозяйственных видах деятельности."
+    },
+    {
+        question: "У др. Фарука есть ассистентка, которая берет ежегодный отпуск. Согласно статье 247, если кабинет полностью закрывается во время отпусков, что должен сделать работодатель?",
+        options: [
+            "Ничего не платить сотрудникам",
+            "Выплатить отпускные всем сотрудникам независимо от стажа",
+            "Выплатить отпускные только сотрудникам со стажем более 6 месяцев",
+            "Закрыть без выплат"
+        ],
+        correct: 1,
+        explanation: "Статья 247 предусматривает, что все сотрудники получают компенсацию за оплачиваемый ежегодный отпуск, соответствующую периоду закрытия, независимо от продолжительности их работы на день закрытия."
+    },
+    {
+        question: "Др. Шуми, работодатель с 15 сотрудниками, хочет узнать свои обязанности в отношении делегатов персонала. Согласно статье 433, сколько делегатов он должен иметь?",
+        options: [
+            "1 основной и 1 заместитель",
+            "2 основных и 2 заместителя",
+            "3 основных и 3 заместителя",
+            "5 основных и 5 заместителей"
+        ],
+        correct: 0,
+        explanation: "Статья 433 предусматривает, что на предприятии с численностью от 10 до 25 сотрудников должны избираться один основной и один заместитель делегата."
+    },
+    {
+        question: "У др. Фарука есть сотрудник, который постоянно жалуется на шум. Согласно статье 281, какова обязанность работодателя в отношении условий труда?",
+        options: [
+            "Ничего, шум неизбежен",
+            "Обеспечить, чтобы помещения соответствовали условиям гигиены и безопасности",
+            "Установить только кондиционирование",
+            "Выдать всем противошумные наушники"
+        ],
+        correct: 1,
+        explanation: "Статья 281 обязывает работодателя обеспечить, чтобы рабочие помещения соответствовали условиям гигиены и санитарии, необходимым для здоровья сотрудников."
+    },
+    {
+        question: "Др. Шуми является работодателем 60 сотрудников. Согласно статье 304, какие у него обязанности в отношении медицинской службы труда?",
+        options: [
+            "Особых обязанностей нет",
+            "Создать независимую медицинскую службу труда",
+            "Присоединиться к межпредпринимательской медицинской службе",
+            "Просто иметь аптечку первой помощи"
+        ],
+        correct: 1,
+        explanation: "Статья 304 обязывает создавать независимую медицинскую службу труда на предприятиях с не менее чем пятьюдесятью сотрудниками."
+    },
+    {
+        question: "Согласно статье 336, должен ли др. Фарук, работодатель 60 сотрудников, создать комитет по безопасности и гигиене труда?",
+        options: [
+            "Да, начиная с 50 сотрудников",
+            "Нет, только начиная со 100 сотрудников",
+            "Да, начиная с 20 сотрудников",
+            "Нет, стоматологические кабинеты освобождены"
+        ],
+        correct: 0,
+        explanation: "Статья 336 предусматривает создание комитетов по безопасности и гигиене труда на предприятиях с не менее чем 50 сотрудниками."
+    },
+    {
+        question: "Др. Шуми хочет нанять иностранного работника. Согласно статье 516, какова процедура?",
+        options: [
+            "Он может нанять его свободно",
+            "Он должен получить разрешение государственного органа по труду",
+            "Он должен сначала опубликовать объявление в Марокко",
+            "Он должен запросить согласие министерства внутренних дел"
+        ],
+        correct: 1,
+        explanation: "Статья 516 обязывает любого работодателя, желающего нанять иностранного работника, получить разрешение государственного органа по труду."
+    },
+    {
+        question: "Согласно статье 526, др. Фарук должен отправить на пенсию своих сотрудников, достигших возраста:",
+        options: [
+            "55 лет",
+            "60 лет",
+            "62 лет",
+            "65 лет"
+        ],
+        correct: 1,
+        explanation: "Статья 526 предусматривает, что любой сотрудник, достигший возраста шестидесяти лет, должен быть отправлен на пенсию."
+    },
+    {
+        question: "У др. Шуми есть сотрудник, который уволился по собственному желанию. Согласно статье 72, в какой срок он должен выдать ему трудовую книжку?",
+        options: [
+            "3 дня",
+            "8 дней",
+            "15 дней",
+            "30 дней"
+        ],
+        correct: 1,
+        explanation: "Статья 72 обязывает работодателя выдать трудовую книжку в срок не более восьми дней под угрозой возмещения ущерба."
+    },
+    {
+        question: "Согласно статье 15, трудовой договор должен быть составлен в скольких экземплярах?",
+        options: [
+            "1 экземпляр",
+            "2 экземпляра",
+            "3 экземпляра",
+            "4 экземпляра"
+        ],
+        correct: 1,
+        explanation: "Статья 15 предусматривает, что трудовой договор должен быть составлен в двух экземплярах с подписями работника и работодателя."
+    },
+    {
+        question: "У др. Фарука есть сотрудник, который отказывается выполнять опасную работу. Согласно статье 293, может ли сотрудник быть наказан?",
+        options: [
+            "Да, если он был должным образом проинформирован о рисках",
+            "Нет, отказ правомерен",
+            "Да, немедленно без процедуры",
+            "Нет, он может отказаться от любой работы"
+        ],
+        correct: 0,
+        explanation: "Статья 293 предусматривает, что сотрудники, должным образом проинформированные о правилах безопасности и не соблюдающие их, подлежат наказанию."
+    },
+    {
+        question: "Согласно статье 172, каков возрастной предел для ночной работы несовершеннолетних?",
+        options: [
+            "14 лет",
+            "15 лет",
+            "16 лет",
+            "18 лет"
+        ],
+        correct: 2,
+        explanation: "Статья 172 запрещает использование несовершеннолетних в возрасте до шестнадцати лет на ночной работе, за исключением оговоренных случаев."
+    },
+    {
+        question: "Др. Шуми хочет, чтобы его ассистентка выполняла сверхурочную работу в воскресенье. Согласно статье 205, разрешено ли это?",
+        options: [
+            "Да, всегда",
+            "Нет, еженедельный отдых обязателен",
+            "Да, если она согласна",
+            "Да, но с надбавкой 50%"
+        ],
+        correct: 1,
+        explanation: "Статья 205 предусматривает еженедельный отдых продолжительностью не менее двадцати четырех часов, который должен обязательно предоставляться сотрудникам."
+    },
+    {
+        question: "У др. Фарука есть сотрудник по бессрочному договору, который хочет уволиться. Согласно статье 34, каково его право?",
+        options: [
+            "Он не может уволиться",
+            "Он может уволиться по письму с заверенной подписью",
+            "Он должен ждать окончания года",
+            "Он должен выплатить компенсацию работодателю"
+        ],
+        correct: 1,
+        explanation: "Статья 34 предусматривает, что сотрудник может расторгнуть бессрочный договор путем подачи заявления об увольнении с заверенной подписью компетентным органом."
+    },
+    {
+        question: "Согласно статье 33, в случае досрочного расторжения срочного договора без грубого проступка, компенсация убытков соответствует:",
+        options: [
+            "3 месяцам зарплаты",
+            "Периоду от даты расторжения до окончания срока договора",
+            "6 месяцам зарплаты",
+            "Фиксированной компенсации в размере 50 000 дирхамов"
+        ],
+        correct: 1,
+        explanation: "Статья 33 предусматривает, что сумма компенсации убытков эквивалентна зарплате за период от даты расторжения до окончания срока, установленного договором."
+    },
+    {
+        question: "Др. Шуми, работодатель с 25 сотрудниками, должен организовать выборы делегатов персонала. Согласно статье 438, кто является избирателем?",
+        options: [
+            "Все сотрудники без условий",
+            "Сотрудники в возрасте не менее 16 лет со стажем не менее 6 месяцев",
+            "Только сотрудники старше 18 лет",
+            "Только сотрудники по бессрочному договору"
+        ],
+        correct: 1,
+        explanation: "Статья 438 предусматривает, что избирателями являются сотрудники обоих полов в возрасте не менее шестнадцати лет, проработавшие в учреждении не менее шести месяцев."
+    },
+    {
+        question: "Согласно статье 446, др. Фарук обязан вывешивать списки кандидатов на должности делегатов. Где он должен их вывешивать?",
+        options: [
+            "Только в своем кабинете",
+            "В местах, предусмотренных нормативными актами",
+            "Только в приемной",
+            "У него нет обязанности вывешивать"
+        ],
+        correct: 1,
+        explanation: "Статья 446 обязывает работодателя вывешивать списки кандидатов в местах, предусмотренных нормативными актами."
+    },
+    {
+        question: "У др. Шуми есть сотрудник, совершивший грубый проступок. Согласно статье 62, в какой срок он должен заслушать сотрудника?",
+        options: [
+            "24 часа",
+            "8 дней",
+            "15 дней",
+            "30 дней"
+        ],
+        correct: 1,
+        explanation: "Статья 62 предусматривает, что сотрудник должен быть заслушан в срок не более восьми дней с даты выявления вменяемого ему деяния."
+    }
+];
+
+    // ============================================
+    // =========== МАКСИМАЛЬНЫЙ БАЛЛ =============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10; // 250 баллов (без бонуса)
+    const MAX_SCORE_WITH_BONUS = questions.length * 15; // 375 баллов (с бонусом)
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("gestion_cabinet_v1_debutant2_fr", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== РАЗБЛОКИРОВКА СРЕДНЕГО УРОВНЯ 1 ============
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("gestion_cabinet_v1_intermediaire1_fr_unlocked", "true");
+            localStorage.setItem("gestion_cabinet_v1_debutant2_fr_score", percentage.toFixed(1));
+            console.log("✅ Средний уровень 1 РАЗБЛОКИРОВАН! Результат: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("gestion_cabinet_v1_intermediaire1_fr_unlocked", "false");
+            console.log("❌ Средний уровень 1 ЗАБЛОКИРОВАН. Результат: " + percentage.toFixed(1) + "% (мин " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 СОХРАНЕНИЕ ПРОВЕРКИ ДЛЯ PROGRESSION.HTML (ИСПРАВЛЕНО)
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            // 1. Сохранить в eteo_validation
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            // 2. 🔥 НОВОЕ : Обновить eteo_progression
+            const progression = JSON.parse(localStorage.getItem('eteo_progression')) || {};
+            const key = specialite + '_' + niveau;
+            progression[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progression));
+            
+            console.log('✅ Проверка сохранена для progression.html');
+        }
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("Время вышло! Переходим к следующему вопросу.", "ru-RU");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Вопрос ${currentQuestion + 1} : ${questions[currentQuestion].question}`, "ru-RU");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>📊 Управление кабинетом - Начинающий Уровень 2</h1><p>Вопрос ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Объяснение:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Осталось времени: <span id="timer">${timeLeft}</span> секунд</div>
+                <div class="score">🏆 Текущий счет: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Прервать</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Далее →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`Правильный ответ! +${pointsEarned} баллов.`, "ru-RU");
+        } else {
+            speak(`Неправильный ответ. Правильный ответ был: ${shuffledOptions[currentCorrectIndex]}.`, "ru-RU");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Правильный ответ: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Текущий счет: ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Пожалуйста, выберите ответ.", "ru-RU"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 20;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== НАВИГАЦИЯ =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_ru.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard_ru.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ИСПРАВЛЕННЫЙ ===========
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        // === БЕТА-ВЕРСИЯ : Следующий уровень заблокирован ===
+        const isUnlocked = false; // Всегда false в БЕТА
+        // =================================
+        
+        // 🔥 Сохранить проверку для progression.html
+        sauvegarderValidation('Управление кабинетом', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Викторина завершена!</h1>
+                <div class="final-score">Результат: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Процент: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${percentage >= 60 ?
+                        `<div class="unlock-badge">✅ Уровень Начинающий 2 подтвержден! 🎊</div>
+                         <div class="locked-badge">🔒 БЕТА: Продолжение (Средний и Экспертный) появится после 6 месяцев оценки.</div>` :
+                        `<div class="locked-badge">⚠️ Недостаточно баллов (требуется минимум 60% для подтверждения уровня)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${percentage >= 60 ?
+                        '📚 Вы подтвердили оба начальных уровня. Спасибо за участие!' :
+                        `💪 Вам не хватает ${(60 - percentage).toFixed(1)}% для подтверждения уровня. Попробуйте снова!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Поделиться результатом</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Оставить отзыв</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Главное меню</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Мировой рейтинг</button>
+                </div>
+            </div>
+        `;
+        
+        if (percentage >= 60) {
+            speak(`Поздравляем! Вы подтвердили уровень Начинающий 2 с результатом ${percentage.toFixed(1)}%. Продолжение будет доступно в финальной версии.`, "ru-RU");
+            
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Ваш результат: ${percentage.toFixed(1)}%. Для подтверждения уровня необходимо достичь 60%.`, "ru-RU");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // =========== МОДАЛЬНОЕ ОКНО РЕЙТИНГА =======
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 Нет сохраненных результатов для этого уровня.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Ваше место</div>
+                        <div class="rank-number">${userRank}-е место</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} баллов (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Вы еще не в рейтинге этого уровня</div>
+                        <div>Пройдите викторину снова, чтобы появиться!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 ТОП-20 - Управление кабинетом Начинающий 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Аноним"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 Нет результатов для этого уровня</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Ошибка Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Невозможно загрузить рейтинг.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Неизвестная ошибка'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== ПОПАП ОЦЕНКИ БЕТА =============
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Доктор";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 30px; width: 90%; max-width: 500px; padding: 35px 25px; text-align: center; animation: slideUp 0.3s ease; position: relative;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉🏆🎉</div>
+                <h2 style="color: #667eea; margin-bottom: 5px;">Поздравляем ${userName}!</h2>
+                <p style="margin-bottom: 20px; font-size: 1rem;">
+                    Вы успешно подтвердили <strong>оба начальных уровня</strong>.<br>
+                    Впечатляющий путь!
+                </p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Оцените БЕТА-ВЕРСИЮ 🌟</p>
+                    <div id="starRating" style="display: flex; justify-content: center; gap: 12px; font-size: 3rem; cursor: pointer;">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p id="ratingMessage" style="margin-top: 10px; font-size: 0.85rem; color: #888;"></p>
+                </div>
+                
+                <div style="background: #f0f8ff; padding: 15px; border-radius: 20px; margin: 15px 0; border-left: 4px solid #667eea;">
+                    <p style="color: #ff5722; font-size: 0.95rem; margin: 0;">
+                        🚀 <strong>Продолжение (Средний и Экспертный)</strong> появится после <strong>6 месяцев оценки</strong> этой Beta-версии.<br><br>
+                        Ваше мнение помогает нам улучшать ETEO. Спасибо за доверие, <strong>${userName}</strong>!
+                    </p>
+                </div>
+                
+                <button onclick="closeBetaPopup()" style="background: #4caf50; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 15px;">
+                    Вернуться в меню
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ Спасибо за вашу оценку! Ваше мнение сохранено.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'ru',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Оценка Beta отправлена!");
+        } catch (error) {
+            console.error("❌ Ошибка оценки Beta:", error);
+        }
+    }
+
+    // ============================================
+    // =========== ДРУГИЕ ФУНКЦИИ ================
+    // ============================================
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("gestion_cabinet_v1_debutant2_fr", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        // БЕТА : следующий уровень заблокирован
+        // unlockLevel3(partialPercentage); // Отключено в БЕТА
+
+        // 🔥 Сохранить проверку даже при прерывании (если результат ≥ 60%)
+        sauvegarderValidation('Управление кабинетом', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Викторина прервана</h1><div class="final-score">Частичный результат: ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Процент: ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 Этот результат сохранен в рейтинге.</div><button class="menu-btn" onclick="goToMenu()">🏠 Вернуться в меню</button></div>`;
+        speak(`Викторина прервана. Частичный результат: ${score} из ${MAX_SCORE_WITH_BONUS}.`, "ru-RU");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Управление кабинетом\nМой результат на уровне Начинающий 2: ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\nПроверь меня на ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Результат', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Результат скопирован в буфер обмена!");
+            }).catch(() => {
+                alert("📋 Чтобы поделиться, скопируйте этот текст:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    document.body.addEventListener('click', function firstClick() { 
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
