@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Conservative Dentistry V1</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================
+         CAPACITOR TTS IMPORT
+         ============================================ -->
+    <script>
+        // Chargement dynamique de Capacitor TTS
+        window.CapacitorTTS = null;
+        window.isCapacitorReady = false;
+        
+        async function loadCapacitorTTS() {
+            try {
+                if (typeof Capacitor !== 'undefined' && Capacitor.isNative) {
+                    const { TTS } = await import('@capacitor-community/text-to-speech');
+                    window.CapacitorTTS = TTS;
+                    window.isCapacitorReady = true;
+                    console.log('✅ Capacitor TTS loaded successfully');
+                    return true;
+                }
+                console.log('ℹ️ Web environment: using Web Speech API fallback');
+                return false;
+            } catch (error) {
+                console.warn('⚠️ Could not load Capacitor TTS:', error);
+                return false;
+            }
+        }
+        
+        // Load on startup
+        loadCapacitorTTS();
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6a4a2a, #8a6a4a, #aa8a6a);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+        body.dark { background: linear-gradient(135deg, #4a2a1a, #6a4a2a, #8a6a4a); }
+        
+        .container { max-width: 800px; margin: 0 auto; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; padding: 10px 20px; border-radius: 30px; color: white; cursor: pointer; font-size: 0.9rem; backdrop-filter: blur(4px); }
+        .ranking-nav-btn { background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.3); padding: 10px 20px; border-radius: 30px; color: #ffd700; cursor: pointer; font-size: 0.9rem; backdrop-filter: blur(4px); transition: 0.2s; }
+        .ranking-nav-btn:hover { background: rgba(255,215,0,0.3); transform: scale(1.02); }
+        .theme-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-size: 2rem; color: #f0e0c0; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .header p { color: #e0d0b0; font-size: 0.9rem; margin-top: 5px; }
+
+        /* ============================================
+           VOICE INDICATOR INTEGRATED
+           ============================================ */
+        .voice-indicator-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .voice-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            font-size: 11px;
+            color: #e0d0b0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .voice-indicator.active {
+            display: flex;
+            background: rgba(160, 120, 80, 0.15);
+            border-color: rgba(160, 120, 80, 0.3);
+            color: #f0e0c0;
+        }
+        .voice-indicator.speaking {
+            display: flex;
+            background: rgba(200, 100, 50, 0.2);
+            border-color: rgba(200, 100, 50, 0.3);
+            color: #ffb088;
+            animation: pulseVoice 1s ease-in-out infinite;
+        }
+        @keyframes pulseVoice {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .voice-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            transition: all 0.3s ease;
+        }
+        .voice-indicator.active .dot {
+            background: #f0e0c0;
+        }
+        .voice-indicator.speaking .dot {
+            background: #ff8844;
+            animation: blinkVoice 0.8s ease-in-out infinite;
+        }
+        @keyframes blinkVoice {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.2; transform: scale(0.6); }
+        }
+        .voice-indicator .status-text {
+            font-weight: 500;
+        }
+
+        /* ============================================
+           🎭 CHARACTERS SECTION
+           ============================================ */
+        .characters-section {
+            background: linear-gradient(135deg, #6a4a2a, #8a6a4a, #aa8a6a);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid #f0e0c0;
+            box-shadow: 0 8px 30px rgba(160, 120, 80, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        body.dark .characters-section {
+            background: linear-gradient(135deg, #4a2a1a, #6a4a2a, #8a6a4a);
+        }
+        .characters-section::before {
+            content: "🎭";
+            position: absolute;
+            top: -15px;
+            right: -10px;
+            font-size: 6rem;
+            opacity: 0.08;
+            transform: rotate(15deg);
+        }
+        .characters-title {
+            text-align: center;
+            color: #f0e0c0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        .characters-title span {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+        .character-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 600px) {
+            .character-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .character-card {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 18px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: 0.3s;
+            text-align: center;
+        }
+        .character-card:hover {
+            transform: translateY(-4px);
+            border-color: #f0e0c0;
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05);
+        }
+        body.dark .character-card {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .character-avatar {
+            font-size: 3.2rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .character-name {
+            color: #f0cdbc;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.3px;
+        }
+        body.dark .character-name {
+            color: #f0cdbc;
+        }
+        .character-nickname {
+            color: #f0e0c0;
+            font-size: 0.8rem;
+            font-style: italic;
+            margin: 2px 0 6px 0;
+        }
+        .character-desc {
+            color: #c0a090;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        body.dark .character-desc {
+            color: #b0a090;
+        }
+        .character-tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            padding: 2px 12px;
+            border-radius: 12px;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+        .tag-falcon {
+            background: rgba(255, 255, 255, 0.12);
+            color: #f0e0c0;
+        }
+        .tag-panther {
+            background: rgba(255, 255, 255, 0.06);
+            color: #e0d0b0;
+        }
+
+        .characters-footer {
+            text-align: center;
+            margin-top: 14px;
+            color: #e0d0b0;
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 14px;
+        }
+
+        /* ============================================
+           BETA BANNER & LEVELS
+           ============================================ */
+        .beta-banner {
+            background: linear-gradient(120deg, #f8f0e0 0%, #f0e8d0 100%);
+            border-radius: 20px;
+            padding: 14px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 6px 14px rgba(80, 40, 20, 0.1);
+            border: 1px solid rgba(180, 140, 100, 0.5);
+        }
+        body.dark .beta-banner {
+            background: linear-gradient(120deg, #5a4a3a, #6a5a4a);
+            border-color: #9a8a6a;
+        }
+        .beta-icon { font-size: 1.6rem; }
+        .beta-text {
+            flex: 1;
+            font-weight: 500;
+            color: #8a6a4a;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+        body.dark .beta-text { color: #f0e8d0; }
+        .beta-text strong {
+            background: rgba(160, 120, 80, 0.2);
+            padding: 2px 8px;
+            border-radius: 24px;
+            font-weight: 700;
+            color: #aa7a4a;
+        }
+        body.dark .beta-text strong {
+            background: #8a7a5a;
+            color: #f8f0e0;
+        }
+        .beta-badge {
+            background: #ca9a6a;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        body.dark .beta-badge { background: #ba8a5a; }
+
+        .level-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            transition: 0.2s;
+            border-bottom: 3px solid #ca9a6a;
+        }
+        body.dark .level-card { background: #5a4a3a; border-bottom-color: #daaa7a; }
+        .level-info h3 { font-size: 1.2rem; color: #7a5a3a; }
+        body.dark .level-info h3 { color: #f0e0c0; }
+        .level-info p { color: #9a8a6a; font-size: 0.8rem; margin-top: 5px; }
+        body.dark .level-info p { color: #c0b090; }
+        .level-status { font-size: 0.75rem; margin-top: 5px; }
+        .status-unlocked { color: #6a9a4a; font-weight: 500; }
+        .status-locked { color: #ca7a4a; font-weight: 500; }
+        .status-completed { color: #2a7a4d; font-weight: 600; }
+        .score { font-size: 0.8rem; color: #ca9a6a; font-weight: bold; margin-top: 5px; }
+        .start-btn {
+            background: #ca9a6a;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .start-btn:hover { background: #aa7a4a; transform: scale(1.02); }
+        .start-btn.disabled { background: #c0b090; cursor: not-allowed; transform: none; }
+        .start-btn.completed { background: #2a7a4d; }
+
+        .footer { text-align: center; margin-top: 30px; color: #c0b090; font-size: 0.7rem; }
+
+        /* ============================================
+           🎭 MENTORS POPUP - WITH LISTEN BUTTON
+           ============================================ */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            animation: popupFadeIn 0.5s ease;
+        }
+        .popup-container {
+            background: linear-gradient(145deg, #6a4a2a, #8a6a4a);
+            border-radius: 30px;
+            padding: 35px;
+            max-width: 560px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            animation: popupSlideUp 0.5s ease;
+            border: 2px solid #f0e0c0;
+            position: relative;
+        }
+        body.dark .popup-container {
+            background: linear-gradient(145deg, #4a2a1a, #6a4a2a);
+        }
+        .popup-container::before {
+            content: "🎭";
+            position: absolute;
+            top: -10px;
+            right: -5px;
+            font-size: 5rem;
+            opacity: 0.06;
+            transform: rotate(15deg);
+        }
+        .popup-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #f0e0c0;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .popup-close:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: rotate(90deg);
+        }
+        .popup-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .popup-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .popup-header h2 {
+            font-size: 1.5rem;
+            color: #f0e0c0;
+            margin: 0;
+        }
+        body.dark .popup-header h2 {
+            color: #f0e0c0;
+        }
+        .popup-body p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #f0e8d8;
+            margin: 12px 0;
+        }
+        body.dark .popup-body p {
+            color: #e0d8c8;
+        }
+        .popup-body strong {
+            color: #f0e0c0;
+        }
+        body.dark .popup-body strong {
+            color: #f0e0c0;
+        }
+        .popup-mentors {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .popup-mentor {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 160px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        body.dark .popup-mentor {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        .popup-mentor .mentor-avatar {
+            font-size: 2.2rem;
+        }
+        .popup-mentor strong {
+            display: block;
+            font-size: 0.9rem;
+            color: #f0cdbc;
+        }
+        body.dark .popup-mentor strong {
+            color: #f0cdbc;
+        }
+        .popup-mentor .mentor-slogan {
+            font-size: 0.75rem;
+            color: #e0d0b0;
+            font-style: italic;
+        }
+        body.dark .popup-mentor .mentor-slogan {
+            color: #d0c0a0;
+        }
+        .popup-badge {
+            background: linear-gradient(135deg, #ca9a6a, #f0e0c0);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 16px;
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 1rem;
+        }
+        
+        /* Listen button in popup */
+        .popup-listen-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #f0e0c0;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 0 15px 0;
+        }
+        .popup-listen-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+        .popup-listen-btn.speaking {
+            background: rgba(200, 100, 50, 0.2);
+            border-color: rgba(200, 100, 50, 0.3);
+            color: #ffb088;
+            animation: pulseVoice 1s ease-in-out infinite;
+        }
+        .popup-listen-btn .icon-mic {
+            font-size: 1.1rem;
+        }
+        
+        .popup-btn {
+            background: linear-gradient(135deg, #ca9a6a, #f0e0c0);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
+        .popup-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(160, 120, 80, 0.4);
+        }
+        .popup-footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #c0b090;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        body.dark .popup-footer {
+            color: #b0a080;
+            border-top-color: rgba(255, 255, 255, 0.04);
+        }
+
+        @keyframes popupFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes popupSlideUp {
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes popupFadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .popup-overlay.closing {
+            animation: popupFadeOut 0.3s ease forwards;
+        }
+
+        .popup-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .popup-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .popup-container::-webkit-scrollbar-thumb {
+            background: #f0e0c0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- ============================================
+         VOICE INDICATOR INTEGRATED
+         ============================================ -->
+    <div class="voice-indicator-container">
+        <div class="voice-indicator" id="voiceIndicator">
+            <span class="dot"></span>
+            <span class="status-text" id="voiceStatus">🔊 Ready</span>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <button class="back-btn" onclick="goBack()">← Back to specialties</button>
+        <button class="ranking-nav-btn" onclick="goToDashboard()">🏆 World ranking</button>
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+    <div class="header">
+        <h1>Conservative Dentistry V1</h1>
+        <p>Fillings, composites, amalgams, inlays, onlays</p>
+    </div>
+
+    <!-- ============================================
+         🎭 CHARACTERS SECTION
+         ============================================ -->
+    <div class="characters-section">
+        <div class="characters-title">
+            <span>🎭 Your mentors for this specialty</span>
+        </div>
+        <div class="character-grid">
+
+            <!-- DR SAMI KIKOU -->
+            <div class="character-card">
+                <span class="character-avatar">🦅</span>
+                <div class="character-name">Dr Sami KIKOU</div>
+                <div class="character-nickname">« The Falcon of Casablanca »</div>
+                <div class="character-desc">
+                    Fast, surgical, instinctive.<br>
+                    <em>« Act fast, think right. »</em>
+                </div>
+                <span class="character-tag tag-falcon">⚡ 15 years experience</span>
+            </div>
+
+            <!-- DR MINA LILOU -->
+            <div class="character-card">
+                <span class="character-avatar">🐆</span>
+                <div class="character-name">Dr Mina LILOU</div>
+                <div class="character-nickname">« The Panther of Rabat »</div>
+                <div class="character-desc">
+                    Precise, meticulous, thoughtful.<br>
+                    <em>« Think right, act perfectly. »</em>
+                </div>
+                <span class="character-tag tag-panther">🎯 15 years experience</span>
+            </div>
+
+        </div>
+        <div class="characters-footer">
+            🔥 They are inseparable in consultation · When one operates, the other assists · Their rivalry will make you progress
+        </div>
+    </div>
+
+    <!-- ============================================
+         BETA BANNER
+         ============================================ -->
+    <div class="beta-banner">
+        <span class="beta-icon">⏱️</span>
+        <div class="beta-text">
+            <strong>BETA Version · 6 months</strong><br>
+            Only <strong>Beginner Level 1</strong> and <strong>Beginner Level 2</strong> are accessible.<br>
+            <span style="font-size:0.8rem;">🌐 French & English · Intermediate / Expert levels locked until final release</span>
+        </div>
+        <div class="beta-badge">Limited access</div>
+    </div>
+
+    <!-- ============================================
+         LEVELS
+         ============================================ -->
+    <div id="levelsContainer"></div>
+
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <div class="footer">
+        <p>🎙️ Voice AI | ⏱️ 20 seconds per question | Speed bonus +5</p>
+        <p>📤 Share your scores | 🏆 Unlock levels with a score ≥ 60%</p>
+        <p>© 2026 - Dr. SAID MAARAK 🇲🇦</p>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // 1. TTS COMPLETE : CAPACITOR + WEB SPEECH FALLBACK
+    // ============================================================
+    
+    let isSpeaking = false;
+    let ttsInstance = null;
+    let voiceActivated = false;
+    
+    async function loadTTS() {
+        try {
+            if (typeof Capacitor !== 'undefined' && Capacitor.isNative) {
+                const { TTS } = await import('@capacitor-community/text-to-speech');
+                ttsInstance = TTS;
+                window.isCapacitorReady = true;
+                console.log('✅ Capacitor TTS loaded successfully');
+                return true;
+            }
+            console.log('ℹ️ Web environment: using Web Speech API fallback');
+            return false;
+        } catch (error) {
+            console.warn('⚠️ Could not load Capacitor TTS:', error);
+            return false;
+        }
+    }
+    
+    async function speakText(text, lang = 'en-US') {
+        try {
+            stopSpeaking();
+            
+            if (ttsInstance) {
+                // Capacitor mode (native)
+                await ttsInstance.speak({
+                    text: text,
+                    lang: lang,
+                    rate: 1.0,
+                    pitch: 1.0,
+                    volume: 1.0
+                });
+                isSpeaking = true;
+                updateVoiceIndicator('speaking');
+                console.log('🔊 Capacitor TTS: speaking...');
+            } else {
+                // Fallback Web Speech API
+                await fallbackWebSpeech(text, lang);
+            }
+        } catch (error) {
+            console.error('❌ TTS error:', error);
+            if (ttsInstance) {
+                console.log('🔄 Fallback to Web Speech...');
+                await fallbackWebSpeech(text, lang);
+            }
+        }
+    }
+    
+    function fallbackWebSpeech(text, lang = 'en-US') {
+        return new Promise((resolve, reject) => {
+            if (!window.speechSynthesis) {
+                reject(new Error('Web Speech API not supported'));
+                return;
+            }
+            
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            utterance.onstart = () => {
+                isSpeaking = true;
+                updateVoiceIndicator('speaking');
+                console.log('🔊 Web Speech: speaking...');
+            };
+            
+            utterance.onend = () => {
+                isSpeaking = false;
+                updateVoiceIndicator('active');
+                console.log('✅ Web Speech: completed');
+                resolve();
+            };
+            
+            utterance.onerror = (event) => {
+                isSpeaking = false;
+                updateVoiceIndicator('active');
+                console.error('❌ Web Speech error:', event);
+                reject(event);
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        });
+    }
+    
+    function stopSpeaking() {
+        isSpeaking = false;
+        
+        if (ttsInstance) {
+            try {
+                ttsInstance.stop();
+                console.log('⏹️ Capacitor TTS: stopped');
+            } catch (e) {
+                console.warn('⚠️ Error stopping Capacitor TTS:', e);
+            }
+        }
+        
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+            console.log('⏹️ Web Speech: stopped');
+        }
+        
+        // Reset listen button if present
+        const listenBtn = document.getElementById('popupListenBtn');
+        if (listenBtn) {
+            listenBtn.classList.remove('speaking');
+            listenBtn.innerHTML = '🔊 Listen to introduction';
+        }
+        
+        updateVoiceIndicator('active');
+    }
+    
+    function updateVoiceIndicator(state) {
+        const indicator = document.getElementById('voiceIndicator');
+        const statusText = document.getElementById('voiceStatus');
+        
+        if (!indicator) return;
+        
+        indicator.classList.remove('active', 'speaking');
+        
+        if (state === 'inactive') {
+            indicator.style.display = 'none';
+            return;
+        }
+        
+        indicator.style.display = 'flex';
+        
+        if (state === 'active') {
+            indicator.classList.add('active');
+            statusText.textContent = '🔊 Ready';
+        } else if (state === 'speaking') {
+            indicator.classList.add('speaking');
+            statusText.textContent = '🔊 Speaking...';
+        }
+    }
+
+    // ============================================================
+    // 2. NAVIGATION FUNCTION WITH COMPLETE TTS
+    // ============================================================
+    
+    async function speakAndNavigate(text, targetUrl, lang = 'en-US', delay = 2500) {
+        try {
+            // Stop any current speech
+            stopSpeaking();
+            
+            // Activate voice if needed
+            if (!voiceActivated) {
+                await loadTTS();
+                voiceActivated = true;
+                updateVoiceIndicator('active');
+            }
+            
+            // Speak
+            await speakText(text, lang);
+            
+            // Wait then navigate
+            setTimeout(() => {
+                if (targetUrl) {
+                    window.location.href = targetUrl;
+                }
+            }, delay);
+            
+        } catch (error) {
+            console.error('❌ Error in speakAndNavigate:', error);
+            // In case of error, navigate anyway
+            if (targetUrl) {
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 1000);
+            }
+        }
+    }
+
+    // ============================================================
+    // 3. LEVELS LOGIC
+    // ============================================================
+    
+    const LEVEL1_KEY = "soins_conservateurs_v1_debutant1_en";
+    const LEVEL2_KEY = "soins_conservateurs_v1_debutant2_en";
+    const UNLOCK_KEY = "soins_conservateurs_v1_debutant2_en_unlocked";
+    const UNLOCK_INTER_KEY = "soins_conservateurs_v1_intermediaire1_en_unlocked";
+
+    const levels = [
+        { id: LEVEL1_KEY, name: "Beginner Level 1", description: "Fundamentals - Caries, filling materials", unlocked: true, file: "debutant1_en.html", betaAccessible: true },
+        { id: LEVEL2_KEY, name: "Beginner Level 2", description: "Composites - Adhesion, layering, finishing", unlocked: false, file: "debutant2_en.html", betaAccessible: true },
+        { id: "soins_conservateurs_v1_intermediaire1_en", name: "Intermediate Level 1", description: "Amalgams - Cavities, manipulation, polishing", unlocked: false, file: "intermediaire1_en.html", betaAccessible: false },
+        { id: "soins_conservateurs_v1_intermediaire2_en", name: "Intermediate Level 2", description: "Inlays and onlays - Indirect, CAD/CAM", unlocked: false, file: "intermediaire2_en.html", betaAccessible: false },
+        { id: "soins_conservateurs_v1_expert1_en", name: "Expert Level 1", description: "Complex restorations - Cusps, reconstruction", unlocked: false, file: "expert1_en.html", betaAccessible: false },
+        { id: "soins_conservateurs_v1_expert2_en", name: "Expert Level 2", description: "Failures and repairs - Fractures, leaks, reinterventions", unlocked: false, file: "expert2_en.html", betaAccessible: false }
+    ];
+
+    // ================================================================
+    // 4. PENDING VALIDATION
+    // ================================================================
+    
+    function verifierValidationEnAttente() {
+        const validationData = localStorage.getItem('eteo_validation');
+        if (validationData) {
+            try {
+                const data = JSON.parse(validationData);
+                if (Date.now() - data.timestamp < 300000) {
+                    localStorage.removeItem('eteo_validation');
+                    window.location.href = `../../../../progression_en.html?valider=${data.specialite}_${data.niveau}&score=${data.score}&total=${data.total}`;
+                    return true;
+                } else {
+                    localStorage.removeItem('eteo_validation');
+                }
+            } catch(e) {
+                localStorage.removeItem('eteo_validation');
+            }
+        }
+        return false;
+    }
+
+    function loadScores() {
+        levels.forEach(level => {
+            const savedScore = localStorage.getItem(level.id);
+            if (savedScore) {
+                try {
+                    const scoreData = JSON.parse(savedScore);
+                    level.score = scoreData.score;
+                    level.maxScore = scoreData.maxScore || 375;
+                    level.percentage = scoreData.percentage || 0;
+                } catch(e) {
+                    level.score = null;
+                    level.maxScore = 375;
+                }
+            } else { 
+                level.score = null; 
+                level.maxScore = 375; 
+            }
+        });
+
+        const unlockStatus = localStorage.getItem(UNLOCK_KEY);
+        if (unlockStatus === "true") {
+            const level2 = levels.find(l => l.id === LEVEL2_KEY);
+            if (level2) {
+                level2.unlocked = true;
+                console.log("✅ Level 2 unlocked via dedicated key");
+            }
+        }
+
+        const level1 = levels.find(l => l.id === LEVEL1_KEY);
+        if (level1 && level1.percentage && level1.percentage >= 60) {
+            const level2 = levels.find(l => l.id === LEVEL2_KEY);
+            if (level2) {
+                level2.unlocked = true;
+                localStorage.setItem(UNLOCK_KEY, "true");
+                console.log("✅ Level 2 unlocked via score >= 60%");
+            }
+        }
+
+        const unlockInterStatus = localStorage.getItem(UNLOCK_INTER_KEY);
+        if (unlockInterStatus === "true") {
+            const levelInter = levels.find(l => l.id === "soins_conservateurs_v1_intermediaire1_en");
+            if (levelInter) {
+                levelInter.unlocked = true;
+                console.log("✅ Intermediate Level 1 unlocked via dedicated key");
+            }
+        }
+
+        const level2 = levels.find(l => l.id === LEVEL2_KEY);
+        if (level2 && level2.percentage && level2.percentage >= 60) {
+            const levelInter = levels.find(l => l.id === "soins_conservateurs_v1_intermediaire1_en");
+            if (levelInter && levelInter.betaAccessible) {
+                levelInter.unlocked = true;
+                localStorage.setItem(UNLOCK_INTER_KEY, "true");
+                console.log("✅ Intermediate Level 1 unlocked via score >= 60%");
+            }
+        }
+
+        levels.forEach(level => { 
+            if (!level.betaAccessible) level.unlocked = false; 
+        });
+
+        levels[0].unlocked = true;
+    }
+
+    function renderLevels() {
+        const container = document.getElementById('levelsContainer');
+        container.innerHTML = '';
+        levels.forEach((level) => {
+            const card = document.createElement('div'); 
+            card.className = 'level-card';
+
+            const percentage = level.score ? (level.score / level.maxScore * 100).toFixed(0) : 0;
+            const scoreText = level.score ? `Score: ${level.score}/${level.maxScore} (${percentage}%)` : 'Not started';
+
+            const isEffectivelyUnlocked = level.unlocked && level.betaAccessible;
+            const statusClass = isEffectivelyUnlocked ? 'status-unlocked' : 'status-locked';
+
+            let statusText = "";
+            let isCompleted = false;
+
+            if (!level.betaAccessible && level.id !== LEVEL1_KEY) {
+                statusText = '🔒 Locked - Beta';
+            } else if (isEffectivelyUnlocked) {
+                if (level.id === LEVEL2_KEY) {
+                    statusText = '✅ Unlocked';
+                } else if (level.id === "soins_conservateurs_v1_intermediaire1_en") {
+                    statusText = '✅ Unlocked';
+                } else {
+                    if (level.score && percentage >= 60) {
+                        statusText = '✅ Completed';
+                        isCompleted = true;
+                    } else {
+                        statusText = '📚 Available';
+                    }
+                }
+            } else {
+                if (level.id === LEVEL2_KEY) {
+                    statusText = '🔒 Locked (60% required at Level 1)';
+                } else if (level.id === "soins_conservateurs_v1_intermediaire1_en") {
+                    statusText = '🔒 Locked (60% required at Level 2)';
+                } else {
+                    statusText = '🔒 Locked';
+                }
+            }
+
+            const isDisabled = (!level.betaAccessible && level.id !== LEVEL1_KEY) || !isEffectivelyUnlocked;
+            const btnClass = isCompleted ? 'start-btn completed' : (isDisabled ? 'start-btn disabled' : 'start-btn');
+
+            card.innerHTML = `
+                <div class="level-info">
+                    <h3>${level.name}</h3>
+                    <p>${level.description}</p>
+                    <div class="score">${scoreText}</div>
+                    <div class="level-status ${statusClass}">${statusText}</div>
+                </div>
+                <button class="${btnClass}" 
+                        data-file="${level.file}" 
+                        data-levelname="${level.name}" 
+                        ${isDisabled ? 'disabled' : ''}>
+                    ${isCompleted ? '✅ Done' : (isDisabled ? '🔒 Locked' : '🚀 Start')}
+                </button>
+            `;
+            container.appendChild(card);
+        });
+
+        // ✅ ATTACH EVENTS WITH COMPLETE TTS
+        document.querySelectorAll('.start-btn:not(.disabled)').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const file = btn.getAttribute('data-file');
+                const levelName = btn.getAttribute('data-levelname');
+                
+                // ✅ Use speakAndNavigate with complete TTS
+                const message = `Starting level ${levelName}. Good luck Doctor.`;
+                speakAndNavigate(message, file, 'en-US', 2500);
+            });
+        });
+    }
+
+    // ============================================================
+    // 5. MENTORS POPUP WITH COMPLETE TTS
+    // ============================================================
+
+    let popupMentorsInstance = null;
+
+    // ✅ COMPLETE INTRODUCTION TEXT
+    const INTRO_COMPLETE = `
+        Welcome to Conservative Dentistry.
+        You are accompanied by Dr Sami Kikou and Dr Mina Lilou, two experts who will guide you through this specialty.
+        Dr Sami Kikou, nicknamed "The Falcon of Casablanca", is fast, surgical and instinctive.
+        His motto is "Act fast, think right".
+        Dr Mina Lilou, nicknamed "The Panther of Rabat", is precise, meticulous and thoughtful.
+        Her motto is "Think right, act perfectly".
+        They are inseparable in consultation. When one operates, the other assists.
+        Their rivalry will make you progress.
+        Their mission? To immerse you in realistic scenarios inspired by daily dental practice.
+        Their method? They will debate, challenge each other, and sometimes even tease each other to help you understand clinical issues.
+        Your role? Like a third team member, you will observe, learn and decide between their two complementary approaches.
+        Get ready for a unique immersive experience!
+    `.replace(/\s+/g, ' ').trim();
+
+    function showMentorPopup() {
+        // Close existing popup
+        if (popupMentorsInstance) {
+            popupMentorsInstance.remove();
+            popupMentorsInstance = null;
+        }
+
+        const popupHTML = `
+            <div id="popupMentors" class="popup-overlay">
+                <div class="popup-container">
+                    <button class="popup-close" onclick="closeMentorPopup()" aria-label="Close">✕</button>
+                    
+                    <div class="popup-header">
+                        <span class="popup-icon">🎭</span>
+                        <h2>Welcome to your clinical adventure!</h2>
+                    </div>
+                    <div class="popup-body">
+                        <p>
+                            <strong>You are not alone!</strong>
+                        </p>
+                        <p>
+                            Throughout your journey in this specialty, you will be 
+                            accompanied by two exceptional mentors:
+                        </p>
+                        <div class="popup-mentors">
+                            <div class="popup-mentor">
+                                <span class="mentor-avatar">🦅</span>
+                                <div>
+                                    <strong>Dr Sami KIKOU</strong>
+                                    <span class="mentor-slogan">« Act fast, think right. »</span>
+                                </div>
+                            </div>
+                            <div class="popup-mentor">
+                                <span class="mentor-avatar">🐆</span>
+                                <div>
+                                    <strong>Dr Mina LILOU</strong>
+                                    <span class="mentor-slogan">« Think right, act perfectly. »</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p>
+                            👥 <strong>Their mission?</strong> To immerse you in <strong>realistic scenarios</strong> 
+                            inspired by daily dental practice.
+                        </p>
+                        <p>
+                            🎯 <strong>Their method?</strong> They will <strong>debate</strong>, 
+                            <strong>challenge</strong> each other, and sometimes even <strong>tease</strong> 
+                            each other to help you understand clinical issues.
+                        </p>
+                        <p>
+                            🏆 <strong>Your role?</strong> Like a third team member, 
+                            you will <strong>observe, learn, and decide</strong> between their 
+                            two complementary approaches.
+                        </p>
+                        
+                        <!-- LISTEN TO INTRODUCTION BUTTON -->
+                        <div style="text-align:center;">
+                            <button class="popup-listen-btn" id="popupListenBtn" onclick="speakIntroPopup()">
+                                <span class="icon-mic">🔊</span> Listen to introduction
+                            </button>
+                        </div>
+                        
+                        <div class="popup-badge">
+                            ⚡ Get ready for a unique immersive experience!
+                        </div>
+                    </div>
+                    <button class="popup-btn" onclick="closeMentorPopup()">
+                        🚀 Start the adventure
+                    </button>
+                    <div class="popup-footer">
+                        🔥 They are inseparable · When one operates, the other assists
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = popupHTML;
+        popupMentorsInstance = wrapper.firstElementChild;
+        document.body.appendChild(popupMentorsInstance);
+        
+        // ✅ Automatic playback of COMPLETE introduction
+        setTimeout(() => {
+            speakIntroPopup();
+        }, 800);
+    }
+
+    // ✅ FUNCTION TO READ COMPLETE INTRODUCTION
+    function speakIntroPopup() {
+        const listenBtn = document.getElementById('popupListenBtn');
+        
+        if (listenBtn) {
+            if (isSpeaking) {
+                stopSpeaking();
+                return;
+            }
+            listenBtn.classList.add('speaking');
+            listenBtn.innerHTML = '⏹️ Stop';
+        }
+        
+        // ✅ Read COMPLETE text
+        speakText(INTRO_COMPLETE, 'en-US').then(() => {
+            if (listenBtn) {
+                listenBtn.classList.remove('speaking');
+                listenBtn.innerHTML = '🔊 Listen to introduction';
+            }
+            updateVoiceIndicator('active');
+        }).catch(() => {
+            if (listenBtn) {
+                listenBtn.classList.remove('speaking');
+                listenBtn.innerHTML = '🔊 Listen to introduction';
+            }
+            updateVoiceIndicator('active');
+        });
+    }
+
+    function closeMentorPopup() {
+        // Stop voice
+        stopSpeaking();
+        
+        const popup = document.getElementById('popupMentors');
+        if (popup) {
+            popup.classList.add('closing');
+            setTimeout(() => {
+                popup.remove();
+                popupMentorsInstance = null;
+            }, 300);
+        }
+    }
+
+    // ============================================================
+    // 6. VOICE ACTIVATION
+    // ============================================================
+    
+    function activateVoice() {
+        if (!voiceActivated) {
+            loadTTS().then(() => {
+                voiceActivated = true;
+                updateVoiceIndicator('active');
+                console.log('🎙️ AI activated');
+            });
+        }
+    }
+
+    // ============================================================
+    // 7. NAVIGATION
+    // ============================================================
+
+    function goBack() {
+        stopSpeaking();
+        window.location.href = "../../../../choix_specialite_en.html";
+    }
+
+    function goToDashboard() {
+        stopSpeaking();
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+    
+    function toggleTheme() {
+        document.body.classList.toggle('dark');
+    }
+
+    function resetUnlock() {
+        localStorage.removeItem(UNLOCK_KEY);
+        localStorage.removeItem(UNLOCK_INTER_KEY);
+        localStorage.removeItem(LEVEL1_KEY);
+        localStorage.removeItem(LEVEL2_KEY);
+        console.log("🔄 Data reset");
+        loadScores();
+        renderLevels();
+    }
+
+    // ============================================================
+    // 8. EXPOSE GLOBAL FUNCTIONS
+    // ============================================================
+
+    window.resetUnlock = resetUnlock;
+    window.closeMentorPopup = closeMentorPopup;
+    window.speakIntroPopup = speakIntroPopup;
+    window.goBack = goBack;
+    window.goToDashboard = goToDashboard;
+    window.toggleTheme = toggleTheme;
+    window.speakAndNavigate = speakAndNavigate;
+    window.speakText = speakText;
+    window.stopSpeaking = stopSpeaking;
+
+    // ================================================================
+    // 9. INITIALIZATION
+    // ================================================================
+    
+    const validationTrouvee = verifierValidationEnAttente();
+
+    if (!validationTrouvee) {
+        loadScores(); 
+        renderLevels();
+        
+        // Initialize TTS on load
+        loadTTS().then(() => {
+            updateVoiceIndicator('active');
+            console.log('✅ TTS initialized');
+        });
+        
+        // First click to activate voice
+        document.body.addEventListener('click', function firstClick() { 
+            activateVoice(); 
+            document.body.removeEventListener('click', firstClick); 
+        });
+        
+        // Show popup after load
+        setTimeout(showMentorPopup, 1200);
+    }
+
+    // Stop voice on navigation
+    window.addEventListener('beforeunload', () => {
+        stopSpeaking();
+    });
+
+    // Close popup with Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeMentorPopup();
+        }
+    });
+
+    console.log('🎯 Conservative Dentistry EN - TTS Capacitor + Web Speech fallback integrated');
+    console.log('📖 Complete introduction loaded, length:', INTRO_COMPLETE.length, 'characters');
+    console.log('✅ "Start" buttons use speakAndNavigate() with complete TTS');
+</script>
+</body>
+</html>
