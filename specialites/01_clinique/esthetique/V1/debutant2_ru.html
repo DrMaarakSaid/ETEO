@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Эстетическая стоматология - Начальный 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5e6d3, #f0d5c8, #e8c8b8);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #3a2a22, #4a3a32, #5a4a42); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #d4a574; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #d4a574; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #d4a574;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover { background: #b4865a; }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #d4a574; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #d4a574;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover { background: #b4865a; }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #d4a574;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #d4a574, #b4865a);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #d4a574;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover { background: #b4865a; }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        /* ================================================================ */
+        /* 🆕 СТИЛИ ДЛЯ ПОПАПА ОЦЕНКИ БЕТА */
+        /* ================================================================ */
+        .beta-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        }
+        .beta-popup-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            padding: 35px 25px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        body.dark .beta-popup-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        .beta-popup-content .big-icon { font-size: 4rem; }
+        .beta-popup-content h2 { color: #d4a574; margin: 10px 0; }
+        body.dark .beta-popup-content h2 { color: #d4a574; }
+        .beta-popup-content p { color: #555; margin: 5px 0; }
+        body.dark .beta-popup-content p { color: #ccc; }
+        .beta-popup-content .stars {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 3rem;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .beta-popup-content .stars span { color: #ccc; transition: color 0.3s; }
+        .beta-popup-content .stars span.active { color: #ffc107; }
+        .beta-popup-content .rating-message {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .beta-popup-content .rating-message { color: #aaa; }
+        .beta-popup-content .beta-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+        }
+        body.dark .beta-popup-content .beta-info { background: #2a2a3e; }
+        .beta-popup-content .beta-info p { color: #ff5722; font-weight: bold; margin: 0; }
+        .beta-popup-content .beta-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .beta-popup-content .beta-btn:hover {
+            background: #388e3c;
+            transform: scale(1.02);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ ИИ ожидает</div>
+
+<div class="container" id="app"></div>
+
+<!-- Модальное окно рейтинга -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 ВАША ПОЗИЦИЯ</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Загрузка рейтинга...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== КОНФИГУРАЦИЯ FIREBASE ==========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID ДЛЯ ЭТОЙ ВИКТОРИНЫ
+    // ============================================
+    const LEVEL_ID = "esthetique_v1_debutant2_ru";
+
+
+    // ============================================
+    // =========== 1. ГОЛОСОВАЯ СИСТЕМА ==========
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'ru-RU';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ ИИ активирован";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. ИНФОРМАЦИЯ ПОЛЬЗОВАТЕЛЯ ====
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "FR"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Аноним" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>✨ Эстетическая стоматология - Начальный уровень 2</h1><p>Добро пожаловать, Доктор!</p></div>
+                <div class="input-group">
+                    <label>👤 Ваше имя (необязательно) :</label>
+                    <input type="text" id="userName" placeholder="Напр: Др. Мартин" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Ваша страна (обязательно) :</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 Франция</option>
+                        <option value="MA">🇲🇦 Марокко</option>
+                        <option value="CH">🇨🇭 Швейцария</option>
+                        <option value="CA">🇨🇦 Канада</option>
+                        <option value="BE">🇧🇪 Бельгия</option>
+                        <option value="SN">🇸🇳 Сенегал</option>
+                        <option value="CI">🇨🇮 Кот-д'Ивуар</option>
+                        <option value="CM">🇨🇲 Камерун</option>
+                        <option value="DZ">🇩🇿 Алжир</option>
+                        <option value="TN">🇹🇳 Тунис</option>
+                        <option value="US">🇺🇸 США</option>
+                        <option value="GB">🇬🇧 Великобритания</option>
+                        <option value="DE">🇩🇪 Германия</option>
+                        <option value="ES">🇪🇸 Испания</option>
+                        <option value="IT">🇮🇹 Италия</option>
+                        <option value="PT">🇵🇹 Португалия</option>
+                        <option value="TR">🇹🇷 Турция</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">или</div>
+                    <input type="text" id="otherCountry" placeholder="Введите вашу страну (напр: Бразилия, Япония...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Начать викторину</button>
+                <div class="note">
+                    ⚠️ Правило: минимум 60% (225/375 баллов) для разблокировки уровня <strong>Средний 1</strong>.<br>
+                    🎁 Бонус за скорость: +5 баллов, если вы ответите до окончания таймера.<br>
+                    📊 Максимальный балл с бонусами: 375 баллов (25 вопросов × 15 баллов)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. FIREBASE SCORE =============
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Результат отправлен в Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Ошибка Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. ВОПРОСЫ (25) - УРОВЕНЬ 2 =====
+    // ============================================
+    const questions = [
+        {
+            question: "Сами принимает пациентку, которая хочет виниры на 8 передних зубов. Он говорит: 'Будем готовить все зубы одновременно!' Мина отвечает: 'Не так быстро!' Какой первый шаг необходим перед подготовкой виниров?",
+            options: [
+                "Выполнить восковое моделирование и макет для утверждения эстетического проекта",
+                "Сделать рентгеновские снимки всех зубов",
+                "Немедленно заказать виниры в лаборатории",
+                "Сделать предварительное отбеливание всех зубов"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Восковое моделирование и макет позволяют пациенту увидеть конечный результат до начала необратимой препаровки.' Сами: 'Сначала я сделаю макет.'"
+        },
+        {
+            question: "Мина, анализируя улыбку, говорит: 'Линия улыбки очень высокая.' Сами спрашивает: 'Это проблема?' Почему высокая линия улыбки может быть проблемой?",
+            options: [
+                "Она может обнажать слишком много десны и нарушать эстетику",
+                "Она всегда эстетичнее низкой линии",
+                "Она позволяет видеть больше зубов, что идеально",
+                "Она облегчает установку виниров на моляры"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Высокая линия улыбки показывает много десны. Это может потребовать предварительного пародонтологического лечения.' Сами: 'Я оценю десневой показ.'"
+        },
+        {
+            question: "Сами, готовя винир, говорит: 'Я готовлю 0,5 мм везде.' Мина отвечает: 'Не так просто!' Почему нужна дифференцированная препаровка?",
+            options: [
+                "Толщина должна варьироваться в зависимости от зоны: шейка, режущий край и проксимальная",
+                "Вся препаровка должна быть идеально равномерной",
+                "Нужно готовить глубже на молярах",
+                "Препаровка зависит только от цвета зубов"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Шейные зоны тоньше, режущие края требуют большей толщины.' Сами: 'Я адаптирую препаровку по зонам.'"
+        },
+        {
+            question: "Мина, выбирая оттенок виниров, говорит: 'Нужно учитывать полупрозрачность.' Сами спрашивает: 'Что такое полупрозрачность?'",
+            options: [
+                "Способность керамики пропускать свет",
+                "Белый цвет керамики",
+                "Устойчивость керамики к ударам",
+                "Блеск поверхности винира"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Полупрозрачность придаёт естественный вид, имитируя эмаль.' Сами: 'Я выберу керамику с правильной полупрозрачностью.'"
+        },
+        {
+            question: "Сами, видя отклеившийся винир, говорит: 'Это вина лаборатории!' Мина отвечает: 'Не обязательно.' Каковы причины неудачи адгезии?",
+            options: [
+                "Загрязнение, плохая препаровка или неправильный адгезивный протокол",
+                "Только качество керамики",
+                "Только вина пациента",
+                "Только тип используемого цемента"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Адгезия — чувствительный процесс. Загрязнение или неправильный протокол могут нарушить фиксацию.' Сами: 'Я проверю свой адгезивный протокол.'"
+        },
+        {
+            question: "Мина, видя асимметричную улыбку, говорит: 'Сначала нужно ортодонтическое лечение.' Сами спрашивает: 'Почему не сразу виниры?'",
+            options: [
+                "Виниры не исправляют скелетные или ортодонтические асимметрии",
+                "Виниры могут исправить все асимметрии",
+                "Ортодонтия быстрее виниров",
+                "Виниры дешевле ортодонтии"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Виниры маскируют, но не исправляют серьёзные асимметрии. Ортодонтия — первый шаг.' Сами: 'Сначала сделаю ортодонтию.'"
+        },
+        {
+            question: "Сами, получая виниры из лаборатории, говорит: 'Они идеальны!' Мина отвечает: 'Нужно всегда проверять.' Что нужно проверять при получении?",
+            options: [
+                "Цвет, форму, адаптацию и полупрозрачность",
+                "Только цвет",
+                "Только форму",
+                "Только цену"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Нужно проверять все эстетические критерии перед установкой.' Сами: 'Я сделаю тщательную проверку.'"
+        },
+        {
+            question: "Мина, устанавливая винир, говорит: 'Нужно использовать светоотверждаемую адгезивную систему.' Сами спрашивает: 'Почему не самоотверждаемую?'",
+            options: [
+                "Светоотверждение обеспечивает лучший контроль полимеризации",
+                "Самоотверждение быстрее",
+                "Светоотверждение дешевле",
+                "Самоотверждение мощнее"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Светоотверждение позволяет контролировать момент полимеризации.' Сами: 'Я использую светоотверждение для лучшего контроля.'"
+        },
+        {
+            question: "Сами, видя слишком белый винир, говорит: 'Пациент хотел именно так.' Мина отвечает: 'Нужно соблюдать пределы.' Почему избегать слишком белых виниров?",
+            options: [
+                "Слишком белая улыбка может выглядеть неестественно",
+                "Белые зубы всегда красивее",
+                "Белый цвет — единственный приемлемый",
+                "Естественные зубы всегда очень белые"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Цель — естественная улыбка, а не искусственная голливудская.' Сами: 'Я выберу более естественный оттенок.'"
+        },
+        {
+            question: "Мина, анализируя улыбку, говорит: 'Золотое сечение соблюдено.' Сами спрашивает: 'Что такое золотое сечение?'",
+            options: [
+                "Пропорция 1:1.618 между центральными и боковыми резцами",
+                "Идеальный цвет зубов",
+                "Размер моляров по отношению к премолярам",
+                "Толщина десны по отношению к зубам"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Золотое сечение — математическая пропорция, создающая естественную гармонию.' Сами: 'Я всегда буду проверять эту пропорцию.'"
+        },
+        {
+            question: "Сами, видя пациентку со стёртыми зубами, говорит: 'Виниры решат эту проблему.' Мина отвечает: 'Не без оценки причины.' Почему нужно оценивать причину стираемости?",
+            options: [
+                "Стираемость может быть вызвана бруксизмом и требовать окклюзионного лечения",
+                "Стираемость всегда связана с возрастом",
+                "Стираемость всегда связана с питанием",
+                "Стираемость всегда связана с чисткой зубов"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Стираемость от бруксизма должна быть пролечена до установки виниров.' Сами: 'Я сделаю окклюзионный анализ.'"
+        },
+        {
+            question: "Мина, видя пациентку с тетрациклиновыми зубами, говорит: 'Отбеливания будет недостаточно.' Сами спрашивает: 'Почему?'",
+            options: [
+                "Тетрациклины окрашивают дентин, а не только эмаль",
+                "Отбеливание удаляет все пятна",
+                "Тетрациклины поверхностны",
+                "Отбеливание эффективнее при тетрациклинах"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Тетрациклины проникают в дентин, куда отбеливание не достаёт.' Сами: 'Я предложу виниры вместо отбеливания.'"
+        },
+        {
+            question: "Сами, готовя винир, говорит: 'Я буду готовить бором.' Мина отвечает: 'Будь осторожен с эмалью.' Почему сохранение эмали критично?",
+            options: [
+                "Эмаль — самый прочный слой и обеспечивает адгезию",
+                "Эмаль не важна для адгезии",
+                "Эмаль легко регенерируется",
+                "Эмаль не влияет на цвет"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Эмаль важна для адгезии и прочности.' Сами: 'Я максимально сохраню эмаль.'"
+        },
+        {
+            question: "Мина, видя треснувший винир, говорит: 'Это усталостный перелом.' Сами спрашивает: 'Что это такое?'",
+            options: [
+                "Перелом из-за повторяющихся окклюзионных нагрузок",
+                "Перелом из-за единичного удара",
+                "Перелом из-за дефекта изготовления",
+                "Перелом из-за плохой полировки"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Повторяющиеся окклюзионные нагрузки могут вызвать прогрессивное растрескивание.' Сами: 'Я проверю окклюзию.'"
+        },
+        {
+            question: "Сами, видя пациентку с избыточной десной, говорит: 'Нужно удлинить виниры.' Мина отвечает: 'Не так быстро!' Каков первый подход?",
+            options: [
+                "Пародонтологическое лечение для коррекции избытка десны",
+                "Немедленная установка удлинённых виниров",
+                "Отбеливание дёсен",
+                "Немедленная ортогнатическая хирургия"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Избыток десны сначала лечится пародонтологически.' Сами: 'Я направлю к пародонтологу.'"
+        },
+        {
+            question: "Мина, говоря о композитных винирах, говорит: 'Они дешевле, но менее долговечны.' Сами спрашивает: 'Когда их использовать?'",
+            options: [
+                "Для временных случаев или при ограниченном бюджете",
+                "Всегда, они эстетичнее",
+                "Никогда, керамика всегда лучше",
+                "Только на моляры"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Композитные виниры — экономичная альтернатива для простых случаев.' Сами: 'Я предложу пациенту оба варианта.'"
+        },
+        {
+            question: "Сами, видя плохо прилегающий винир, говорит: 'Это приемлемо.' Мина отвечает: 'Совсем нет!' Почему краевое прилегание критично?",
+            options: [
+                "Плохое прилегание может привести к кариесу или отслаиванию",
+                "Прилегание не имеет значения",
+                "Важен только эстетический вид",
+                "Виниры никогда не прилегают идеально"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Дефектный краевой зазор — это вход для бактерий.' Сами: 'Я тщательно проверю прилегание.'"
+        },
+        {
+            question: "Мина, анализируя улыбку, говорит: 'Оси зубов правильные.' Сами спрашивает: 'Почему оси важны?'",
+            options: [
+                "Оси влияют на восприятие симметрии и гармонии",
+                "Оси не имеют эстетического значения",
+                "Оси касаются только моляров",
+                "Оси должны быть наклонены для естественности"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Наклонённая ось может создавать впечатление асимметричной улыбки.' Сами: 'Я всегда буду проверять оси.'"
+        },
+        {
+            question: "Сами, видя пациентку с потемневшими зубами, говорит: 'Виниры всё скроют.' Мина отвечает: 'Не уверена.' Когда виниры не показаны?",
+            options: [
+                "Если зубы слишком девитализированы и хрупкие",
+                "Если зубы просто жёлтые",
+                "Если зубы слегка окрашены",
+                "Если зубы имеют маленькие трещины"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Девитализированные зубы хрупки и могут требовать коронок.' Сами: 'Я оценю прочность зубов.'"
+        },
+        {
+            question: "Мина, видя пациентку с асимметричной улыбкой, говорит: 'Нужно ортодонтическое заключение.' Сами спрашивает: 'Почему?'",
+            options: [
+                "Ортодонтия может исправить асимметрии до эстетического этапа",
+                "Ортодонтия быстрее",
+                "Виниры лучше исправляют асимметрии",
+                "Ортодонтия дешевле"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Ортодонтия лечит причину асимметрии.' Сами: 'Я сделаю ортодонтическое заключение.'"
+        },
+        {
+            question: "Сами, получая виниры из лаборатории, говорит: 'Они идеальны.' Мина отвечает: 'Нужно проверить цвет при разном освещении.' Почему?",
+            options: [
+                "Цвет может меняться в зависимости от освещения (естественного, искусственного)",
+                "Цвет всегда одинаков",
+                "Освещение не влияет на цвет виниров",
+                "Лаборатория всегда знает правильный цвет"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Виниры могут выглядеть по-разному при естественном и искусственном свете.' Сами: 'Я проверю при разном освещении.'"
+        },
+        {
+            question: "Мина, видя пациентку с десневой улыбкой, говорит: 'Это десневая улыбка.' Сами спрашивает: 'Как её лечить?'",
+            options: [
+                "Гингивэктомия или эстетическое пародонтологическое лечение",
+                "Установка удлинённых виниров",
+                "Отбеливание дёсен",
+                "Установка коронок на все зубы"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Гингивэктомия позволяет скорректировать избыток десны.' Сами: 'Я предложу гингивэктомию.'"
+        },
+        {
+            question: "Сами, видя обесцветившийся винир, говорит: 'Это вина пациента.' Мина отвечает: 'Не обязательно.' Каковы причины обесцвечивания виниров?",
+            options: [
+                "Износ, пищевые пятна или недостаточная полировка",
+                "Только табак и кофе",
+                "Только неправильный выбор оттенка",
+                "Только естественное старение"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Виниры могут обесцвечиваться со временем и износом.' Сами: 'Я проинформирую пациента об уходе.'"
+        },
+        {
+            question: "Мина, говоря о винирах, говорит: 'Уход важен.' Сами спрашивает: 'Какой уход?'",
+            options: [
+                "Мягкая чистка, регулярное снятие зубного камня и избегание окрашивающих продуктов",
+                "Ежедневная энергичная чистка",
+                "Ежемесячное отбеливание",
+                "Особого ухода не требуется"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'Хороший уход продлевает срок службы виниров.' Сами: 'Я дам советы по уходу своим пациентам.'"
+        },
+        {
+            question: "Сами и Мина обсуждают будущее эстетической стоматологии. Сами говорит: 'ИИ заменит выбор цвета!' Мина отвечает: 'Не так быстро!' Каково будущее эстетики?",
+            options: [
+                "ИИ — вспомогательный инструмент, но человеческий взгляд остаётся важным",
+                "ИИ заменит все эстетические решения",
+                "Эстетическая стоматология исчезнет",
+                "Пациенты будут выбирать сами через приложение"
+            ],
+            correct: 0,
+            explanation: "Мина объясняет: 'ИИ может помочь, но искусство улыбки — вопрос человеческой чувствительности.' Сами: 'Согласен, оставим взгляд художника!'"
+        }
+    ];
+
+
+    // ============================================
+    // =========== МАКСИМАЛЬНЫЙ БАЛЛ =============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10;
+    const MAX_SCORE_WITH_BONUS = questions.length * 15;
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("esthetique_v1_debutant2_ru", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== РАЗБЛОКИРОВКА СРЕДНЕГО 1 ======
+    // ============================================
+    function unlockIntermediate1(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("esthetique_v1_intermediaire1_ru_unlocked", "true");
+            localStorage.setItem("esthetique_v1_debutant2_ru_score", percentage.toFixed(1));
+            console.log("✅ Уровень Средний 1 РАЗБЛОКИРОВАН! Результат: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("esthetique_v1_intermediaire1_ru_unlocked", "false");
+            console.log("❌ Уровень Средний 1 ЗАБЛОКИРОВАН. Результат: " + percentage.toFixed(1) + "% (мин " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 СОХРАНЕНИЕ ВАЛИДАЦИИ ДЛЯ PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            console.log('✅ Валидация сохранена для progression.html');
+        }
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("Время вышло! Переходим к следующему вопросу.", "ru-RU");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Вопрос ${currentQuestion + 1} : ${questions[currentQuestion].question}`, "ru-RU");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>✨ Эстетическая стоматология - Начальный уровень 2</h1><p>Вопрос ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Объяснение:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Осталось времени: <span id="timer">${timeLeft}</span> секунд</div>
+                <div class="score">🏆 Текущий балл: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Прервать</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Далее →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`Правильный ответ! +${pointsEarned} баллов.`, "ru-RU");
+        } else {
+            speak(`Неправильный ответ. Правильный ответ: ${shuffledOptions[currentCorrectIndex]}.`, "ru-RU");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Правильный ответ: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Текущий балл: ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Пожалуйста, выберите ответ.", "ru-RU"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== НАВИГАЦИЯ ======================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_ru.html";
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        const isUnlocked = unlockIntermediate1(percentage);
+        
+        sauvegarderValidation('Эстетическая стоматология', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Викторина завершена!</h1>
+                <div class="final-score">Балл: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Процент: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ? 
+                        '<div class="unlock-badge">✅ Уровень Средний 1 разблокирован! 🎊</div>' : 
+                        '<div class="locked-badge">⚠️ Недостаточно баллов (минимум 60% для разблокировки следующего уровня)</div>'}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ? 
+                        '📚 Перейдите в меню для доступа к уровню Средний 1.' : 
+                        `💪 Вам не хватает ${(60 - percentage).toFixed(1)}% для разблокировки уровня Средний 1. Попробуйте снова!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Поделиться результатом</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Оставить отзыв</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Главное меню</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Мировой рейтинг</button>
+                </div>
+            </div>
+        `;
+        
+        if (isUnlocked) {
+            speak(`Поздравляю! Вы разблокировали уровень Средний 1 с результатом ${percentage.toFixed(1)}%.`, "ru-RU");
+            
+            // 🆕 ПОПАП ОЦЕНКИ БЕТА
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Ваш результат ${percentage.toFixed(1)}%. Вам нужно достичь 60% для разблокировки уровня Средний 1.`, "ru-RU");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // 🆕 ПОПАП ОЦЕНКИ БЕТА
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        const userName = localStorage.getItem("eteo_userName") || "Доктор";
+        
+        const popup = document.createElement('div');
+        popup.id = 'betaPopup';
+        popup.className = 'beta-popup-overlay';
+        popup.innerHTML = `
+            <div class="beta-popup-content">
+                <div class="big-icon">🎉🏆🎉</div>
+                <h2>Поздравляем ${userName}!</h2>
+                <p>Вы успешно прошли оба начальных уровня.</p>
+                <div style="margin:25px 0;">
+                    <p style="font-weight:bold;">🌟 Оцените БЕТА-версию 🌟</p>
+                    <div class="stars" id="starRating">
+                        <span data-rating="1">☆</span>
+                        <span data-rating="2">☆</span>
+                        <span data-rating="3">☆</span>
+                        <span data-rating="4">☆</span>
+                        <span data-rating="5">☆</span>
+                    </div>
+                    <div class="rating-message" id="ratingMessage"></div>
+                </div>
+                <div class="beta-info">
+                    <p>🚀 Продолжение (Средний и Эксперт) появится через 6 месяцев оценки.</p>
+                </div>
+                <button class="beta-btn" onclick="closeBetaPopup()">Вернуться в меню</button>
+            </div>
+        `;
+        document.body.appendChild(popup);
+        
+        const stars = popup.querySelectorAll('#starRating span');
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                stars.forEach((s, idx) => { 
+                    s.innerHTML = idx < rating ? '★' : '☆'; 
+                    s.style.color = idx < rating ? '#ffc107' : '#ccc'; 
+                });
+                document.getElementById('ratingMessage').innerHTML = '✅ Спасибо за вашу оценку!';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        const modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'ru',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Оценка БЕТА отправлена!");
+        } catch(error) {
+            console.error("Ошибка Бета:", error);
+        }
+    }
+
+    // ============================================
+    // =========== ПОПАП РЕЙТИНГА =================
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal =============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 Пока нет результатов для этого уровня.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Ваше место</div>
+                        <div class="rank-number">${userRank} место</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} баллов (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Вы ещё не в рейтинге этого уровня</div>
+                        <div>Пройдите викторину, чтобы появиться!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #d4a574;">🏆 ТОП 20 - Эстетическая стоматология Начальный 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(212,165,116,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Аноним"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 Нет результатов для этого уровня</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Ошибка Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Не удалось загрузить рейтинг.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Неизвестная ошибка'}</span></div>`;
+        }
+    }
+
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("esthetique_v1_debutant2_ru", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockIntermediate1(partialPercentage);
+        
+        sauvegarderValidation('Эстетическая стоматология', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Викторина прервана</h1><div class="final-score">Частичный балл: ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Процент: ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 Этот результат сохранён в рейтинге.</div><button class="menu-btn" onclick="goToMenu()">🏠 Вернуться в меню</button></div>`;
+        speak(`Викторина прервана. Частичный балл: ${score} из ${MAX_SCORE_WITH_BONUS}.`, "ru-RU");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Эстетическая стоматология\nМой результат на уровне Начальный 2: ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\nПопробуй побить мой рекорд на ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Результат', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Результат скопирован в буфер обмена!");
+            }).catch(() => {
+                alert("📋 Для публикации скопируйте этот текст:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    document.body.addEventListener('click', function firstClick() { 
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>

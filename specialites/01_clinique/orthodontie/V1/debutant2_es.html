@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Ortodoncia - Principiante 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ IA en espera</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de clasificación -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 SU POSICIÓN</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Cargando clasificación...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURACIÓN FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID PARA ESTE QUIZ
+    // ============================================
+    const LEVEL_ID = "orthodontie_v1_debutant2_fr";
+
+
+    // ============================================
+    // =========== 1. SISTEMA DE VOZ =============
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'es-ES';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ IA activada";
+                indicator.style.background = "#4caf50";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+    }
+
+    // ============================================
+    // =========== 2. DATOS DEL USUARIO ==========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "FR"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anónimo" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>🦷 Ortodoncia - Principiante Nivel 2</h1><p>¡Bienvenido Doctor!</p></div>
+                <div class="input-group">
+                    <label>👤 Su nombre (opcional) :</label>
+                    <input type="text" id="userName" placeholder="Ej: Dr. Martin" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Su país (obligatorio) :</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 Francia</option>
+                        <option value="MA">🇲🇦 Marruecos</option>
+                        <option value="CH">🇨🇭 Suiza</option>
+                        <option value="CA">🇨🇦 Canadá</option>
+                        <option value="BE">🇧🇪 Bélgica</option>
+                        <option value="SN">🇸🇳 Senegal</option>
+                        <option value="CI">🇨🇮 Costa de Marfil</option>
+                        <option value="CM">🇨🇲 Camerún</option>
+                        <option value="DZ">🇩🇿 Argelia</option>
+                        <option value="TN">🇹🇳 Túnez</option>
+                        <option value="US">🇺🇸 EE.UU.</option>
+                        <option value="GB">🇬🇧 Reino Unido</option>
+                        <option value="DE">🇩🇪 Alemania</option>
+                        <option value="ES">🇪🇸 España</option>
+                        <option value="IT">🇮🇹 Italia</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turquía</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">o</div>
+                    <input type="text" id="otherCountry" placeholder="Introduzca su país (ej: Brasil, Japón, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Comenzar el cuestionario</button>
+                <div class="note">
+                    ⚠️ Regla: 60% mínimo (225/375 puntos) para desbloquear el nivel <strong>Intermedio 1</strong>.<br>
+                    🎁 Bono de velocidad: +5 puntos si responde antes de que termine el temporizador.<br>
+                    📊 Puntuación máxima posible con bono: 375 puntos (25 preguntas × 15 puntos)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ENVÍO DE PUNTUACIÓN FIREBASE ===
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Puntuación enviada a Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Error de Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. PREGUNTAS (25) - SERIE 2 ===
+    // ============================================
+    const questions = [
+    {
+        question: "🦅 Sami y 🐆 Mina examinan a un adolescente de 14 años con asimetría facial. Sami dice: 'Es una asimetría mandibular, ¡hay que operar ahora!' Mina, analizando las imágenes, replica: '¡Espera, mira bien el crecimiento!' ¿Qué hay que evaluar prioritariamente?",
+        options: [
+            "La maduración vertebral para determinar si el crecimiento ha finalizado",
+            "El color de la piel del paciente",
+            "El peso del paciente",
+            "El tamaño de las orejas"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'La evaluación de la maduración vertebral (CVM) es crucial. Si el crecimiento no ha terminado, una asimetría puede empeorar o corregirse espontáneamente.' 🦅 Sami, molesto: 'Bueno, OK, esperamos... pero yo tenía razón en el fondo.'"
+    },
+    {
+        question: "🐆 Mina examina a una paciente de 12 años con apiñamiento de 7 mm. Propone una expansión maxilar lenta. 🦅 Sami exclama: '¡Demasiado lento! Hagamos extracciones, ¡es más rápido!' ¿Qué dice la literatura sobre la expansión lenta vs rápida?",
+        options: [
+            "La expansión lenta es más estable y menos dolorosa que la expansión rápida",
+            "La expansión rápida siempre es más eficaz",
+            "Ambas son idénticas",
+            "Ninguna de las dos es eficaz"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami admite: 'Bueno, de acuerdo, la expansión lenta da resultados más estables. Mina tiene razón en esto.' 🐆 Mina sonríe: '¿Ves? La paciencia siempre vale la pena.'"
+    },
+    {
+        question: "🦅 Sami y 🐆 Mina reciben a un paciente con Clase II división 2 y overbite profundo. Sami dice: '¡Empezamos con los brackets inmediatamente!' Mina responde: '¿Y el desbloqueo de los incisivos?' ¿Qué hay que hacer primero?",
+        options: [
+            "Desbloquear los incisivos superiores para permitir su inclinación vestibular",
+            "Colocar los brackets directamente",
+            "Hacer extracciones",
+            "Esperar el fin del crecimiento"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'En la Clase II división 2, los incisivos superiores están retroclinados. Hay que desbloquearlos primero antes de tratar la Clase II.' 🦅 Sami: 'Bueno, tienes razón, pero es muy largo...'"
+    },
+    {
+        question: "🐆 Mina, analizando una telerradiografía, dice: 'El ángulo SNB es de 74°.' 🦅 Sami responde: '¡No es grave!' Mina insiste: '¡Sí, es significativo!' ¿Qué significa un SNB bajo?",
+        options: [
+            "Una retrognatia mandibular (mandíbula retraída)",
+            "Una prognatia mandibular",
+            "Un crecimiento excesivo de la mandíbula",
+            "Una posición normal de la mandíbula"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'SNB normal está entre 78-82°. Un SNB de 74° indica una retrognatia mandibular.' 🦅 Sami, sorprendido: 'Pensaba que era normal... ¡Tienes razón Mina!'"
+    },
+    {
+        question: "🦅 Sami propone a un paciente de 15 años un tratamiento con alineadores para una maloclusión leve. 🐆 Mina le dice: '¡Cuidado, los alineadores tienen límites!' ¿Cuáles son los límites de los alineadores?",
+        options: [
+            "Están limitados para movimientos complejos, rotaciones severas y extrusiones",
+            "Están limitados solo por el precio",
+            "Solo funcionan en niños",
+            "Solo funcionan en adultos"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami explica: 'Los alineadores son excelentes para casos simples a moderados, pero tienen límites para movimientos complejos.' 🐆 Mina, sorprendida: 'Sami, hoy estás razonable.'"
+    },
+    {
+        question: "🐆 Mina examina a un paciente con mordida abierta anterior de 4 mm. Propone un tratamiento con mini-tornillos para intrusión molar. 🦅 Sami responde: '¡No, cirugía!' ¿Quién tiene razón?",
+        options: [
+            "Mina, la intrusión molar con mini-tornillos es una opción validada para mordidas abiertas moderadas",
+            "Sami, la cirugía es la única solución",
+            "Ambas son equivalentes",
+            "Ninguno, hay que hacer extracciones"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'Los mini-tornillos permiten una intrusión molar eficaz para tratar mordidas abiertas anteriores moderadas sin cirugía.' 🦅 Sami: 'Bueno, tienes razón, pero es más técnico que la cirugía.'"
+    },
+    {
+        question: "🦅 Sami, al ver una recidiva postortodóncica en un paciente, dice: '¡Volvemos a poner brackets!' 🐆 Mina responde: '¿Y la retención?' ¿Por qué se descuida a menudo la retención?",
+        options: [
+            "Los pacientes suelen dejar las férulas demasiado pronto, pensando que el tratamiento ha terminado",
+            "Las férulas son demasiado caras",
+            "Las férulas son inútiles",
+            "Las férulas no funcionan"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami explica: 'La retención es crucial, pero los pacientes suelen dejarla demasiado pronto. La recidiva es frecuente sin contención adecuada.' 🐆 Mina: '¡Por fin entiendes la importancia de la retención!'"
+    },
+    {
+        question: "🐆 Mina, al ver una agenesia de incisivos laterales superiores, propone: 'Cierre de espacios y caninos en lugar de incisivos.' 🦅 Sami dice: '¡No, implantes!' ¿Qué enfoque es más estable?",
+        options: [
+            "El cierre de espacios con transformación de caninos es un enfoque validado y estable",
+            "Los implantes siempre son mejores",
+            "Ambos son equivalentes",
+            "Ninguno, hay que mantener los espacios"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'El cierre de espacios con caninos en lugar de incisivos es un enfoque ortodóncico clásico y estable.' 🦅 Sami: 'Prefiero los implantes, pero reconozco que tienes razón...'"
+    },
+    {
+        question: "🦅 Sami, al ver una Clase III en un niño de 9 años, dice: 'Esperamos el crecimiento.' 🐆 Mina responde: '¡No, tratamos ahora con máscara facial!' ¿Quién tiene razón?",
+        options: [
+            "Mina, la máscara facial está indicada en niños para corregir una insuficiencia maxilar",
+            "Sami, hay que esperar el fin del crecimiento",
+            "Ambos son posibles",
+            "Ninguno, hay que hacer cirugía"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'La máscara facial (protracción maxilar) es eficaz en niños de 8-10 años para corregir Clase III.' 🦅 Sami: 'OK, pero es largo y restrictivo.'"
+    },
+    {
+        question: "🐆 Mina analiza a un paciente con overjet de 10 mm. Propone: 'Extracción de premolares superiores.' 🦅 Sami dice: '¡No, expansión y distalización!' ¿Qué dice la literatura?",
+        options: [
+            "Las extracciones están indicadas para overjets severos > 8 mm con apiñamiento",
+            "La distalización siempre es preferible",
+            "La expansión siempre es preferible",
+            "Ninguna, hay que hacer cirugía"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami explica: 'Para un overjet severo con apiñamiento, las extracciones de premolares son una opción validada.' 🐆 Mina, sorprendida: 'Sami, ¿conoces la literatura? ¡Estoy impresionada!'"
+    },
+    {
+        question: "🦅 Sami y 🐆 Mina reciben a un paciente con sonrisa gingival excesiva. Sami dice: '¡Cirugía de encía!' Mina responde: '¿Y la erupción dental?' ¿Qué hay que evaluar?",
+        options: [
+            "La posición de los dientes y la tasa de erupción antes de considerar una cirugía",
+            "Solo la altura de la encía",
+            "Solo el color de los dientes",
+            "Solo la edad del paciente"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'La sonrisa gingival puede deberse a una erupción dental excesiva. Hay que evaluar primero la posición de los dientes.' 🦅 Sami: 'Bueno, haremos una evaluación antes de cortar...'"
+    },
+    {
+        question: "🐆 Mina, al ver a un paciente con diastema interincisal, propone: 'Cierre ortodóncico.' 🦅 Sami responde: '¡No, carillas!' ¿Qué enfoque es más conservador?",
+        options: [
+            "El cierre ortodóncico preserva la estructura dental",
+            "Las carillas son más conservadoras",
+            "Ambos son equivalentes",
+            "Ninguno, hay que extraer"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'El cierre ortodóncico preserva la integridad de los dientes, a diferencia de las carillas que los modifican.' 🦅 Sami: 'Prefiero las carillas por rapidez, pero tienes razón en el fondo.'"
+    },
+    {
+        question: "🦅 Sami, al ver una rotación de canino de 90°, dice: '¡Hay que extraerlo!' 🐆 Mina responde: '¡No, podemos desrotarlo con resortes!' ¿Quién tiene razón?",
+        options: [
+            "Mina, las rotaciones severas pueden corregirse con resortes ortodóncicos",
+            "Sami, una rotación de 90° es imposible de corregir",
+            "Ambos son posibles",
+            "Ninguno, hay que hacer cirugía"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami admite: 'Bueno, de acuerdo, se puede desrotar un canino con resortes. Mina tiene razón, ¡pero es largo!' 🐆 Mina sonríe: 'La paciencia siempre vale la pena, Sami.'"
+    },
+    {
+        question: "🐆 Mina, analizando una cefalometría, dice: 'El ángulo FMA es de 35°.' 🦅 Sami pregunta: '¿Cuál es la normal?'",
+        options: [
+            "La normal está entre 22-28°",
+            "La normal está entre 0-10°",
+            "La normal está entre 40-50°",
+            "La normal está entre -5-5°"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami explica: 'FMA (Plano Mandibular de Frankfort) normal está entre 22-28°. 35° indica un crecimiento vertical excesivo.' 🐆 Mina: 'Bravo Sami, conoces tus ángulos.'"
+    },
+    {
+        question: "🦅 Sami y 🐆 Mina reciben a un paciente con DTM (disfunción de la articulación temporomandibular). Sami dice: 'Paramos el tratamiento ortodóncico.' Mina responde: 'No, seguimos con férulas.' ¿Quién tiene razón?",
+        options: [
+            "Mina, las férulas pueden usarse en paralelo al tratamiento ortodóncico",
+            "Sami, hay que parar el tratamiento absolutamente",
+            "Ambos son posibles",
+            "Ninguno, hay que hacer cirugía"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'Las férulas de reposicionamiento pueden asociarse al tratamiento ortodóncico para manejar las DTM.' 🦅 Sami: 'Bueno, OK, pero ahora es más complicado.'"
+    },
+    {
+        question: "🐆 Mina, al ver un canino incluido en un paciente de 25 años, propone: 'Tracción ortodóncica.' 🦅 Sami responde: '¡No, extracción e implante!' ¿Qué enfoque es preferible?",
+        options: [
+            "La tracción ortodóncica es preferible para preservar el diente natural",
+            "El implante siempre es mejor",
+            "Ambos son equivalentes",
+            "Ninguno, hay que mantener el canino incluido"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami explica: 'La tracción ortodóncica permite conservar el diente natural, lo cual es preferible al implante.' 🐆 Mina, sorprendida: 'Sami, te estás volviendo conservador.'"
+    },
+    {
+        question: "🦅 Sami, al ver a un niño con mordida abierta y macroglosia, dice: 'Es la lengua que empuja, ¡hay que operar!' 🐆 Mina responde: '¿Y la reeducación?' ¿Qué hay que hacer primero?",
+        options: [
+            "Una reeducación miofuncional antes de considerar una cirugía",
+            "Una cirugía inmediata",
+            "Extracciones",
+            "Un tratamiento ortodóncico sin reeducación"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'La reeducación miofuncional está indicada primero para las mordidas abiertas relacionadas con la macroglosia.' 🦅 Sami: 'OK, pero es largo y costoso.'"
+    },
+    {
+        question: "🐆 Mina, analizando un caso de Clase II división 1 en un adulto, propone: 'Cirugía ortognática.' 🦅 Sami dice: 'No, podemos tratar ortodóncicamente con mini-tornillos.' ¿Quién tiene razón?",
+        options: [
+            "Sami, los mini-tornillos permiten un tratamiento ortodóncico sin cirugía en algunos casos",
+            "Mina, la cirugía es obligatoria en adultos",
+            "Ambos son posibles",
+            "Ninguno, hay que hacer extracciones"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami explica: 'Los mini-tornillos permiten una distalización molar eficaz en adultos sin cirugía.' 🐆 Mina, sorprendida: 'Sami, estás realmente actualizado.'"
+    },
+    {
+        question: "🦅 Sami y 🐆 Mina reciben a un paciente con agenesia de caninos mandibulares. Sami dice: 'Cerramos los espacios.' Mina responde: '¿Y la oclusión?' ¿Qué hay que considerar?",
+        options: [
+            "El cierre debe planificarse para mantener una oclusión funcional",
+            "Siempre se cierran los espacios",
+            "Siempre se mantienen los espacios",
+            "Siempre se colocan implantes"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'El cierre de espacios debe planificarse para preservar la función oclusal.' 🦅 Sami: 'Bueno, haremos una planificación precisa...'"
+    },
+    {
+        question: "🐆 Mina, al ver una asimetría mandibular en un adolescente, propone: 'Distracción osteogénica.' 🦅 Sami responde: '¡No, osteotomía directa!' ¿Qué enfoque es menos invasivo?",
+        options: [
+            "La distracción osteogénica es menos invasiva y progresiva",
+            "La osteotomía directa es menos invasiva",
+            "Ambos son equivalentes",
+            "Ninguno, hay que esperar"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'La distracción osteogénica permite una corrección progresiva y menos invasiva.' 🦅 Sami: 'Prefiero la osteotomía por rapidez, pero tienes razón...'"
+    },
+    {
+        question: "🦅 Sami, al ver una fractura radicular durante un tratamiento ortodóncico, dice: '¡Es culpa del paciente!' 🐆 Mina responde: 'No, puede pasar con fuerzas excesivas.' ¿Qué dice la literatura?",
+        options: [
+            "Las fracturas radiculares son complicaciones posibles de un tratamiento ortodóncico",
+            "Las fracturas nunca ocurren",
+            "Las fracturas siempre son culpa del paciente",
+            "Las fracturas siempre son culpa del ortodoncista"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'Las fuerzas ortodóncicas excesivas pueden causar fracturas radiculares. Es una complicación reconocida.' 🦅 Sami: 'Bueno, reduciré las fuerzas...'"
+    },
+    {
+        question: "🐆 Mina, analizando un caso de Clase III con antecedentes familiares, dice: 'Hay que tratar temprano.' 🦅 Sami responde: 'No, esperamos el crecimiento.' ¿Qué muestra la genética de las Clase III?",
+        options: [
+            "Las Clase III suelen tener un fuerte componente genético, que requiere una interceptación precoz",
+            "La genética no tiene importancia",
+            "Las Clase III siempre son ambientales",
+            "La genética no permite predecir"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami explica: 'Las Clase III tienen un fuerte componente genético. El tratamiento precoz suele estar indicado para limitar la expresión fenotípica.' 🐆 Mina: 'Sami, ¿has estado investigando?'"
+    },
+    {
+        question: "🦅 Sami y 🐆 Mina reciben a un paciente con pérdida de soporte periodontal. Sami dice: 'Paramos el tratamiento.' Mina responde: 'No, seguimos con fuerzas adaptadas.' ¿Qué dice la literatura?",
+        options: [
+            "El tratamiento ortodóncico es posible con fuerzas ligeras y una higiene rigurosa",
+            "El tratamiento es imposible con un periodonto débil",
+            "Solo las extracciones son posibles",
+            "Hay que hacer cirugía periodontal primero"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'El tratamiento ortodóncico es posible en pacientes periodontales con fuerzas adaptadas y vigilancia estricta.' 🦅 Sami: 'Bueno, OK, pero es arriesgado.'"
+    },
+    {
+        question: "🐆 Mina, al ver una recidiva de apiñamiento en un adulto, propone: 'Re-tratamiento con alineadores.' 🦅 Sami responde: '¡No, brackets!' ¿Qué enfoque es preferible?",
+        options: [
+            "Los alineadores son una opción cómoda para recidivas leves a moderadas",
+            "Los brackets siempre son preferibles",
+            "Ambos son equivalentes",
+            "Ninguno, hay que hacer extracciones"
+        ],
+        correct: 0,
+        explanation: "🦅 Sami explica: 'Los alineadores son una excelente opción para recidivas, con mayor comodidad.' 🐆 Mina, sorprendida: 'Sami, te has vuelto un fan de los alineadores.'"
+    },
+    {
+        question: "🦅 Sami y 🐆 Mina discuten el futuro de la ortodoncia. Sami dice: '¡La IA va a reemplazar a los ortodoncistas!' Mina responde: '¡No tan rápido!' ¿Cuál es el papel de la IA en ortodoncia?",
+        options: [
+            "La IA es una herramienta de ayuda a la decisión, no un reemplazo del clínico",
+            "La IA reemplazará a todos los ortodoncistas",
+            "La IA es inútil en ortodoncia",
+            "La IA solo sirve para hacer presupuestos"
+        ],
+        correct: 0,
+        explanation: "🐆 Mina explica: 'La IA es una herramienta poderosa para el análisis cefalométrico y la planificación, pero el clínico sigue siendo indispensable.' 🦅 Sami: 'Bueno, OK, pero nos va a facilitar la vida.'"
+    }
+];
+
+    // ============================================
+    // =========== PUNTUACIÓN MÁXIMA CORREGIDA ==
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10;
+    const MAX_SCORE_WITH_BONUS = questions.length * 15;
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("orthodontie_v1_debutant2_fr", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== DESBLOQUEAR NIVEL 3 ============
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("orthodontie_v1_intermediaire1_fr_unlocked", "true");
+            localStorage.setItem("orthodontie_v1_debutant2_fr_score", percentage.toFixed(1));
+            console.log("✅ Nivel Intermedio 1 DESBLOQUEADO! Puntuación: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("orthodontie_v1_intermediaire1_fr_unlocked", "false");
+            console.log("❌ Nivel Intermedio 1 BLOQUEADO. Puntuación: " + percentage.toFixed(1) + "% (mín " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 GUARDAR LA VALIDACIÓN PARA PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            console.log('✅ Validación guardada para progression.html');
+        }
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("¡Tiempo agotado! Pasamos a la siguiente pregunta.", "es-ES");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Pregunta ${currentQuestion + 1} : ${questions[currentQuestion].question}`, "es-ES");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>🦷 Ortodoncia - Principiante Nivel 2</h1><p>Pregunta ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explicación:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Tiempo restante: <span id="timer">${timeLeft}</span> segundos</div>
+                <div class="score">🏆 Puntuación actual: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonar</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Siguiente →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`¡Respuesta correcta! +${pointsEarned} puntos.`, "es-ES");
+        } else {
+            speak(`Respuesta incorrecta. La respuesta correcta era: ${shuffledOptions[currentCorrectIndex]}.`, "es-ES");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Respuesta correcta: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Puntuación actual: ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Por favor, seleccione una respuesta.", "es-ES"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 20;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVEGACIÓN =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_es.html";
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz CORREGIDO (BETA) ======
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        // === VERSIÓN BETA: El nivel siguiente está bloqueado ===
+        const isUnlocked = false; // Siempre false en BETA para niveles > Principiante 2
+        // =================================
+        
+        sauvegarderValidation('Orthodontie', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 ¡Cuestionario completado!</h1>
+                <div class="final-score">Puntuación: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Porcentaje: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${percentage >= 60 ?
+                        `<div class="unlock-badge">✅ ¡Nivel Principiante 2 validado! 🎊</div>
+                         <div class="locked-badge">🔒 BETA: La continuación (Intermedio & Experto) llegará después de 6 meses de evaluación.</div>` :
+                        `<div class="locked-badge">⚠️ Puntuación insuficiente (se requiere mínimo 60% para validar el nivel)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${percentage >= 60 ?
+                        '📚 Has validado los dos niveles Principiante. ¡Gracias por tu participación!' :
+                        `💪 Te falta ${(60 - percentage).toFixed(1)}% para validar el nivel. ¡Inténtalo de nuevo!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Compartir mi puntuación</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Dar mi opinión</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Menú principal</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Clasificación mundial</button>
+                </div>
+            </div>
+        `;
+        
+        if (percentage >= 60) {
+            speak(`¡Felicitaciones! Has validado el nivel Principiante 2 con una puntuación de ${percentage.toFixed(1)}%. La continuación estará disponible en la versión final.`, "es-ES");
+            
+            setTimeout(() => {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Tu puntuación es de ${percentage.toFixed(1)}%. Debes alcanzar el 60% para validar el nivel.`, "es-ES");
+        }
+    }
+
+    // ============================================
+    // =========== POPUP MODAL DE CLASIFICACIÓN ==
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No hay puntuaciones registradas para este nivel por el momento.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Su clasificación</div>
+                        <div class="rank-number">${userRank}ª posición</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} puntos (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Todavía no está en la clasificación de este nivel</div>
+                        <div>¡Vuelva a hacer el cuestionario para aparecer!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Ortodoncia Principiante 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anónimo"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No hay puntuaciones para este nivel</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Error de Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ No se pudo cargar la clasificación.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Error desconocido'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== POPUP BETA ====================
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 30px; width: 90%; max-width: 500px; padding: 35px 25px; text-align: center; animation: slideUp 0.3s ease; position: relative;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉🏆🎉</div>
+                <h2 style="color: #667eea; margin-bottom: 5px;">¡Felicitaciones ${userName}!</h2>
+                <p style="margin-bottom: 20px; font-size: 1rem;">
+                    Has validado los <strong>dos niveles Principiante</strong> con éxito.<br>
+                    ¡Qué trayectoria tan impresionante!
+                </p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Evalúa la versión BETA 🌟</p>
+                    <div id="starRating" style="display: flex; justify-content: center; gap: 12px; font-size: 3rem; cursor: pointer;">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p id="ratingMessage" style="margin-top: 10px; font-size: 0.85rem; color: #888;"></p>
+                </div>
+                
+                <div style="background: #f0f8ff; padding: 15px; border-radius: 20px; margin: 15px 0; border-left: 4px solid #667eea;">
+                    <p style="color: #ff5722; font-size: 0.95rem; margin: 0;">
+                        🚀 <strong>La continuación (Intermedio & Experto)</strong> llegará después de <strong>6 meses de evaluación</strong> de esta versión Beta.<br><br>
+                        Tu opinión nos ayuda a mejorar ETEO. Gracias por tu confianza, <strong>${userName}</strong> !
+                    </p>
+                </div>
+                
+                <button onclick="closeBetaPopup()" style="background: #4caf50; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 15px;">
+                    Volver al menú
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ ¡Gracias por tu evaluación! Tu opinión ha sido registrada.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'es',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Evaluación Beta enviada !");
+        } catch (error) {
+            console.error("❌ Error de evaluación Beta:", error);
+        }
+    }
+
+    // ============================================
+    // =========== OTRAS FUNCIONES ===============
+    // ============================================
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("orthodontie_v1_debutant2_fr", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        sauvegarderValidation('Orthodontie', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Cuestionario abandonado</h1><div class="final-score">Puntuación parcial: ${score}/${MAX_SCORE_WITH_BONUS}</div><div>Porcentaje: ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 Esta puntuación ha sido registrada en la clasificación.</div><button class="menu-btn" onclick="goToMenu()">🏠 Volver al menú</button></div>`;
+        speak(`Cuestionario abandonado. Puntuación parcial: ${score} de ${MAX_SCORE_WITH_BONUS}.`, "es-ES");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Ortodoncia\nMi puntuación en el Nivel Principiante 2: ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\n¡Desafíame en ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ ¡Puntuación copiada al portapapeles!");
+            }).catch(() => {
+                alert("📋 Para compartir, copie este texto:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    // Inicialización
+    document.body.addEventListener('click', function firstClick() { 
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
