@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Women Dentists - Beginner 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8a3a5a, #aa5a7a, #ca7a9a);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #6a2a4a, #8a3a5a, #aa5a7a); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #ca8aaa; }
+        .header .subtitle { font-size: 0.9rem; color: #8a3a5a; margin-top: 5px; }
+        body.dark .header .subtitle { color: #e0d0d8; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #ca8aaa;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #ca8aaa; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #ca8aaa;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover { background: #aa6a8a; }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #ca8aaa; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #ca8aaa;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            background: #aa6a8a;
+        }
+        .unlock-badge {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .locked-badge {
+            background: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #ca8aaa;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover { background: #aa6a8a; }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .note { color: #aaa; }
+        .scenario-box {
+            background: #fce8ee;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-left: 4px solid #ca8aaa;
+        }
+        body.dark .scenario-box { background: #3a2a3a; }
+        .scenario-box .title { font-weight: bold; color: #8a3a5a; margin-bottom: 5px; }
+        body.dark .scenario-box .title { color: #ca8aaa; }
+        .scenario-box .text { font-size: 0.9rem; color: #555; line-height: 1.5; }
+        body.dark .scenario-box .text { color: #ccc; }
+        .scenario-box .serious { color: #8a3a5a; font-weight: bold; }
+        body.dark .scenario-box .serious { color: #ca8aaa; }
+
+        /* ================================================================ */
+        /* 🆕 STYLE POUR LA POPUP DE SCÉNARIO */
+        /* ================================================================ */
+        #scenarioModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            animation: fadeIn 0.5s ease;
+        }
+        #scenarioModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 600px;
+            padding: 35px;
+            max-height: 80%;
+            overflow: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.6s ease;
+        }
+        body.dark #scenarioModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #scenarioModal .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+        }
+        #scenarioModal .modal-close:hover {
+            color: #f44336;
+        }
+        #scenarioModal .modal-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #scenarioModal .modal-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ca8aaa;
+            margin-bottom: 15px;
+        }
+        #scenarioModal .modal-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 4px solid #ca8aaa;
+        }
+        body.dark #scenarioModal .modal-text {
+            color: #ccc;
+            background: #2a2a3e;
+        }
+        #scenarioModal .modal-text .serious {
+            color: #8a3a5a;
+            font-weight: bold;
+        }
+        body.dark #scenarioModal .modal-text .serious {
+            color: #ca8aaa;
+        }
+        #scenarioModal .modal-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #scenarioModal .modal-btn {
+            background: #ca8aaa;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        #scenarioModal .modal-btn:hover {
+            background: #aa6a8a;
+            transform: scale(1.02);
+        }
+        #scenarioModal .modal-btn.secondary {
+            background: #8a3a5a;
+            color: white;
+        }
+        #scenarioModal .modal-btn.secondary:hover {
+            background: #6a2a4a;
+        }
+        #scenarioModal .modal-status {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 10px;
+            background: #f0f0f0;
+        }
+        body.dark #scenarioModal .modal-status {
+            color: #aaa;
+            background: #2a2a3e;
+        }
+        #scenarioModal .modal-status.playing {
+            background: #ca8aaa;
+            color: white;
+        }
+        #scenarioModal .modal-status.waiting {
+            background: #f39c12;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #ca8aaa;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #8a3a5a, #ca8aaa);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #ca8aaa;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover { background: #aa6a8a; }
+
+        /* ================================================================ */
+        /* 🆕 STYLE POUR LA POPUP D'ÉVALUATION BETA (AJOUTÉ) */
+        /* ================================================================ */
+        .beta-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        }
+        .beta-popup-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            padding: 35px 25px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        body.dark .beta-popup-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        .beta-popup-content .big-icon { font-size: 4rem; }
+        .beta-popup-content h2 { color: #ca8aaa; margin: 10px 0; }
+        body.dark .beta-popup-content h2 { color: #ca8aaa; }
+        .beta-popup-content p { color: #555; margin: 5px 0; }
+        body.dark .beta-popup-content p { color: #ccc; }
+        .beta-popup-content .stars {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 3rem;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .beta-popup-content .stars span { color: #ccc; transition: color 0.3s; }
+        .beta-popup-content .stars span.active { color: #ffc107; }
+        .beta-popup-content .rating-message {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .beta-popup-content .rating-message { color: #aaa; }
+        .beta-popup-content .beta-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+        }
+        body.dark .beta-popup-content .beta-info { background: #2a2a3e; }
+        .beta-popup-content .beta-info p { color: #ff5722; font-weight: bold; margin: 0; }
+        .beta-popup-content .beta-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .beta-popup-content .beta-btn:hover {
+            background: #388e3c;
+            transform: scale(1.02);
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ AI waiting</div>
+
+<div class="container" id="app"></div>
+
+<!-- Ranking Modal -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 YOUR POSITION</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Loading ranking...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== FIREBASE CONFIGURATION =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID FOR THIS QUIZ
+    // ============================================
+    const LEVEL_ID = "women_dentists_v1_debutant2_en";
+
+    // ============================================
+    // =========== 1. VOICE SYSTEM ===============
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    function stopSpeaking() {
+        if (voiceReady && speechSynthesisObj) {
+            speechSynthesisObj.cancel();
+        }
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ AI activated";
+                indicator.style.background = "#ca8aaa";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+        return true;
+    }
+
+    // ============================================
+    // =========== 2. USER INFO ==================
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "MA"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anonymous" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    // ============================================
+    // =========== UNLOCK FUNCTION ================
+    // ============================================
+    function unlockLevel3(percentage) {
+        if (percentage >= 60) {
+            localStorage.setItem("women_dentists_v1_intermediaire1_en_unlocked", "true");
+            return true;
+        }
+        return false;
+    }
+
+    // ================================================================
+    // 🔥 SAVE VALIDATION FOR PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progression = JSON.parse(localStorage.getItem('eteo_progression')) || {};
+            const key = specialite + '_' + niveau;
+            progression[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progression));
+            
+            console.log('✅ Validation saved for progression.html');
+        }
+    }
+
+    // ============================================
+    // =========== 3. SCENARIO POPUP =============
+    // ============================================
+    let scenarioPlaying = false;
+    let scenarioStarted = false;
+
+    function showScenarioPopup() {
+        const modal = document.createElement('div');
+        modal.id = 'scenarioModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeScenarioPopup()">✕</button>
+                <div class="modal-icon">👩‍⚕️</div>
+                <div class="modal-title">📖 Dr. Meriem's Return</div>
+                <div class="modal-text" id="scenarioText">
+                    <span class="serious">🔴 Context :</span> Dr. Meriem returns to her practice after 14 weeks of leave. She discovers that her replacement, Dr. Karim, has made changes. Some patients have left, a new assistant has been hired.<br><br>
+                    <span class="serious">🌸 Support :</span> Dr. Sofia, her mentor, supports her through this complex transition.<br><br>
+                    <span class="serious">📋 Goal :</span> Succeed in her return, manage changes, balance work and family life, and prepare for the future of her practice.
+                </div>
+                <div class="modal-status waiting" id="scenarioStatus">👆 Click anywhere to listen to the scenario</div>
+                <div class="modal-footer">
+                    <button class="modal-btn" id="btnEcouterScenario">🔊 Listen again</button>
+                    <button class="modal-btn secondary" onclick="closeScenarioPopup()">✅ Got it, let's start!</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // 🔥 TRIGGER READING ON FIRST CLICK
+        const startScenario = function() {
+            if (scenarioStarted) return;
+            scenarioStarted = true;
+            
+            activateVoice();
+            
+            const scenarioText = document.getElementById('scenarioText');
+            if (scenarioText) {
+                const text = scenarioText.textContent;
+                const cleanText = text.replace(/[🔴🌸📋👩‍⚕️]/g, '').trim();
+                speak(cleanText, 'en-US');
+                const statusEl = document.getElementById('scenarioStatus');
+                if (statusEl) {
+                    statusEl.textContent = '🔊 Reading in progress...';
+                    statusEl.className = 'modal-status playing';
+                }
+                scenarioPlaying = true;
+                
+                setTimeout(() => {
+                    const statusEl2 = document.getElementById('scenarioStatus');
+                    if (statusEl2 && scenarioPlaying) {
+                        statusEl2.textContent = '✅ Scenario read. Ready to start!';
+                        statusEl2.className = 'modal-status';
+                    }
+                }, 25000);
+            }
+            
+            document.removeEventListener('click', startScenario);
+        };
+        
+        document.addEventListener('click', startScenario);
+        
+        document.getElementById('btnEcouterScenario').addEventListener('click', function() {
+            stopSpeaking();
+            const scenarioText = document.getElementById('scenarioText');
+            if (scenarioText) {
+                const text = scenarioText.textContent;
+                const cleanText = text.replace(/[🔴🌸📋👩‍⚕️]/g, '').trim();
+                speak(cleanText, 'en-US');
+                const statusEl = document.getElementById('scenarioStatus');
+                if (statusEl) {
+                    statusEl.textContent = '🔊 Re-reading...';
+                    statusEl.className = 'modal-status playing';
+                }
+            }
+        });
+    }
+
+    function closeScenarioPopup() {
+        stopSpeaking();
+        const modal = document.getElementById('scenarioModal');
+        if (modal) {
+            modal.remove();
+        }
+        scenarioPlaying = false;
+        scenarioStarted = true;
+    }
+
+    // ============================================
+    // =========== 4. WELCOME SCREEN =============
+    // ============================================
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header">
+                    <h1>👩‍⚕️ Women Dentists - Beginner Level 2</h1>
+                    <div class="subtitle">Dr. Meriem returns to her practice after 14 weeks of maternity leave</div>
+                </div>
+                <div class="scenario-box">
+                    <div class="title">🎭 Scenario - Level 2</div>
+                    <div class="text" id="scenarioTextDisplay">
+                        <span class="serious">🔴 Context :</span> Dr. Meriem returns to her practice after 14 weeks of leave. She discovers that her replacement, Dr. Karim, has made changes. Some patients have left, a new assistant has been hired.<br><br>
+                        <span class="serious">🌸 Support :</span> Dr. Sofia, her mentor, supports her through this complex transition.<br><br>
+                        <span class="serious">📋 Goal :</span> Succeed in her return, manage changes, balance work and family life, and prepare for the future of her practice.
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>👤 Your name (optional) :</label>
+                    <input type="text" id="userName" placeholder="Ex: Dr. Meriem" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Your country (required) :</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="MA" selected>🇲🇦 Morocco</option>
+                        <option value="CH">🇨🇭 Switzerland</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="BE">🇧🇪 Belgium</option>
+                        <option value="SN">🇸🇳 Senegal</option>
+                        <option value="CI">🇨🇮 Ivory Coast</option>
+                        <option value="CM">🇨🇲 Cameroon</option>
+                        <option value="DZ">🇩🇿 Algeria</option>
+                        <option value="TN">🇹🇳 Tunisia</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="ES">🇪🇸 Spain</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turkiye</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">or</div>
+                    <input type="text" id="otherCountry" placeholder="Enter your country (ex: Brazil, Japan, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Start the quiz</button>
+                <div class="note">
+                    ⚠️ Rule: 60% minimum (225/375 points) to unlock <strong>Intermediate Level 1</strong>.<br>
+                    🎁 Speed bonus: +5 points if you answer before the timer ends.
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 5. FIREBASE SCORE =============
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score sent to Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Firebase error:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 6. QUESTIONS (25) =============
+    // ============================================
+    const questions = [
+        {
+            question: "Dr. Meriem returns to her practice after 14 weeks of maternity leave. She discovers that her replacement, Dr. Karim, has modified some protocols. Dr. Sofia advises her to :",
+            options: [
+                "Restore her protocols immediately",
+                "Analyze the changes and discuss with Dr. Karim",
+                "Ignore the changes",
+                "Change her practice"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, take the time to analyze the changes. Discuss with Karim, some adjustments may be beneficial.'"
+        },
+        {
+            question: "Dr. Meriem finds that 15% of her patients have left during her leave. Dr. Sofia explains that this is a common situation. She recommends that she :",
+            options: [
+                "Lower her prices to bring them back",
+                "Contact the patients who left to understand why",
+                "Ignore the departures",
+                "Open a second practice"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, contact the patients who left to understand why. Some left out of loyalty to the replacement, others for practical reasons. This feedback is valuable.'"
+        },
+        {
+            question: "Dr. Meriem discovers that Dr. Karim has increased some fees during her absence. Dr. Sofia advises her to :",
+            options: [
+                "Cancel the increases immediately",
+                "Keep the justified increases",
+                "Increase fees further",
+                "Offer discounts"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, if the increases are justified by inflation or rising costs, keep them. This is an opportunity to value your work.'"
+        },
+        {
+            question: "Dr. Meriem is exhausted by difficult nights with her baby. Dr. Sofia suggests that she :",
+            options: [
+                "Reduce her working hours",
+                "Adjust her schedule with breaks",
+                "Work in the evenings",
+                "Take additional leave"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, adjust your schedule. Start later, plan breaks, and don't hesitate to delegate tasks to Nadia.'"
+        },
+        {
+            question: "Dr. Meriem wonders about breastfeeding in her schedule. Dr. Sofia advises her to :",
+            options: [
+                "Stop breastfeeding",
+                "Schedule time to express milk",
+                "Breastfeed between patients",
+                "Take breastfeeding leave"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, schedule dedicated times to express milk. Inform your assistant and patients to avoid interruptions.'"
+        },
+        {
+            question: "Dr. Meriem discovers that Dr. Karim hired an assistant, Nadia, without her agreement. Dr. Sofia advises her to :",
+            options: [
+                "Fire Nadia immediately",
+                "Validate the hire if Nadia is competent",
+                "Ignore the situation",
+                "Hire another assistant"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, if Nadia is competent and fits in well, validate her hire. She can be an asset to your practice. But make sure her contract is compliant.'"
+        },
+        {
+            question: "Dr. Meriem struggles with fatigue and stress. Dr. Sofia suggests that she :",
+            options: [
+                "Take medication",
+                "Practice meditation or yoga",
+                "Work more",
+                "Sleep at her workplace"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, breathing exercises, meditation or yoga can help you manage stress. Even 10 minutes a day makes a difference.'"
+        },
+        {
+            question: "Dr. Meriem wants to retain her patients after her leave. Dr. Sofia advises her to :",
+            options: [
+                "Send a thank-you message to her patients",
+                "Lower her fees",
+                "Organize open days",
+                "Relocate her practice"
+            ],
+            correct: 0,
+            explanation: "Dr. Sofia: 'Meriem, a personalized message thanking your patients for their loyalty strengthens the trust bond. It's a simple but powerful gesture.'"
+        },
+        {
+            question: "Dr. Meriem feels overwhelmed by administrative tasks. Dr. Sofia suggests that she :",
+            options: [
+                "Hire an accountant",
+                "Delegate to her assistant",
+                "Work on weekends",
+                "Ignore the administrative work"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, delegate certain administrative tasks to Nadia. She can manage files, appointments and invoices.'"
+        },
+        {
+            question: "Dr. Meriem discovers that Dr. Karim has modified the practice organization. Dr. Sofia advises her to :",
+            options: [
+                "Revert to her original organization",
+                "Adopt beneficial changes",
+                "Change organization every month",
+                "Change nothing"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, adopt the changes that improve practice efficiency. Don't hesitate to ask your team for their opinion.'"
+        },
+        {
+            question: "Dr. Meriem worries about the impact of her return on her baby. Dr. Sofia advises her to :",
+            options: [
+                "Place her child in daycare",
+                "Plan a gradual transition",
+                "Work from home",
+                "Take a sabbatical year"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, a gradual transition allows you and your baby to adapt smoothly. Start with half-days.'"
+        },
+        {
+            question: "Dr. Meriem has a patient who refuses to be treated by a replacement. Dr. Sofia advises her to :",
+            options: [
+                "Force the patient to accept",
+                "Explain the situation and reassure the patient",
+                "Refuse to treat her",
+                "Refer her to another practice"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, reassure your patient. Explain that her follow-up is assured and the quality of care remains the same.'"
+        },
+        {
+            question: "Dr. Meriem wants to modernize her practice. Dr. Sofia suggests that she :",
+            options: [
+                "Invest in practice management software",
+                "Buy new equipment",
+                "Redecorate",
+                "Change suppliers"
+            ],
+            correct: 0,
+            explanation: "Dr. Sofia: 'Meriem, practice management software can help you save time on administration and better organize your practice.'"
+        },
+        {
+            question: "Dr. Meriem struggles to set boundaries with patients. Dr. Sofia advises her to :",
+            options: [
+                "Accept all requests",
+                "Learn to say no with kindness",
+                "Ignore excessive requests",
+                "Change patients"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, knowing how to say no is essential for preserving your energy. Offer alternatives when possible.'"
+        },
+        {
+            question: "Dr. Meriem wonders about the long-term future of her practice. Dr. Sofia suggests that she :",
+            options: [
+                "Sell her practice",
+                "Develop a strategic plan",
+                "Wait for things to stabilize",
+                "Change careers"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, define your 5-year goals. Do you want to expand your practice, specialize, or train replacements? A plan will give you a clear direction.'"
+        },
+        {
+            question: "Dr. Meriem wants to reduce her working hours to spend more time with family. Dr. Sofia advises her to :",
+            options: [
+                "Work 4 days a week",
+                "Work on weekends",
+                "Close the practice",
+                "Hire an associate"
+            ],
+            correct: 0,
+            explanation: "Dr. Sofia: 'Meriem, working 4 days a week is a viable option. Adjust your schedule and communicate clearly with your patients.'"
+        },
+        {
+            question: "Dr. Meriem finds that her assistant Nadia has potential but lacks training. Dr. Sofia advises her to :",
+            options: [
+                "Train her internally",
+                "Send her for professional training",
+                "Fire her",
+                "Give her more responsibilities"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, investing in Nadia's training benefits both her and your practice. A trained assistant is a valuable asset.'"
+        },
+        {
+            question: "Dr. Meriem struggles to balance clinical care and practice management. Dr. Sofia suggests that she :",
+            options: [
+                "Hire a practice manager",
+                "Delegate management to her assistant",
+                "Reduce the number of patients",
+                "Work later"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, delegate practice management to Nadia. She can handle appointments, supplies and invoices.'"
+        },
+        {
+            question: "Dr. Meriem wants to improve communication with her patients. Dr. Sofia advises her to :",
+            options: [
+                "Use social media",
+                "Send newsletters",
+                "Organize events",
+                "Advertise"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, a monthly newsletter on dental care, innovations and tips strengthens your relationship with patients.'"
+        },
+        {
+            question: "Dr. Meriem feels overwhelmed by requests from her replacement. Dr. Sofia advises her to :",
+            options: [
+                "Accept all requests",
+                "Set clear boundaries",
+                "Ignore the requests",
+                "Delegate to her assistant"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, set clear boundaries with Karim. The transition must be smooth but your decisions must be respected.'"
+        },
+        {
+            question: "Dr. Meriem wants to expand her professional network. Dr. Sofia suggests that she :",
+            options: [
+                "Join associations of women dentists",
+                "Work alone",
+                "Close her practice",
+                "Move to another region"
+            ],
+            correct: 0,
+            explanation: "Dr. Sofia: 'Meriem, associations of women dentists offer support, advice and development opportunities. Don't hesitate to get involved.'"
+        },
+        {
+            question: "Dr. Meriem struggles to manage emergencies outside working hours. Dr. Sofia advises her to :",
+            options: [
+                "Answer all calls",
+                "Define on-call hours",
+                "Ignore calls",
+                "Delegate to her assistant"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, define on-call hours for emergencies. This allows you to preserve your personal life while ensuring continuity of care.'"
+        },
+        {
+            question: "Dr. Meriem wants to hire a second dentist. Dr. Sofia advises her to :",
+            options: [
+                "Hire immediately",
+                "Assess the practice's needs",
+                "Wait one year",
+                "Reject the idea"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, before hiring, assess the real needs of your practice. Analyze the workload and development prospects.'"
+        },
+        {
+            question: "Dr. Meriem has conflicts with her assistant Nadia. Dr. Sofia advises her to :",
+            options: [
+                "Fire Nadia",
+                "Organize a meeting to clarify expectations",
+                "Ignore the conflicts",
+                "Change assistants"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, communication is key. Organize a meeting with Nadia to clarify expectations and resolve misunderstandings.'"
+        },
+        {
+            question: "Dr. Meriem wants to prepare for her long-term succession. Dr. Sofia advises her to :",
+            options: [
+                "Sell her practice now",
+                "Identify a potential successor and train them",
+                "Wait for retirement",
+                "Prepare nothing"
+            ],
+            correct: 1,
+            explanation: "Dr. Sofia: 'Meriem, identifying and training a potential successor allows you to prepare for the future with peace of mind.'"
+        },
+        {
+            question: "Dr. Meriem, at the end of their conversation, says: 'Sofia, I feel ready to face these challenges.' Sofia replies that the return is a key step. Meriem concludes :",
+            options: [
+                "The return is a failure",
+                "The return is an opportunity for growth",
+                "The return is a waste of time",
+                "The return is impossible"
+            ],
+            correct: 1,
+            explanation: "Meriem: 'Sofia, I feel ready to face these challenges.' Sofia: 'Meriem, the return is an opportunity for growth, both personal and professional. You have all the skills to succeed.'"
+        }
+    ];
+
+    // ============================================
+    // =========== QUIZ ENGINE ====================
+    // ============================================
+    const MAX_SCORE = questions.length * 15;
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("women_dentists_v1_debutant2_en", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("Time's up! Moving to the next question.", "en-US");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Question ${currentQuestion + 1} : ${questions[currentQuestion].question}`, "en-US");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header">
+                <h1>👩‍⚕️ Women Dentists - Beginner Level 2</h1>
+                <div class="subtitle">Question ${currentQuestion + 1}/${questions.length}</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explanation :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Time remaining : <span id="timer">${timeLeft}</span> seconds</div>
+                <div class="score">🏆 Current score : ${score}/${MAX_SCORE}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Quit</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Next →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`Correct answer! +${pointsEarned} points.`, "en-US");
+        } else {
+            speak(`Wrong answer. The correct answer was : ${shuffledOptions[currentCorrectIndex]}.`, "en-US");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Correct answer : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Current score : ${score}/${MAX_SCORE}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Please select an answer.", "en-US"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    function goToMenu() {
+        window.location.href = "menu_en.html";
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        saveScore(score, MAX_SCORE);
+        
+        const isUnlocked = unlockLevel3(percentage);
+        sauvegarderValidation('Women Dentists', 'debutant2', score, MAX_SCORE);
+        sendScoreToFirebase(score, MAX_SCORE, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Quiz completed!</h1>
+                <div class="final-score">Score : ${score}/${MAX_SCORE}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Percentage : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ? 
+                        '<div class="unlock-badge">✅ Intermediate Level 1 unlocked! 🎊</div>' : 
+                        '<div class="locked-badge">⚠️ Insufficient score (minimum 60% required to unlock the next level)</div>'}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ? 
+                        '📚 Go to the menu to access Intermediate Level 1.' : 
+                        `💪 You need ${(60 - percentage).toFixed(1)}% more to unlock Intermediate Level 1. Try again!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Share my score</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Give feedback</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Main menu</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 World ranking</button>
+                </div>
+            </div>
+        `;
+        
+        if (isUnlocked) {
+            speak(`Congratulations! You have unlocked Intermediate Level 1 with a score of ${percentage.toFixed(1)}%.`, "en-US");
+        } else {
+            speak(`Your score is ${percentage.toFixed(1)}%. You need 60% to unlock Intermediate Level 1.`, "en-US");
+        }
+
+        // 🆕 POPUP D'ÉVALUATION BETA (AJOUTÉE)
+        if (percentage >= 60) {
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // 🆕 POPUP D'ÉVALUATION BETA (AJOUTÉE)
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const popup = document.createElement('div');
+        popup.id = 'betaPopup';
+        popup.className = 'beta-popup-overlay';
+        popup.innerHTML = `
+            <div class="beta-popup-content">
+                <div class="big-icon">🎉🏆🎉</div>
+                <h2>Congratulations ${userName}!</h2>
+                <p>You have successfully validated both Beginner levels.</p>
+                <div style="margin:25px 0;">
+                    <p style="font-weight:bold;">🌟 Rate the BETA version 🌟</p>
+                    <div class="stars" id="starRating">
+                        <span data-rating="1">☆</span>
+                        <span data-rating="2">☆</span>
+                        <span data-rating="3">☆</span>
+                        <span data-rating="4">☆</span>
+                        <span data-rating="5">☆</span>
+                    </div>
+                    <div class="rating-message" id="ratingMessage"></div>
+                </div>
+                <div class="beta-info">
+                    <p>🚀 The next levels (Intermediate & Expert) will arrive after 6 months of evaluation.</p>
+                </div>
+                <button class="beta-btn" onclick="closeBetaPopup()">Back to menu</button>
+            </div>
+        `;
+        document.body.appendChild(popup);
+        
+        const stars = popup.querySelectorAll('#starRating span');
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                stars.forEach((s, idx) => { 
+                    s.innerHTML = idx < rating ? '★' : '☆'; 
+                    s.style.color = idx < rating ? '#ffc107' : '#ccc'; 
+                });
+                document.getElementById('ratingMessage').innerHTML = '✅ Thank you for your evaluation!';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        const modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'en',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Beta evaluation sent!");
+        } catch(error) {
+            console.error("Beta error:", error);
+        }
+    }
+
+    // ============================================
+    // =========== RANKING MODAL ==================
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No scores recorded for this level yet.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Your ranking</div>
+                        <div class="rank-number">${userRank}th position</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} points (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 You are not yet in the ranking for this level</div>
+                        <div>Redo the quiz to appear!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #ca8aaa;">🏆 TOP 20 - Women Dentists Beginner 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(202,138,170,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anonymous"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No scores for this level</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Firestore error:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Unable to load ranking.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Unknown error'}</span></div>`;
+        }
+    }
+
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE) * 100;
+        localStorage.setItem("women_dentists_v1_debutant2_en", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel3(partialPercentage);
+        sauvegarderValidation('Women Dentists', 'debutant2', score, MAX_SCORE);
+        sendScoreToFirebase(score, MAX_SCORE, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Quiz abandoned</h1><div class="final-score">Partial score : ${score}/${MAX_SCORE}</div><div>Percentage : ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 This score has been recorded in the ranking.</div><button class="menu-btn" onclick="goToMenu()">🏠 Back to menu</button></div>`;
+        speak(`Quiz abandoned. Partial score : ${score} out of ${MAX_SCORE}.`, "en-US");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE) * 100;
+        const text = `🎓 ETEO - Women Dentists\nMy score in Beginner Level 2 : ${score}/${MAX_SCORE} (${percentage.toFixed(1)}%)\nChallenge me on ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Score copied to clipboard!");
+            }).catch(() => {
+                alert("📋 To share, copy this text:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        closeScenarioPopup();
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    // ============================================
+    // =========== INITIALIZATION ================
+    // ============================================
+    showWelcomeScreen();
+
+    setTimeout(() => {
+        showScenarioPopup();
+    }, 800);
+
+    document.body.addEventListener('click', function firstClick() {
+        activateVoice();
+        document.body.removeEventListener('click', firstClick);
+    });
+</script>
+</body>
+</html>

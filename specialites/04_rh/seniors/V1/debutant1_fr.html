@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Seniors - Débutant 1</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT STATIC CAPACITOR ======== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { Capacitor } from '@capacitor/core';
+        window.Capacitor = Capacitor;
+        window.isMobile = Capacitor.isNativePlatform();
+        console.log('🔵 Capacitor chargé, isMobile =', window.isMobile);
+    </script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2a4a6a, #4a6a8a, #6a8aaa);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a2a4a, #2a4a6a, #4a6a8a); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #daa520; }
+        .header .subtitle { font-size: 0.9rem; color: #4a6a8a; margin-top: 5px; }
+        body.dark .header .subtitle { color: #b0c8e0; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #daa520;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #daa520; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #4a6a8a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover { background: #2a4a6a; }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #daa520; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #daa520;
+            color: #2a4a6a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            background: #c09020;
+            color: white;
+        }
+        .unlock-badge {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .locked-badge {
+            background: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        /* ============================================ */
+        /* =========== STYLES BOUTONS VOCAUX ========== */
+        /* ============================================ */
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+
+        /* ============================================ */
+        /* =========== VOICE INDICATOR INTEGRATED ===== */
+        /* ============================================ */
+        .voice-indicator-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .voice-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            font-size: 11px;
+            color: #b0b0b0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(128, 128, 128, 0.15);
+        }
+        .voice-indicator.active {
+            display: flex;
+            background: rgba(218, 165, 32, 0.2);
+            border-color: rgba(218, 165, 32, 0.3);
+            color: #daa520;
+        }
+        .voice-indicator.speaking {
+            display: flex;
+            background: rgba(218, 165, 32, 0.3);
+            border-color: rgba(218, 165, 32, 0.5);
+            color: #f0d060;
+            animation: pulseVoice 1s ease-in-out infinite;
+        }
+        @keyframes pulseVoice {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .voice-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            transition: all 0.3s ease;
+        }
+        .voice-indicator.active .dot { background: #daa520; }
+        .voice-indicator.speaking .dot {
+            background: #f0d060;
+            animation: blinkVoice 0.8s ease-in-out infinite;
+        }
+        @keyframes blinkVoice {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.2; transform: scale(0.6); }
+        }
+        .voice-indicator .status-text { font-weight: 500; }
+
+        .btn-progression {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-progression:hover {
+            background: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .btn-menu {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-menu:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .scenario-box {
+            background: #e8f0f8;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-left: 4px solid #daa520;
+        }
+        body.dark .scenario-box { background: #2a3a4a; }
+        .scenario-box .title { font-weight: bold; color: #4a6a8a; margin-bottom: 5px; }
+        body.dark .scenario-box .title { color: #daa520; }
+        .scenario-box .text { font-size: 0.9rem; color: #555; line-height: 1.5; }
+        body.dark .scenario-box .text { color: #ccc; }
+        .scenario-box .serious { color: #4a6a8a; font-weight: bold; }
+        body.dark .scenario-box .serious { color: #daa520; }
+
+        #scenarioModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            animation: fadeIn 0.5s ease;
+        }
+        #scenarioModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 600px;
+            padding: 35px;
+            max-height: 80%;
+            overflow: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.6s ease;
+        }
+        body.dark #scenarioModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #scenarioModal .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+        }
+        #scenarioModal .modal-close:hover {
+            color: #f44336;
+        }
+        #scenarioModal .modal-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #scenarioModal .modal-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #daa520;
+            margin-bottom: 15px;
+        }
+        #scenarioModal .modal-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 4px solid #daa520;
+        }
+        body.dark #scenarioModal .modal-text {
+            color: #ccc;
+            background: #2a2a3e;
+        }
+        #scenarioModal .modal-text .serious {
+            color: #4a6a8a;
+            font-weight: bold;
+        }
+        body.dark #scenarioModal .modal-text .serious {
+            color: #daa520;
+        }
+        #scenarioModal .modal-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #scenarioModal .modal-btn {
+            background: #daa520;
+            color: #2a4a6a;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        #scenarioModal .modal-btn:hover {
+            background: #c09020;
+            transform: scale(1.02);
+        }
+        #scenarioModal .modal-btn.secondary {
+            background: #4a6a8a;
+            color: white;
+        }
+        #scenarioModal .modal-btn.secondary:hover {
+            background: #2a4a6a;
+        }
+        #scenarioModal .modal-status {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 10px;
+            background: #f0f0f0;
+        }
+        body.dark #scenarioModal .modal-status {
+            color: #aaa;
+            background: #2a2a3e;
+        }
+        #scenarioModal .modal-status.playing {
+            background: #daa520;
+            color: #2a4a6a;
+        }
+        #scenarioModal .modal-status.waiting {
+            background: #f39c12;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #daa520;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #2a4a6a, #daa520);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #4a6a8a;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover { background: #2a4a6a; }
+
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4a6a8a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover { background: #2a4a6a; }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .note { color: #aaa; }
+    </style>
+</head>
+<body>
+
+<!-- ============================================
+     VOICE INDICATOR INTEGRATED
+     ============================================ -->
+<div class="voice-indicator-container">
+    <div class="voice-indicator" id="voiceIndicator">
+        <span class="dot"></span>
+        <span class="status-text" id="voiceStatus">🔊 Prêt</span>
+    </div>
+</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de classement -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 VOTRE POSITION</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Chargement du classement...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Fermer</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURATION FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID POUR CE QUIZ
+    // ============================================
+    const LEVEL_ID = "seniors_v1_debutant1_fr";
+
+    // ============================================
+    // =========== 1. SYSTÈME VOCAL ===============
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+    let scenarioTextClean = "";
+
+    // ============================================
+    // 🔥 FONCTION: RÉACTIVER TOUS LES BOUTONS
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Réactivation de TOUS les boutons");
+        
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Lire la question';
+            console.log("✅ voiceQuestionBtn réactivé");
+        }
+        
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Réécouter le feedback';
+            console.log("✅ voiceFeedbackBtn réactivé");
+        }
+        
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Lire l\'explication';
+            console.log("✅ voiceExplanationBtn réactivé");
+        }
+        
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Écouter votre résultat';
+            console.log("✅ voiceResultBtn réactivé");
+        }
+        
+        isSpeaking = false;
+        updateVoiceIndicator('active');
+        console.log("✅ Tous les boutons vocaux sont ACTIFS !");
+    }
+
+    // ============================================
+    // 🔥 FONCTION: ARRÊTER LA VOIX
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() called");
+        
+        // 1. Capacitor TTS (Android)
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Android stop performed");
+            }
+        } catch(e) { 
+            console.log("⚠️ Android stop error:", e); 
+        }
+        
+        // 2. Web Speech API
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Web Speech stop performed");
+            }
+        } catch(e) { 
+            console.log("⚠️ Web Speech stop error:", e); 
+        }
+        
+        // 3. Réinitialiser l'état
+        isSpeaking = false;
+        console.log("✅ isSpeaking reset to false");
+        
+        // 4. Mettre à jour l'indicateur
+        updateVoiceIndicator('active');
+        
+        // 5. Réactiver TOUS les boutons
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 FONCTION: FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() called");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech not available");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'fr-FR';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Web Speech callback executed");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech finished (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Web Speech error:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Forcing callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Error in fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FONCTION: SPEAK (Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() called with:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Empty text, immediate callback");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() executed");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Using Capacitor TTS plugin on Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'fr-FR', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS finished");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Capacitor TTS error:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback to Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Forcing callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Using Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+                
+            } else {
+                console.error("❌ No TTS engine available");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERROR in speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ACTIVATION DE LA VOIX (CORRIGÉ)
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() called");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            // Vérifier d'abord Capacitor TTS
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("✅ Capacitor TTS available on Android");
+                voiceReady = true;
+                voiceActivated = true;
+                updateVoiceIndicator('active');
+            } 
+            // Fallback Web Speech
+            else if (window.speechSynthesis) {
+                console.log("✅ Web Speech available");
+                voiceReady = true;
+                voiceActivated = true;
+                window.speechSynthesis.getVoices();
+                updateVoiceIndicator('active');
+            } else {
+                console.warn("⚠️ No speech synthesis available");
+                voiceReady = false;
+                voiceActivated = true;
+                updateVoiceIndicator('inactive');
+            }
+            console.log("✅ Voice activated, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Voice already activated");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        const statusText = document.getElementById('voiceStatus');
+        
+        if (!indicator) return;
+        
+        indicator.classList.remove('active', 'speaking');
+        
+        if (status === 'inactive') {
+            indicator.style.display = 'none';
+            return;
+        }
+        
+        indicator.style.display = 'flex';
+        
+        if (status === 'active') {
+            indicator.classList.add('active');
+            if (statusText) statusText.textContent = '🔊 Prêt';
+        } else if (status === 'speaking') {
+            indicator.classList.add('speaking');
+            if (statusText) statusText.textContent = '🔊 En cours...';
+        }
+    }
+
+    // ============================================
+    // =========== FONCTIONS VOCALES ==============
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() called");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Question ${currentQuestion + 1} sur ${questions.length} : ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture en cours...';
+            console.log("🔇 voiceQuestionBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakQuestionOnly() finished");
+            resetAllVoiceButtons();
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() called");
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `Bonne réponse ! +${lastPointsEarned} points.`;
+        } else {
+            text = `Mauvaise réponse. La bonne réponse était : ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture en cours...';
+            console.log("🔇 voiceFeedbackBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakFeedback() finished");
+            resetAllVoiceButtons();
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() called");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Explication : ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture en cours...';
+            console.log("🔇 voiceExplanationBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakExplanation() finished");
+            resetAllVoiceButtons();
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() called");
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Votre score final est de ${score} sur ${MAX_SCORE}, ce qui équivaut à ${percentage.toFixed(1)} pour cent. `;
+        if (isUnlocked) {
+            text += "Félicitations ! Vous avez débloqué le Niveau 2. Excellent travail !";
+        } else {
+            text += `Il vous manque ${(60 - percentage).toFixed(1)} pour cent pour débloquer le Niveau 2. Continuez à vous entraîner !`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Lecture en cours...';
+            console.log("🔇 voiceResultBtn désactivé");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "fr-FR", function() {
+            console.log("✅ speakFinalResult() finished");
+            resetAllVoiceButtons();
+        });
+    }
+
+    // ============================================
+    // =========== 2. INFOS UTILISATEUR ==========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "MA"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anonyme" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    // ============================================
+    // =========== FONCTION DÉBLOCAGE =============
+    // ============================================
+    function unlockLevel2(percentage) {
+        if (percentage >= 60) {
+            localStorage.setItem("seniors_v1_debutant2_fr_unlocked", "true");
+            return true;
+        }
+        return false;
+    }
+
+    // ================================================================
+    // 🔥 SAUVEGARDER LA VALIDATION POUR PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        // ✅ SEULEMENT SI >= 60% - La case est cochée
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progressionData = JSON.parse(localStorage.getItem('eteo_progression') || '{}');
+            const key = specialite + '_' + niveau;
+            progressionData[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progressionData));
+            
+            console.log('✅ Validation sauvegardée pour progression.html (>= 60%)');
+        } else {
+            console.log('❌ Validation NON sauvegardée (score < 60%)');
+        }
+    }
+
+    // ================================================================
+    // 🔥 ALLER À LA PROGRESSION - TOUJOURS AUTORISÉ
+    // ================================================================
+    function goToProgression() {
+        console.log("🔍 goToProgression() called");
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        
+        // ✅ TOUJOURS autorisé - L'utilisateur peut voir sa progression
+        const validationData = {
+            specialite: 'Seniors',
+            niveau: 'debutant1',
+            score: score,
+            total: MAX_SCORE,
+            percentage: percentage,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('eteo_validation', JSON.stringify(validationData));
+        console.log("✅ Validation data saved for progression");
+        
+        // 🔥 La validation NE sera sauvegardée que si >= 60%
+        sauvegarderValidation('Seniors', 'debutant1', score, MAX_SCORE);
+        
+        // ✅ Chemin CORRECT : 4 niveaux pour arriver à la racine www
+        const url = '../../../../progression_fr.html?valider=Seniors_debutant1&score=' + score + '&total=' + MAX_SCORE;
+        console.log("🔀 Redirection vers :", url);
+        window.location.href = url;
+    }
+
+    // ============================================
+    // =========== 3. POPUP SCÉNARIO =============
+    // ============================================
+    let scenarioStarted = false;
+
+    // ============================================
+    // 🔥 POPUP SCÉNARIO (CORRIGÉ)
+    // ============================================
+    function showScenarioPopup() {
+        const modal = document.createElement('div');
+        modal.id = 'scenarioModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeScenarioPopup()">✕</button>
+                <div class="modal-icon">🎭</div>
+                <div class="modal-title">📖 Le poids des années</div>
+                <div class="modal-text" id="scenarioText">
+                    <span class="serious">🔴 Contexte :</span> Dr Ahmed (62 ans) est un dentiste respecté qui exerce depuis 37 ans. Il commence à ressentir les effets de l'âge : fatigue, douleurs dorsales, baisse de concentration.<br><br>
+                    <span class="serious">🌸 Soutien :</span> Dr Sofia (50 ans), coach en transition professionnelle, l'accompagne dans cette réflexion.<br><br>
+                    <span class="serious">📋 Objectif :</span> Comprendre les défis des dentistes seniors, préparer la retraite, transmettre son cabinet et prendre soin de sa santé.
+                </div>
+                <div class="modal-status playing" id="scenarioStatus">🔊 Lecture en cours...</div>
+                <div class="modal-footer">
+                    <button class="modal-btn" id="btnEcouterScenario">⏹️ Arrêter</button>
+                    <button class="modal-btn secondary" onclick="closeScenarioPopup()">✅ Compris, commençons !</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // ✅ ACTIVER LA VOIX
+        activateVoice();
+        
+        // ✅ LECTURE AUTOMATIQUE IMMÉDIATE
+        const scenarioTextEl = document.getElementById('scenarioText');
+        if (scenarioTextEl) {
+            // Nettoyer le texte des émojis pour une meilleure lecture
+            const rawText = scenarioTextEl.textContent;
+            scenarioTextClean = rawText.replace(/[🔴🌸📋]/g, '').trim();
+            
+            const statusEl = document.getElementById('scenarioStatus');
+            const btn = document.getElementById('btnEcouterScenario');
+            
+            if (statusEl) {
+                statusEl.textContent = '🔊 Lecture en cours...';
+                statusEl.className = 'modal-status playing';
+            }
+            if (btn) btn.textContent = '⏹️ Arrêter';
+            
+            // ✅ Lecture avec callback pour réinitialiser
+            isSpeaking = true;
+            updateVoiceIndicator('speaking');
+            
+            speak(scenarioTextClean, 'fr-FR', function() {
+                console.log("✅ Scenario auto-read finished");
+                isSpeaking = false;
+                updateVoiceIndicator('active');
+                
+                // ✅ Réinitialiser l'état du bouton
+                const statusEl2 = document.getElementById('scenarioStatus');
+                const btn2 = document.getElementById('btnEcouterScenario');
+                
+                if (statusEl2) {
+                    statusEl2.textContent = '✅ Scénario lu. Prêt à commencer !';
+                    statusEl2.className = 'modal-status';
+                }
+                if (btn2) {
+                    btn2.textContent = '🔊 Réécouter';
+                }
+                
+                // ✅ CRUCIAL: Réactiver tous les boutons de voix
+                resetAllVoiceButtons();
+            });
+        }
+        
+        // ✅ BOUTON TOGGLE : PLAY / STOP (CORRIGÉ)
+        document.getElementById('btnEcouterScenario').addEventListener('click', function() {
+            const btn = this;
+            const statusEl = document.getElementById('scenarioStatus');
+            
+            if (isSpeaking) {
+                // ⏹️ STOP
+                stopSpeaking();
+                // stopSpeaking() appelle déjà resetAllVoiceButtons()
+                btn.textContent = '🔊 Réécouter';
+                if (statusEl) {
+                    statusEl.textContent = '⏸️ En pause';
+                    statusEl.className = 'modal-status';
+                }
+            } else {
+                // ▶️ PLAY
+                if (scenarioTextClean) {
+                    btn.textContent = '⏹️ Arrêter';
+                    if (statusEl) {
+                        statusEl.textContent = '🔊 Lecture en cours...';
+                        statusEl.className = 'modal-status playing';
+                    }
+                    isSpeaking = true;
+                    updateVoiceIndicator('speaking');
+                    
+                    speak(scenarioTextClean, 'fr-FR', function() {
+                        console.log("✅ Scenario re-read finished");
+                        isSpeaking = false;
+                        updateVoiceIndicator('active');
+                        
+                        const statusEl2 = document.getElementById('scenarioStatus');
+                        const btn2 = document.getElementById('btnEcouterScenario');
+                        
+                        if (statusEl2) {
+                            statusEl2.textContent = '✅ Scénario lu. Prêt à commencer !';
+                            statusEl2.className = 'modal-status';
+                        }
+                        if (btn2) {
+                            btn2.textContent = '🔊 Réécouter';
+                        }
+                        
+                        // ✅ CRUCIAL: Réactiver tous les boutons de voix
+                        resetAllVoiceButtons();
+                    });
+                }
+            }
+        });
+    }
+
+    function closeScenarioPopup() {
+        stopSpeaking();
+        const modal = document.getElementById('scenarioModal');
+        if (modal) {
+            modal.remove();
+        }
+        scenarioStarted = true;
+    }
+
+    // ============================================
+    // =========== 4. AFFICHAGE ACCUEIL ==========
+    // ============================================
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header">
+                    <h1>👴 Seniors - Débutant Niveau 1</h1>
+                    <div class="subtitle">Dr Ahmed consulte Dr Sofia pour préparer sereinement son avenir</div>
+                </div>
+                <div class="scenario-box">
+                    <div class="title">🎭 Scénario - "Le poids des années"</div>
+                    <div class="text" id="scenarioTextDisplay">
+                        <span class="serious">🔴 Contexte :</span> Dr Ahmed (62 ans) est un dentiste respecté qui exerce depuis 37 ans. Il commence à ressentir les effets de l'âge : fatigue, douleurs dorsales, baisse de concentration.<br><br>
+                        <span class="serious">🌸 Soutien :</span> Dr Sofia (50 ans), coach en transition professionnelle, l'accompagne dans cette réflexion.<br><br>
+                        <span class="serious">📋 Objectif :</span> Comprendre les défis des dentistes seniors, préparer la retraite, transmettre son cabinet et prendre soin de sa santé.
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>👤 Votre nom (facultatif) :</label>
+                    <input type="text" id="userName" placeholder="Ex: Dr. Ahmed" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Votre pays (obligatoire) :</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="MA" selected>🇲🇦 Maroc</option>
+                        <option value="CH">🇨🇭 Suisse</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="BE">🇧🇪 Belgique</option>
+                        <option value="SN">🇸🇳 Sénégal</option>
+                        <option value="CI">🇨🇮 Côte d'Ivoire</option>
+                        <option value="CM">🇨🇲 Cameroun</option>
+                        <option value="DZ">🇩🇿 Algérie</option>
+                        <option value="TN">🇹🇳 Tunisie</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 Royaume-Uni</option>
+                        <option value="DE">🇩🇪 Allemagne</option>
+                        <option value="ES">🇪🇸 Espagne</option>
+                        <option value="IT">🇮🇹 Italie</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turquie</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">ou</div>
+                    <input type="text" id="otherCountry" placeholder="Entrez votre pays (ex: Brésil, Japon, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Commencer le quiz</button>
+                <div class="note">
+                    ⚠️ Règle : 60% minimum (225/375 points) pour débloquer le niveau <strong>Débutant 2</strong>.<br>
+                    🎁 Bonus rapidité : +5 points si vous répondez avant la fin du timer.
+                </div>
+                
+                <!-- ✅ BOUTON MA PROGRESSION - TOUJOURS ACTIF -->
+                <div style="margin-top: 20px;">
+                    <button class="btn-progression" onclick="goToProgression()">📊 Ma progression</button>
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 5. ENVOI SCORE FIREBASE =======
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonyme";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score envoyé à Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Erreur Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 6. QUESTIONS (25) =============
+    // ============================================
+    const questions = [
+        {
+            question: "Dr Ahmed confie à Dr Sofia : 'Je suis fatigué, j'ai mal au dos, mes mains tremblent parfois.' Dr Sofia lui demande s'il a consulté un médecin. Dr Ahmed répond : 'Non, je n'ai pas le temps.' Dr Sofia lui explique que la première chose à faire est de :",
+            options: [
+                "Ignorer les symptômes",
+                "Consulter un médecin pour un bilan",
+                "Augmenter sa charge de travail",
+                "Changer complètement de métier"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la première chose à faire est de consulter un médecin. Un bilan de santé complet te permettra d'identifier les problèmes et de les traiter. Ta santé est ton capital le plus précieux.'"
+        },
+        {
+            question: "Dr Ahmed demande à Dr Sofia : 'Comment puis-je réduire ma fatigue sans perdre de patients ?' Dr Sofia lui répond :",
+            options: [
+                "Travailler le week-end",
+                "Aménager ses horaires et prévoir des pauses",
+                "Augmenter ses tarifs",
+                "Fermer définitivement son cabinet"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, aménage tes horaires. Commence plus tard, prévois des pauses, et délègue certaines tâches à ton assistante. La fatigue est un signal d'alarme qu'il ne faut pas ignorer.'"
+        },
+        {
+            question: "Dr Ahmed confie : 'Je n'arrive plus à me concentrer en fin de journée.' Dr Sofia lui conseille de :",
+            options: [
+                "Travailler plus tard",
+                "Réduire les patients en fin de journée",
+                "Prendre des médicaments",
+                "Ignorer complètement le problème"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la concentration diminue naturellement avec l'âge. Réduis le nombre de patients en fin de journée et prévois des pauses pour recharger tes batteries.'"
+        },
+        {
+            question: "Dr Ahmed demande : 'Comment gérer les douleurs dorsales liées à ma profession ?' Dr Sofia lui conseille de :",
+            options: [
+                "Changer de fauteuil",
+                "Consulter un ergonome pour adapter son poste",
+                "Prendre des anti-inflammatoires",
+                "Arrêter complètement de travailler"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, l'ergonomie est essentielle. Consulte un ergonome pour adapter ton fauteuil, ta position et tes instruments. Prévenir vaut mieux que guérir.'"
+        },
+        {
+            question: "Dr Ahmed s'interroge : 'Devrais-je arrêter complètement ?' Dr Sofia lui répond :",
+            options: [
+                "Oui, il est temps de prendre sa retraite",
+                "Non, on peut continuer en adaptant son activité",
+                "Il doit travailler plus pour rattraper le retard",
+                "Il doit changer complètement de spécialité"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, tu n'es pas obligé d'arrêter complètement. Tu peux continuer en réduisant ton temps de travail, en te spécialisant ou en passant à mi-temps.'"
+        },
+        {
+            question: "Dr Ahmed demande à Dr Sofia : 'Comment parler de ma fatigue à mes patients ?' Dr Sofia lui conseille de :",
+            options: [
+                "Ne rien leur dire du tout",
+                "Être transparent et rassurer les patients",
+                "Inventer une excuse quelconque",
+                "Changer complètement de patients"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la transparence est la clé. Explique à tes patients que tu réduis ton temps de travail pour mieux les soigner. Ils comprendront et respecteront ton choix.'"
+        },
+        {
+            question: "Dr Ahmed confie : 'Je ne me sens plus aussi compétent qu'avant.' Dr Sofia lui répond que :",
+            options: [
+                "C'est un signe de faiblesse",
+                "L'expérience compense la baisse de vitesse",
+                "Il doit changer de métier",
+                "Il doit suivre des formations"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, ton expérience est inestimable. Tu as vu des milliers de cas, tu as développé une sagesse clinique que les jeunes n'ont pas. Tu es plus compétent que tu ne le penses.'"
+        },
+        {
+            question: "Dr Ahmed demande à Dr Sofia : 'Comment préparer ma succession ?' Dr Sofia lui répond :",
+            options: [
+                "Vendre son cabinet immédiatement",
+                "Identifier un repreneur et préparer la transition",
+                "Fermer définitivement son cabinet",
+                "Ignorer complètement cette question"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la succession se prépare progressivement. Identifie un jeune confrère qui partage tes valeurs, forme-le, et prévois une transition sur plusieurs années.'"
+        },
+        {
+            question: "Dr Ahmed s'interroge sur l'avenir de sa patientèle. Dr Sofia lui conseille de :",
+            options: [
+                "Laisser ses patients sans solution",
+                "Présenter son successeur à ses patients",
+                "Fermer sans prévenir personne",
+                "Changer complètement de ville"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, présente ton successeur à tes patients. Explique-leur que tu as choisi une personne de confiance pour reprendre le cabinet. La fidélité des patients est liée à la confiance qu'ils ont en toi.'"
+        },
+        {
+            question: "Dr Ahmed demande à Dr Sofia : 'Comment gérer le stress de la transmission ?' Dr Sofia lui conseille de :",
+            options: [
+                "Travailler plus",
+                "S'entourer de professionnels (avocat, expert-comptable)",
+                "Ignorer complètement le stress",
+                "Prendre des anxiolytiques"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la transmission est une étape complexe. Entoure-toi de professionnels qui t'accompagneront dans les aspects juridiques, fiscaux et humains.'"
+        },
+        {
+            question: "Dr Ahmed confie : 'Je n'ai plus la même énergie qu'avant.' Dr Sofia lui propose de :",
+            options: [
+                "Travailler le week-end",
+                "Pratiquer une activité physique adaptée",
+                "Prendre des compléments alimentaires",
+                "Dormir plus longtemps"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, l'activité physique est essentielle pour maintenir ton énergie et ta santé. Une marche de 30 minutes par jour peut faire une grande différence.'"
+        },
+        {
+            question: "Dr Ahmed demande : 'Comment maintenir ma motivation ?' Dr Sofia lui répond :",
+            options: [
+                "Changer de métier",
+                "Se fixer de nouveaux objectifs",
+                "Travailler plus",
+                "Ignorer la question"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, fixe-toi de nouveaux objectifs. Peut-être veux-tu former un jeune confrère, te spécialiser davantage, ou partager ton expérience par l'enseignement.'"
+        },
+        {
+            question: "Dr Ahmed s'interroge sur ses droits à la retraite. Dr Sofia lui conseille de :",
+            options: [
+                "Prendre sa retraite immédiatement",
+                "Consulter la CNSS pour connaître ses droits",
+                "Ignorer complètement ses droits",
+                "Changer de caisse"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, consulte la CNSS pour connaître tes droits à la retraite. Tu as cotisé toute ta vie, tu as droit à une retraite digne.'"
+        },
+        {
+            question: "Dr Ahmed demande : 'Comment réduire ma charge de travail ?' Dr Sofia lui propose de :",
+            options: [
+                "Travailler plus vite",
+                "Déléguer à son assistante",
+                "Réduire le nombre de patients par jour",
+                "Ouvrir un deuxième cabinet"
+            ],
+            correct: 2,
+            explanation: "Dr Sofia : 'Ahmed, réduire le nombre de patients par jour est une solution simple et efficace. Moins de patients, moins de fatigue, plus de qualité.'"
+        },
+        {
+            question: "Dr Ahmed confie : 'Mes jeunes confrères sont plus rapides que moi.' Dr Sofia lui répond que :",
+            options: [
+                "C'est un problème",
+                "La rapidité n'est pas toujours un atout",
+                "Il doit travailler plus vite",
+                "Il doit changer de métier"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la rapidité n'est pas toujours un atout. La qualité, la précision et l'expérience sont ce que tes patients recherchent chez toi.'"
+        },
+        {
+            question: "Dr Ahmed demande : 'Comment me préparer à la retraite ?' Dr Sofia lui répond :",
+            options: [
+                "Ne rien préparer",
+                "Planifier sa retraite sur plusieurs années",
+                "Prendre sa retraite immédiatement",
+                "Changer de métier"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la retraite se prépare sur plusieurs années. Planifie tes activités, tes projets, et la transition. Une retraite réussie est une retraite préparée.'"
+        },
+        {
+            question: "Dr Ahmed s'interroge sur l'enseignement. Dr Sofia lui propose de :",
+            options: [
+                "Devenir professeur à la faculté",
+                "Donner des conférences",
+                "Former de jeunes dentistes",
+                "Écrire un livre"
+            ],
+            correct: 2,
+            explanation: "Dr Sofia : 'Ahmed, former de jeunes dentistes est une belle façon de transmettre ton expérience. Tu peux devenir mentor ou tuteur.'"
+        },
+        {
+            question: "Dr Ahmed demande : 'Comment gérer la relation avec les patients âgés ?' Dr Sofia lui conseille de :",
+            options: [
+                "Les traiter comme des jeunes patients",
+                "Adapter sa communication à leur âge",
+                "Les ignorer complètement",
+                "Les rediriger vers un autre cabinet"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, les patients âgés ont des besoins spécifiques. Communique avec eux avec patience, respect et empathie.'"
+        },
+        {
+            question: "Dr Ahmed confie : 'Je n'ai plus de projets professionnels.' Dr Sofia lui propose de :",
+            options: [
+                "Prendre sa retraite",
+                "Se fixer de nouveaux projets",
+                "Travailler plus",
+                "Changer de métier"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, les projets donnent du sens à la vie professionnelle. Peut-être veux-tu créer un réseau de dentistes seniors, ou partager ton expérience.'"
+        },
+        {
+            question: "Dr Ahmed demande : 'Comment gérer la baisse de revenus à la retraite ?' Dr Sofia lui conseille de :",
+            options: [
+                "Travailler plus longtemps",
+                "Planifier ses finances",
+                "Prendre des risques financiers",
+                "Ignorer la question"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la planification financière est essentielle. Consulte un conseiller financier pour préparer ta retraite en toute sérénité.'"
+        },
+        {
+            question: "Dr Ahmed s'interroge sur l'accompagnement des jeunes. Dr Sofia lui propose de :",
+            options: [
+                "Les laisser se débrouiller",
+                "Devenir mentor et partager son expérience",
+                "Les mettre en concurrence",
+                "Les ignorer complètement"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, devenir mentor est une belle façon de transmettre ton expérience et de rester actif dans la profession.'"
+        },
+        {
+            question: "Dr Ahmed demande : 'Comment gérer la peur de l'inconnu ?' Dr Sofia lui répond :",
+            options: [
+                "Ignorer la peur",
+                "Anticiper et se préparer",
+                "Changer de métier",
+                "Prendre des anxiolytiques"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, la peur de l'inconnu est normale. Anticipe, prépare-toi, entoure-toi de personnes de confiance, et la peur s'estompera.'"
+        },
+        {
+            question: "Dr Ahmed confie : 'Je ne veux pas perdre mon identité professionnelle.' Dr Sofia lui répond que :",
+            options: [
+                "Il doit changer de métier",
+                "Son identité ne se limite pas à son cabinet",
+                "Il doit travailler plus",
+                "Il doit ignorer ce sentiment"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, ton identité professionnelle est riche. Tu es un dentiste, un mentor, un formateur, un confrère. Elle ne se limite pas à ton cabinet.'"
+        },
+        {
+            question: "Dr Ahmed demande : 'Comment maintenir des liens avec mes confrères après la retraite ?' Dr Sofia lui conseille de :",
+            options: [
+                "Couper les ponts",
+                "Rejoindre des associations professionnelles",
+                "Travailler en indépendant",
+                "Ignorer les confrères"
+            ],
+            correct: 1,
+            explanation: "Dr Sofia : 'Ahmed, rejoindre des associations professionnelles te permettra de garder des liens et de rester informé des évolutions de la profession.'"
+        },
+        {
+            question: "Dr Ahmed s'interroge sur la valeur de son cabinet. Dr Sofia lui conseille de :",
+            options: [
+                "Estimer la valeur de son cabinet avec un expert",
+                "Vendre sans évaluation",
+                "Fermer le cabinet",
+                "Changer de localisation"
+            ],
+            correct: 0,
+            explanation: "Dr Sofia : 'Ahmed, une estimation professionnelle de ton cabinet est indispensable pour une vente ou une transmission réussie.'"
+        },
+        {
+            question: "Dr Ahmed, à la fin de leur conversation, dit : 'Sofia, je me sens moins seul et plus serein.' Dr Sofia lui répond que le passage à la retraite est une transition. Ahmed conclut :",
+            options: [
+                "La retraite est une fin en soi",
+                "La retraite est une nouvelle étape de vie",
+                "La retraite est une perte de temps",
+                "La retraite est un échec"
+            ],
+            correct: 1,
+            explanation: "Ahmed : 'Sofia, merci pour tous ces conseils. Je me sens prêt à envisager sereinement mon avenir.' Sofia : 'Ahmed, la retraite est une nouvelle étape de vie, riche de possibilités. Prépare-la, vis-la pleinement, et n'oublie pas de prendre soin de toi.'"
+        }
+    ];
+
+    // ============================================
+    // =========== CORRECTION CRUCIALE ============
+    // ============================================
+    const MAX_SCORE = questions.length * 15;
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("seniors_v1_debutant1_fr", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function renderQuestion() {
+        console.log("🔍 renderQuestion() - Question", currentQuestion + 1);
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${letter}. ${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header">
+                <h1>👴 Seniors - Débutant Niveau 1</h1>
+                <div class="subtitle">Question ${currentQuestion + 1}/${questions.length}</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Lire la question</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explication :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Lire l'explication</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Temps restant : <span id="timer">${timeLeft}</span> secondes</div>
+                <div class="score">🏆 Score actuel : ${score}/${MAX_SCORE}</div>
+                
+                <!-- ✅ BOUTON MA PROGRESSION - TOUJOURS ACTIF -->
+                <div style="margin: 10px 0;">
+                    <button class="btn-progression" onclick="goToProgression()">📊 Ma progression</button>
+                </div>
+                
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonner</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Suivant →</button>
+                </div>
+            </div>
+        `;
+        
+        attachVoiceEvents();
+        answerLocked = false;
+        startTimer();
+        lastAnswerCorrect = false;
+        lastCorrectAnswer = "";
+        lastPointsEarned = 0;
+        
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 500);
+    }
+
+    // ============================================
+    // =========== ATTACH VOICE EVENTS ============
+    // ============================================
+    function attachVoiceEvents() {
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Event attached to voiceQuestionBtn");
+        }
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Event attached to voiceExplanationBtn");
+        }
+    }
+
+    function checkAnswer(selectedIndex) {
+        console.log("🔍 checkAnswer() - Option", String.fromCharCode(65 + selectedIndex));
+        
+        stopSpeaking();
+        
+        if (answerLocked) {
+            console.log("⏳ Answer already locked");
+            return;
+        }
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            console.log("✅ Correct answer! +", pointsEarned, "points");
+        } else {
+            console.log("❌ Wrong answer. Correct answer:", shuffledOptions[currentCorrectIndex]);
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} points</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 points)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ Bonne réponse !' : '❌ Mauvaise réponse'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Réécouter le feedback</button>
+                </div>
+            `;
+            
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Event attached to voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Bonne réponse : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Score actuel : ${score}/${MAX_SCORE}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `Bonne réponse ! +${pointsEarned} points.`;
+        } else {
+            feedbackText = `Mauvaise réponse. La bonne réponse était : ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Automatic feedback reading");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "fr-FR", function() {
+            console.log("✅ Automatic feedback finished");
+            resetAllVoiceButtons();
+        });
+    }
+
+    function nextQuestion() {
+        console.log("🔍 nextQuestion() called");
+        stopSpeaking();
+        
+        if (!answerLocked) {
+            console.log("⚠️ Please answer before continuing");
+            return;
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVIGATION =====================
+    // ============================================
+    
+    function goToMenu() {
+        stopSpeaking();
+        window.location.href = "menu_fr.html";
+    }
+
+    function goToDashboard() {
+        stopSpeaking();
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        console.log("🔍 endQuiz() called");
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        
+        saveScore(score, MAX_SCORE);
+        
+        const isUnlocked = unlockLevel2(percentage);
+        
+        sauvegarderValidation('Seniors', 'debutant1', score, MAX_SCORE);
+        
+        sendScoreToFirebase(score, MAX_SCORE, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Quiz terminé !</h1>
+                <div class="final-score">Score : ${score}/${MAX_SCORE}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Pourcentage : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ? 
+                        '<div class="unlock-badge">✅ Niveau Débutant 2 débloqué ! 🎊</div>' : 
+                        '<div class="locked-badge">⚠️ Score insuffisant (minimum 60% requis pour débloquer le niveau suivant)</div>'}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ? 
+                        '📚 Rendez-vous dans le menu pour accéder au niveau 2.' : 
+                        `💪 Il vous manque ${(60 - percentage).toFixed(1)}% pour débloquer le niveau 2. Réessayez !`}
+                </div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Écouter votre résultat</button>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0;">
+                    <button class="share-btn" onclick="shareScore()">📤 Partager mon score</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Donner mon avis</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Classement mondial</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Menu principal</button>
+                    <!-- ✅ TOUJOURS ACTIF - L'utilisateur peut voir sa progression -->
+                    <button class="btn-progression" onclick="goToProgression()">📊 Ma progression</button>
+                </div>
+            </div>
+        `;
+        
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Event attached to voiceResultBtn");
+        }
+        
+        setTimeout(() => {
+            speakFinalResult();
+        }, 1000);
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2000);
+    }
+
+    // ============================================
+    // =========== RANKING MODAL ==================
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anonyme";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 Aucun score enregistré pour ce niveau pour le moment.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Votre classement</div>
+                        <div class="rank-number">${userRank}e position</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} points (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Vous n'êtes pas encore dans le classement de ce niveau</div>
+                        <div>Refaites le quiz pour apparaître !</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #daa520;">🏆 TOP 20 - Seniors Débutant 1</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(218,165,32,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anonyme"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 Aucun score pour ce niveau</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Erreur Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Impossible de charger le classement.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Erreur inconnue'}</span></div>`;
+        }
+    }
+
+    function abandonQuiz() {
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE) * 100;
+        localStorage.setItem("seniors_v1_debutant1_fr", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel2(partialPercentage);
+        sauvegarderValidation('Seniors', 'debutant1', score, MAX_SCORE);
+        
+        sendScoreToFirebase(score, MAX_SCORE, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>❌ Quiz abandonné</h1>
+                <div class="final-score">Score partiel : ${score}/${MAX_SCORE}</div>
+                <div>Pourcentage : ${partialPercentage.toFixed(1)}%</div>
+                <div style="margin:20px 0;">🏆 Ce score a été enregistré dans le classement.</div>
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Retour au menu</button>
+                    <!-- ✅ TOUJOURS ACTIF - L'utilisateur peut voir sa progression -->
+                    <button class="btn-progression" onclick="goToProgression()">📊 Ma progression</button>
+                </div>
+            </div>
+        `;
+        speak(`Quiz abandonné. Score partiel : ${score} sur ${MAX_SCORE}.`, "fr-FR");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE) * 100;
+        const text = `🎓 ETEO - Seniors\nMon score au niveau Débutant 1 : ${score}/${MAX_SCORE} (${percentage.toFixed(1)}%)\nDéfie-moi sur ETEO !`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Score copié dans le presse-papier !");
+            }).catch(() => {
+                alert("📋 Pour partager, copiez ce texte :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        console.log("🚀 startQuiz() called");
+        closeScenarioPopup();
+        saveUserInfo();
+        console.log("🔊 Activation de la voix...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Quiz started");
+    }
+
+    // ============================================
+    // =========== INITIALISATION ================
+    // ============================================
+    console.log("🚀 Page chargée - Quiz ETEO Seniors (FR)");
+    console.log("📱 window.Capacitor =", window.Capacitor);
+    
+    if (window.Capacitor) {
+        console.log("📱 Platform =", window.Capacitor.getPlatform());
+        console.log("📱 Plugins =", Object.keys(window.Capacitor.Plugins || {}));
+    }
+    
+    showWelcomeScreen();
+
+    // ✅ Afficher le scénario après un court délai
+    setTimeout(() => {
+        showScenarioPopup();
+    }, 800);
+
+    // ✅ ACTIVER LA VOIX IMMÉDIATEMENT (plus de firstClick)
+    setTimeout(() => {
+        activateVoice();
+    }, 100);
+
+    // ❌ SUPPRIMER le firstClick qui cause des conflits
+    // document.body.addEventListener('click', function firstClick() { ... });
+</script>
+</body>
+</html>

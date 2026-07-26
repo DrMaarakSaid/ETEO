@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Seniors - Beginner 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2a4a6a, #4a6a8a, #6a8aaa);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a2a4a, #2a4a6a, #4a6a8a); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #daa520; }
+        .header .subtitle { font-size: 0.9rem; color: #4a6a8a; margin-top: 5px; }
+        body.dark .header .subtitle { color: #b0c8e0; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #daa520;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #daa520; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #4a6a8a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover { background: #2a4a6a; }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #daa520; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #daa520;
+            color: #2a4a6a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            background: #c09020;
+            color: white;
+        }
+        .unlock-badge {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .locked-badge {
+            background: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+        }
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4a6a8a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover { background: #2a4a6a; }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .note { color: #aaa; }
+        .scenario-box {
+            background: #e8f0f8;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-left: 4px solid #daa520;
+        }
+        body.dark .scenario-box { background: #2a3a4a; }
+        .scenario-box .title { font-weight: bold; color: #4a6a8a; margin-bottom: 5px; }
+        body.dark .scenario-box .title { color: #daa520; }
+        .scenario-box .text { font-size: 0.9rem; color: #555; line-height: 1.5; }
+        body.dark .scenario-box .text { color: #ccc; }
+        .scenario-box .serious { color: #4a6a8a; font-weight: bold; }
+        body.dark .scenario-box .serious { color: #daa520; }
+
+        /* ================================================================ */
+        /* 🆕 STYLE POUR LA POPUP DE SCÉNARIO */
+        /* ================================================================ */
+        #scenarioModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            animation: fadeIn 0.5s ease;
+        }
+        #scenarioModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 600px;
+            padding: 35px;
+            max-height: 80%;
+            overflow: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.6s ease;
+        }
+        body.dark #scenarioModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #scenarioModal .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+        }
+        #scenarioModal .modal-close:hover {
+            color: #f44336;
+        }
+        #scenarioModal .modal-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #scenarioModal .modal-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #daa520;
+            margin-bottom: 15px;
+        }
+        #scenarioModal .modal-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 4px solid #daa520;
+        }
+        body.dark #scenarioModal .modal-text {
+            color: #ccc;
+            background: #2a2a3e;
+        }
+        #scenarioModal .modal-text .serious {
+            color: #4a6a8a;
+            font-weight: bold;
+        }
+        body.dark #scenarioModal .modal-text .serious {
+            color: #daa520;
+        }
+        #scenarioModal .modal-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #scenarioModal .modal-btn {
+            background: #daa520;
+            color: #2a4a6a;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        #scenarioModal .modal-btn:hover {
+            background: #c09020;
+            transform: scale(1.02);
+        }
+        #scenarioModal .modal-btn.secondary {
+            background: #4a6a8a;
+            color: white;
+        }
+        #scenarioModal .modal-btn.secondary:hover {
+            background: #2a4a6a;
+        }
+        #scenarioModal .modal-status {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 10px;
+            background: #f0f0f0;
+        }
+        body.dark #scenarioModal .modal-status {
+            color: #aaa;
+            background: #2a2a3e;
+        }
+        #scenarioModal .modal-status.playing {
+            background: #daa520;
+            color: #2a4a6a;
+        }
+        #scenarioModal .modal-status.waiting {
+            background: #f39c12;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #daa520;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #2a4a6a, #daa520);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #4a6a8a;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover { background: #2a4a6a; }
+
+        /* ================================================================ */
+        /* 🆕 STYLE POUR LA POPUP D'ÉVALUATION BETA (AJOUTÉ) */
+        /* ================================================================ */
+        .beta-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        }
+        .beta-popup-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            padding: 35px 25px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        body.dark .beta-popup-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        .beta-popup-content .big-icon { font-size: 4rem; }
+        .beta-popup-content h2 { color: #daa520; margin: 10px 0; }
+        body.dark .beta-popup-content h2 { color: #daa520; }
+        .beta-popup-content p { color: #555; margin: 5px 0; }
+        body.dark .beta-popup-content p { color: #ccc; }
+        .beta-popup-content .stars {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 3rem;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .beta-popup-content .stars span { color: #ccc; transition: color 0.3s; }
+        .beta-popup-content .stars span.active { color: #ffc107; }
+        .beta-popup-content .rating-message {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .beta-popup-content .rating-message { color: #aaa; }
+        .beta-popup-content .beta-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+        }
+        body.dark .beta-popup-content .beta-info { background: #2a2a3e; }
+        .beta-popup-content .beta-info p { color: #ff5722; font-weight: bold; margin: 0; }
+        .beta-popup-content .beta-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .beta-popup-content .beta-btn:hover {
+            background: #388e3c;
+            transform: scale(1.02);
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator" id="voiceIndicator">🎙️ AI waiting</div>
+
+<div class="container" id="app"></div>
+
+<!-- Ranking Modal -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 YOUR POSITION</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Loading ranking...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== FIREBASE CONFIGURATION =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID FOR THIS QUIZ
+    // ============================================
+    const LEVEL_ID = "seniors_v1_debutant2_en";
+
+    // ============================================
+    // =========== 1. VOICE SYSTEM ===============
+    // ============================================
+    let speechSynthesisObj = null;
+    let voiceReady = false;
+
+    function initVoice() {
+        if ('speechSynthesis' in window) {
+            speechSynthesisObj = window.speechSynthesis;
+            voiceReady = true;
+            return true;
+        }
+        return false;
+    }
+
+    function speak(text, lang) {
+        if (!voiceReady || !speechSynthesisObj) return;
+        try {
+            speechSynthesisObj.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesisObj.speak(utterance);
+        } catch(e) {}
+    }
+
+    function stopSpeaking() {
+        if (voiceReady && speechSynthesisObj) {
+            speechSynthesisObj.cancel();
+        }
+    }
+
+    let voiceActivated = false;
+
+    function activateVoice() {
+        if (!voiceActivated) {
+            initVoice();
+            voiceActivated = true;
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.textContent = "🎙️ AI activated";
+                indicator.style.background = "#daa520";
+                indicator.style.color = "#2a4a6a";
+                setTimeout(() => {
+                    indicator.style.opacity = "0.5";
+                }, 2000);
+            }
+        }
+        return true;
+    }
+
+    // ============================================
+    // =========== 2. USER INFO ==================
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "MA"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anonymous" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    // ============================================
+    // =========== UNLOCK FUNCTION ================
+    // ============================================
+    function unlockLevel3(percentage) {
+        if (percentage >= 60) {
+            localStorage.setItem("seniors_v1_intermediaire1_en_unlocked", "true");
+            return true;
+        }
+        return false;
+    }
+
+    // ================================================================
+    // 🔥 SAVE VALIDATION FOR PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progression = JSON.parse(localStorage.getItem('eteo_progression')) || {};
+            const key = specialite + '_' + niveau;
+            progression[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progression));
+            
+            console.log('✅ Validation saved for progression.html');
+        }
+    }
+
+    // ============================================
+    // =========== 3. SCENARIO POPUP =============
+    // ============================================
+    let scenarioPlaying = false;
+    let scenarioStarted = false;
+
+    function showScenarioPopup() {
+        const modal = document.createElement('div');
+        modal.id = 'scenarioModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeScenarioPopup()">✕</button>
+                <div class="modal-icon">💔</div>
+                <div class="modal-title">📖 The unexpected absence</div>
+                <div class="modal-text" id="scenarioText">
+                    <span class="serious">🔴 Context :</span> Dr Ahmed (62) passed away suddenly. He had prepared nothing. His wife Nadia, and children Karim and Salma are lost.<br><br>
+                    <span class="serious">🌸 Support :</span> Dr Sofia, Ahmed's friend, supports them through this ordeal.<br><br>
+                    <span class="serious">📋 Goal :</span> Understand how to manage a practice after a dentist's death, legal aspects, and the importance of preparing one's succession.
+                </div>
+                <div class="modal-status waiting" id="scenarioStatus">👆 Click anywhere to listen to the scenario</div>
+                <div class="modal-footer">
+                    <button class="modal-btn" id="btnEcouterScenario">🔊 Listen again</button>
+                    <button class="modal-btn secondary" onclick="closeScenarioPopup()">✅ Got it, let's start!</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // 🔥 TRIGGER READING ON FIRST CLICK
+        const startScenario = function() {
+            if (scenarioStarted) return;
+            scenarioStarted = true;
+            
+            activateVoice();
+            
+            const scenarioText = document.getElementById('scenarioText');
+            if (scenarioText) {
+                const text = scenarioText.textContent;
+                const cleanText = text.replace(/[🔴🌸📋💔]/g, '').trim();
+                speak(cleanText, 'en-US');
+                const statusEl = document.getElementById('scenarioStatus');
+                if (statusEl) {
+                    statusEl.textContent = '🔊 Reading in progress...';
+                    statusEl.className = 'modal-status playing';
+                }
+                scenarioPlaying = true;
+                
+                setTimeout(() => {
+                    const statusEl2 = document.getElementById('scenarioStatus');
+                    if (statusEl2 && scenarioPlaying) {
+                        statusEl2.textContent = '✅ Scenario read. Ready to start!';
+                        statusEl2.className = 'modal-status';
+                    }
+                }, 30000);
+            }
+            
+            document.removeEventListener('click', startScenario);
+        };
+        
+        document.addEventListener('click', startScenario);
+        
+        document.getElementById('btnEcouterScenario').addEventListener('click', function() {
+            stopSpeaking();
+            const scenarioText = document.getElementById('scenarioText');
+            if (scenarioText) {
+                const text = scenarioText.textContent;
+                const cleanText = text.replace(/[🔴🌸📋💔]/g, '').trim();
+                speak(cleanText, 'en-US');
+                const statusEl = document.getElementById('scenarioStatus');
+                if (statusEl) {
+                    statusEl.textContent = '🔊 Re-reading...';
+                    statusEl.className = 'modal-status playing';
+                }
+            }
+        });
+    }
+
+    function closeScenarioPopup() {
+        stopSpeaking();
+        const modal = document.getElementById('scenarioModal');
+        if (modal) {
+            modal.remove();
+        }
+        scenarioPlaying = false;
+        scenarioStarted = true;
+    }
+
+    // ============================================
+    // =========== 4. WELCOME SCREEN =============
+    // ============================================
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header">
+                    <h1>👴 Seniors - Beginner Level 2</h1>
+                    <div class="subtitle">Dr Ahmed passed away. His family must manage his practice.</div>
+                </div>
+                <div class="scenario-box">
+                    <div class="title">🎭 Scenario - "The unexpected absence"</div>
+                    <div class="text" id="scenarioTextDisplay">
+                        <span class="serious">🔴 Context :</span> Dr Ahmed (62) passed away suddenly. He had prepared nothing. His wife Nadia, and children Karim and Salma are lost.<br><br>
+                        <span class="serious">🌸 Support :</span> Dr Sofia, Ahmed's friend, supports them through this ordeal.<br><br>
+                        <span class="serious">📋 Goal :</span> Understand how to manage a practice after a dentist's death, legal aspects, and the importance of preparing one's succession.
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>👤 Your name (optional) :</label>
+                    <input type="text" id="userName" placeholder="Ex: Dr. Ahmed" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Your country (required) :</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="MA" selected>🇲🇦 Morocco</option>
+                        <option value="CH">🇨🇭 Switzerland</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="BE">🇧🇪 Belgium</option>
+                        <option value="SN">🇸🇳 Senegal</option>
+                        <option value="CI">🇨🇮 Ivory Coast</option>
+                        <option value="CM">🇨🇲 Cameroon</option>
+                        <option value="DZ">🇩🇿 Algeria</option>
+                        <option value="TN">🇹🇳 Tunisia</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="ES">🇪🇸 Spain</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turkiye</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">or</div>
+                    <input type="text" id="otherCountry" placeholder="Enter your country (ex: Brazil, Japan, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Start the quiz</button>
+                <div class="note">
+                    ⚠️ Rule: 60% minimum (225/375 points) to unlock <strong>Intermediate Level 1</strong>.<br>
+                    🎁 Speed bonus: +5 points if you answer before the timer ends.
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 5. FIREBASE SCORE =============
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score sent to Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Firebase error:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 6. QUESTIONS (25) =============
+    // ============================================
+    const questions = [
+        {
+            question: "Dr Ahmed passed away suddenly. Dr Sofia goes to the practice and finds Nadia in tears. Sofia tells her: 'The first thing to do is to secure the practice.' Nadia asks: 'How?' Sofia replies:",
+            options: [
+                "Close the practice permanently",
+                "Lock access and notify patients",
+                "Sell everything immediately",
+                "Ignore the situation completely"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Nadia, the first thing to do is to lock the practice to secure files and equipment. Then, you need to notify patients with a note on the door.'"
+        },
+        {
+            question: "Karim asks Sofia: 'Who can enter the practice now?' Sofia replies:",
+            options: [
+                "Anyone can enter",
+                "Only heirs and mandated professionals",
+                "Only patients can enter",
+                "No one can enter"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Karim, only heirs (you, your mother, your sister) and professionals you mandate (notary, accountant) can enter. Files and equipment must be protected.'"
+        },
+        {
+            question: "Salma asks Sofia: 'What is an inventory?' Sofia explains that it is :",
+            options: [
+                "A list of patients",
+                "A detailed list of the practice's assets",
+                "A list of debts",
+                "A list of employees"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Salma, an inventory is a detailed list of everything in the practice: equipment, stocks, files. It's the basis for evaluating the practice's value.'"
+        },
+        {
+            question: "Nadia asks Sofia: 'How to evaluate the value of the practice?' Sofia replies:",
+            options: [
+                "Estimate the value by guess",
+                "Call an accountant or evaluator",
+                "Sell without evaluation",
+                "Ask patients for their opinion"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Nadia, you need to call an accountant or specialized evaluator. They will evaluate the goodwill, equipment, and patient base.'"
+        },
+        {
+            question: "Karim asks: 'What happens to patient files?' Sofia replies:",
+            options: [
+                "Throw them away",
+                "Keep them and transfer them to the buyer",
+                "Give them to patients",
+                "Burn them"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Karim, patient files are confidential and must be kept. They will be transferred to the practice buyer or to colleagues who will take over the patients.'"
+        },
+        {
+            question: "Salma asks: 'Who inherits the practice?' Sofia replies that according to law, the heirs are :",
+            options: [
+                "Only the wife",
+                "The wife and children",
+                "Only the children",
+                "The deceased's parents"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Salma, according to Moroccan inheritance law, the heirs are the wife and children. Each has a defined share by law.'"
+        },
+        {
+            question: "Karim asks: 'Can we sell the practice immediately?' Sofia replies:",
+            options: [
+                "Yes, immediately",
+                "No, we must wait for the succession liquidation",
+                "Yes, without formalities",
+                "No, never"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Karim, we must wait for the succession liquidation. This can take several months. The practice cannot be sold before heirs are clearly identified and the succession is settled.'"
+        },
+        {
+            question: "Nadia asks: 'How to handle patients who call?' Sofia advises her to :",
+            options: [
+                "Not answer",
+                "Prepare an information message",
+                "Redirect them to another practice",
+                "Ignore the calls"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Nadia, prepare an information message for the practice answering machine. Explain that Dr Ahmed passed away and that solutions will be proposed soon.'"
+        },
+        {
+            question: "Salma asks: 'What is the value of a dental practice?' Sofia explains it depends on :",
+            options: [
+                "Only the equipment",
+                "Goodwill, patient base and equipment",
+                "Only the patients",
+                "Only the location"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Salma, the value of a practice depends on several factors: goodwill (clientele, reputation), patient base (number and loyalty), equipment (furniture, instruments).'"
+        },
+        {
+            question: "Karim asks: 'How to find a buyer?' Sofia replies:",
+            options: [
+                "By newspaper ad",
+                "Through professional networks and consulting firms",
+                "By word of mouth",
+                "Through patients"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Karim, the best way is through professional networks (colleagues, associations) or consulting firms specialized in dental practice transfer.'"
+        },
+        {
+            question: "Nadia asks: 'How to handle the practice's debts?' Sofia replies:",
+            options: [
+                "Ignore them",
+                "Settle them with the succession assets",
+                "Leave them to the buyer",
+                "Have them canceled"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Nadia, the practice's debts must be settled with the succession assets (practice money, sale of equipment). A status review must be done with the notary.'"
+        },
+        {
+            question: "Salma asks: 'What to do with the dental equipment?' Sofia advises her to :",
+            options: [
+                "Throw it away",
+                "Sell it or transfer it to the buyer",
+                "Give it away",
+                "Keep it"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Salma, the equipment can be sold or transferred to the practice buyer. A precise inventory and value estimation must be done.'"
+        },
+        {
+            question: "Karim asks: 'Can I take over the practice one day?' Sofia replies:",
+            options: [
+                "No, you're a student",
+                "Yes, if you get your degree and learn practice management",
+                "Yes, without conditions",
+                "No, never"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Karim, you can take over the practice if you finish your studies and learn practice management. But you need the will and the skills.'"
+        },
+        {
+            question: "Nadia asks: 'How to announce the news to patients?' Sofia advises her to :",
+            options: [
+                "Say nothing",
+                "Send a letter or email to patients",
+                "Make a newspaper announcement",
+                "Put a note on the door"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Nadia, send a letter or email to patients to inform them of Ahmed's death. Explain that solutions will be proposed soon. They need to know.'"
+        },
+        {
+            question: "Salma asks: 'What are the heirs' rights?' Sofia replies:",
+            options: [
+                "Limited rights",
+                "Rights to the succession, including the practice",
+                "No rights",
+                "Partial rights"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Salma, heirs have rights to the entire succession, including the practice. The notary will help you enforce them.'"
+        },
+        {
+            question: "Karim asks: 'How to handle the practice's employees?' Sofia replies:",
+            options: [
+                "Fire them immediately",
+                "Inform them and support them",
+                "Ignore them",
+                "Keep them without pay"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Karim, employees must be informed of the situation. They have rights (severance, notice). They must be supported and the law must be respected.'"
+        },
+        {
+            question: "Nadia asks: 'How to manage the stress of this situation?' Sofia advises her to :",
+            options: [
+                "Isolate herself",
+                "Surround herself with family and professionals",
+                "Ignore the stress",
+                "Take medication"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Nadia, grief and practice management are two trials. Surround yourself with family, friends and professionals (notary, accountant). You are not alone.'"
+        },
+        {
+            question: "Salma asks: 'How long does a succession liquidation take?' Sofia replies:",
+            options: [
+                "One week",
+                "Several months to a year",
+                "One day",
+                "One hour"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Salma, succession liquidation can take several months, even a year, depending on complexity. Patience and good support are needed.'"
+        },
+        {
+            question: "Karim asks: 'What to do with already scheduled appointments?' Sofia advises him to :",
+            options: [
+                "Cancel them without notice",
+                "Contact patients to inform them",
+                "Keep them",
+                "Ignore them"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Karim, patients with scheduled appointments must be contacted to inform them of the situation. Offer to reschedule or redirect them to another colleague.'"
+        },
+        {
+            question: "Nadia asks: 'How to evaluate the practice's debts?' Sofia replies:",
+            options: [
+                "By estimating them",
+                "By gathering all financial documents",
+                "By ignoring them",
+                "By leaving them to the notary"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Nadia, all financial documents (invoices, contracts, bank statements) must be gathered to evaluate debts. The accountant can help you.'"
+        },
+        {
+            question: "Salma asks: 'Can we sell the practice to a colleague?' Sofia replies:",
+            options: [
+                "No",
+                "Yes, it's the most common solution",
+                "Only to a family member",
+                "No, it's forbidden"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Salma, selling the practice to a colleague is the most common solution. It allows the transfer of patients and know-how.'"
+        },
+        {
+            question: "Karim asks: 'How to know if the practice is profitable?' Sofia advises him to :",
+            options: [
+                "Guess",
+                "Analyze accounts from recent years",
+                "Ask patients",
+                "Look at the equipment"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Karim, to know if the practice is profitable, you need to analyze accounts from recent years: turnover, expenses, profits. The accountant can help you.'"
+        },
+        {
+            question: "Nadia asks: 'How to handle grief and the practice at the same time?' Sofia advises her to :",
+            options: [
+                "Handle everything alone",
+                "Get support from professionals",
+                "Ignore the grief",
+                "Work more"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Nadia, don't handle everything alone. Get support from professionals for legal and financial aspects. And take time for yourself and your family.'"
+        },
+        {
+            question: "Salma asks: 'What documents are important for the succession?' Sofia replies:",
+            options: [
+                "Only the will",
+                "Bank accounts, contracts, invoices",
+                "Only patient files",
+                "Only the equipment"
+            ],
+            correct: 1,
+            explanation: "Sofia: 'Salma, important documents are bank accounts, lease contracts, equipment invoices, employment contracts, and of course the will if it exists.'"
+        },
+        {
+            question: "Karim, at the end of this ordeal, says: 'Sofia, thank you. If my father had prepared all this, we wouldn't be lost.' Sofia replies that preparation is essential. Karim concludes :",
+            options: [
+                "It's too late for my father, but not for others",
+                "It's too late for everything",
+                "There's nothing to do",
+                "Nothing can be changed"
+            ],
+            correct: 0,
+            explanation: "Karim: 'Sofia, thank you for everything. If my father had prepared his succession, we wouldn't be in this situation.' Sofia: 'Karim, it's too late for your father, but not for other dentists. Share this experience around you.'"
+        }
+    ];
+
+    // ============================================
+    // =========== QUIZ ENGINE ====================
+    // ============================================
+    const MAX_SCORE = questions.length * 15;
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("seniors_v1_debutant2_en", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    speak("Time's up! Moving to the next question.", "en-US");
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function speakCurrentQuestion() {
+        speak(`Question ${currentQuestion + 1} : ${questions[currentQuestion].question}`, "en-US");
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header">
+                <h1>👴 Seniors - Beginner Level 2</h1>
+                <div class="subtitle">Question ${currentQuestion + 1}/${questions.length}</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explanation :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                </div>
+                <div class="timer">⏱️ Time remaining : <span id="timer">${timeLeft}</span> seconds</div>
+                <div class="score">🏆 Current score : ${score}/${MAX_SCORE}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Quit</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Next →</button>
+                </div>
+            </div>
+        `;
+        answerLocked = false;
+        startTimer();
+        setTimeout(() => speakCurrentQuestion(), 500);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answerLocked) return;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            speak(`Correct answer! +${pointsEarned} points.`, "en-US");
+        } else {
+            speak(`Wrong answer. The correct answer was : ${shuffledOptions[currentCorrectIndex]}.`, "en-US");
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Correct answer : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        document.querySelector('.score').innerHTML = `🏆 Current score : ${score}/${MAX_SCORE}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+    }
+
+    function nextQuestion() {
+        if (!answerLocked) { 
+            speak("Please select an answer.", "en-US"); 
+            return; 
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    function goToMenu() {
+        window.location.href = "menu_en.html";
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        saveScore(score, MAX_SCORE);
+        
+        const isUnlocked = unlockLevel3(percentage);
+        sauvegarderValidation('Seniors', 'debutant2', score, MAX_SCORE);
+        sendScoreToFirebase(score, MAX_SCORE, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Quiz completed!</h1>
+                <div class="final-score">Score : ${score}/${MAX_SCORE}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Percentage : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ? 
+                        '<div class="unlock-badge">✅ Intermediate Level 1 unlocked! 🎊</div>' : 
+                        '<div class="locked-badge">⚠️ Insufficient score (minimum 60% required to unlock the next level)</div>'}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ? 
+                        '📚 Go to the menu to access Intermediate Level 1.' : 
+                        `💪 You need ${(60 - percentage).toFixed(1)}% more to unlock Intermediate Level 1. Try again!`}
+                </div>
+                <div>
+                    <button class="share-btn" onclick="shareScore()">📤 Share my score</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Give feedback</button>
+                    <button class="menu-btn" onclick="goToMenu()">🏠 Main menu</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 World ranking</button>
+                </div>
+            </div>
+        `;
+        
+        if (isUnlocked) {
+            speak(`Congratulations! You have unlocked Intermediate Level 1 with a score of ${percentage.toFixed(1)}%.`, "en-US");
+            
+            // 🆕 POPUP D'ÉVALUATION BETA (AJOUTÉE)
+            setTimeout(function() {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            speak(`Your score is ${percentage.toFixed(1)}%. You need 60% to unlock Intermediate Level 1.`, "en-US");
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2500);
+    }
+
+    // ============================================
+    // 🆕 POPUP D'ÉVALUATION BETA (AJOUTÉE)
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const popup = document.createElement('div');
+        popup.id = 'betaPopup';
+        popup.className = 'beta-popup-overlay';
+        popup.innerHTML = `
+            <div class="beta-popup-content">
+                <div class="big-icon">🎉🏆🎉</div>
+                <h2>Congratulations ${userName}!</h2>
+                <p>You have successfully validated both Beginner levels.</p>
+                <div style="margin:25px 0;">
+                    <p style="font-weight:bold;">🌟 Rate the BETA version 🌟</p>
+                    <div class="stars" id="starRating">
+                        <span data-rating="1">☆</span>
+                        <span data-rating="2">☆</span>
+                        <span data-rating="3">☆</span>
+                        <span data-rating="4">☆</span>
+                        <span data-rating="5">☆</span>
+                    </div>
+                    <div class="rating-message" id="ratingMessage"></div>
+                </div>
+                <div class="beta-info">
+                    <p>🚀 The next levels (Intermediate & Expert) will arrive after 6 months of evaluation.</p>
+                </div>
+                <button class="beta-btn" onclick="closeBetaPopup()">Back to menu</button>
+            </div>
+        `;
+        document.body.appendChild(popup);
+        
+        const stars = popup.querySelectorAll('#starRating span');
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                stars.forEach((s, idx) => { 
+                    s.innerHTML = idx < rating ? '★' : '☆'; 
+                    s.style.color = idx < rating ? '#ffc107' : '#ccc'; 
+                });
+                document.getElementById('ratingMessage').innerHTML = '✅ Thank you for your evaluation!';
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        const modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'en',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Beta evaluation sent!");
+        } catch(error) {
+            console.error("Beta error:", error);
+        }
+    }
+
+    // ============================================
+    // =========== RANKING MODAL ==================
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No scores recorded for this level yet.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Your ranking</div>
+                        <div class="rank-number">${userRank}th position</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} points (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 You are not yet in the ranking for this level</div>
+                        <div>Redo the quiz to appear!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #daa520;">🏆 TOP 20 - Seniors Beginner 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(218,165,32,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anonymous"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No scores for this level</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Firestore error:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Unable to load ranking.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Unknown error'}</span></div>`;
+        }
+    }
+
+    function abandonQuiz() {
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE) * 100;
+        localStorage.setItem("seniors_v1_debutant2_en", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel3(partialPercentage);
+        sauvegarderValidation('Seniors', 'debutant2', score, MAX_SCORE);
+        sendScoreToFirebase(score, MAX_SCORE, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="result-container"><h1>❌ Quiz abandoned</h1><div class="final-score">Partial score : ${score}/${MAX_SCORE}</div><div>Percentage : ${partialPercentage.toFixed(1)}%</div><div style="margin:20px 0;">🏆 This score has been recorded in the ranking.</div><button class="menu-btn" onclick="goToMenu()">🏠 Back to menu</button></div>`;
+        speak(`Quiz abandoned. Partial score : ${score} out of ${MAX_SCORE}.`, "en-US");
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE) * 100;
+        const text = `🎓 ETEO - Seniors\nMy score in Beginner Level 2 : ${score}/${MAX_SCORE} (${percentage.toFixed(1)}%)\nChallenge me on ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Score copied to clipboard!");
+            }).catch(() => {
+                alert("📋 To share, copy this text:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        closeScenarioPopup();
+        saveUserInfo();
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+    }
+
+    // ============================================
+    // =========== INITIALIZATION ================
+    // ============================================
+    showWelcomeScreen();
+
+    setTimeout(() => {
+        showScenarioPopup();
+    }, 800);
+
+    document.body.addEventListener('click', function firstClick() {
+        activateVoice();
+        document.body.removeEventListener('click', firstClick);
+    });
+</script>
+</body>
+</html>
