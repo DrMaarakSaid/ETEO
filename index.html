@@ -7,6 +7,11 @@
     <link rel="manifest" href="manifest.json">
     
     <!-- ============================================ -->
+    <!-- =========== SDK TELEGRAM ================== -->
+    <!-- ============================================ -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- ============================================ -->
     <!-- =========== TTS MANAGER ==================== -->
     <!-- ============================================ -->
     <script src="js/tts-manager.js"></script>
@@ -33,6 +38,7 @@
             align-items: center;
             padding: 20px;
             margin: 0;
+            transition: background 0.3s ease;
         }
 
         body.dark {
@@ -52,6 +58,7 @@
             padding: 50px 30px 40px;
             text-align: center;
             backdrop-filter: blur(10px);
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         body.dark .container {
@@ -130,6 +137,7 @@
             color: #555;
             text-transform: uppercase;
             position: relative;
+            transition: color 0.3s ease;
         }
 
         body.dark .header .subtitle {
@@ -229,6 +237,7 @@
             font-weight: 700;
             color: #2c3e50;
             letter-spacing: 1px;
+            transition: color 0.3s ease;
         }
 
         body.dark .lang-btn .lang-label {
@@ -354,6 +363,7 @@
             border-top: 2px solid #e0e0e0;
             font-size: 0.7rem;
             color: #aaa;
+            transition: border-color 0.3s ease;
         }
 
         body.dark .footer {
@@ -455,7 +465,136 @@
         }
 
         /* ============================================ */
-        /* =========== 13. RESPONSIVE ================ */
+        /* =========== 13. AUDIO UNLOCK OVERLAY ====== */
+        /* ============================================ */
+        #audioUnlockOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        #audioUnlockOverlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .audio-unlock-card {
+            background: white;
+            padding: 35px 30px;
+            border-radius: 24px;
+            max-width: 340px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s ease;
+        }
+
+        body.dark .audio-unlock-card {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .audio-unlock-card .icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .audio-unlock-card h2 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.3rem;
+        }
+
+        body.dark .audio-unlock-card h2 {
+            color: #eee;
+        }
+
+        .audio-unlock-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        body.dark .audio-unlock-card p {
+            color: #aaa;
+        }
+
+        .audio-unlock-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .audio-unlock-btn:hover {
+            background: #1976D2;
+            transform: scale(1.02);
+        }
+
+        .audio-unlock-btn:active {
+            transform: scale(0.95);
+        }
+
+        body.dark .audio-unlock-btn {
+            background: #64B5F6;
+            color: #1a1a2e;
+        }
+
+        body.dark .audio-unlock-btn:hover {
+            background: #42a5f5;
+        }
+
+        /* ============================================ */
+        /* =========== 14. TELEGRAM INDICATOR ======== */
+        /* ============================================ */
+        .telegram-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(33, 150, 243, 0.9);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(33, 150, 243, 0.3);
+            display: none;
+        }
+
+        .telegram-indicator.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* ============================================ */
+        /* =========== 15. RESPONSIVE ================ */
         /* ============================================ */
         @media (max-width: 520px) {
             .container {
@@ -485,6 +624,17 @@
                 top: 15px;
                 right: 15px;
             }
+
+            .telegram-indicator {
+                top: 15px;
+                left: 15px;
+                font-size: 8px;
+                padding: 3px 10px;
+            }
+
+            .audio-unlock-card {
+                padding: 25px 20px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -506,6 +656,28 @@
     </style>
 </head>
 <body>
+
+<!-- ============================================ -->
+<!-- =========== OVERLAY DÉVERROUILLAGE AUDIO === -->
+<!-- ============================================ -->
+<div id="audioUnlockOverlay">
+    <div class="audio-unlock-card">
+        <div class="icon">🔊</div>
+        <h2>Activez le son</h2>
+        <p>
+            Sur mobile, Telegram nécessite une interaction pour activer la voix.<br>
+            Appuyez sur le bouton ci-dessous pour activer l'audio.
+        </p>
+        <button class="audio-unlock-btn" onclick="unlockAudioAndClose()">
+            🎵 Activer le son
+        </button>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- =========== INDICATEUR TELEGRAM ============ -->
+<!-- ============================================ -->
+<div class="telegram-indicator" id="telegramIndicator">📱 Telegram</div>
 
 <!-- ============================================ -->
 <!-- =========== INDICATEUR VOCAL =============== -->
@@ -618,6 +790,70 @@
 <!-- ============================================ -->
 <script>
     // ============================================
+    // =========== 0. INTÉGRATION TELEGRAM ========
+    // ============================================
+    document.addEventListener("DOMContentLoaded", function() {
+        // Vérifier si l'application s'ouvre bien dans Telegram
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            
+            // Informer Telegram que l'application est prête
+            tg.ready();
+            
+            // Étendre la Mini App en plein écran
+            tg.expand();
+            
+            // Afficher l'indicateur Telegram
+            const indicator = document.getElementById('telegramIndicator');
+            indicator.textContent = '📱 Telegram';
+            indicator.classList.add('active');
+            
+            // Appliquer automatiquement le thème Telegram (Clair / Sombre)
+            if (tg.colorScheme === 'dark') {
+                document.body.classList.add('dark');
+                document.querySelector('.theme-btn').textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark');
+                document.querySelector('.theme-btn').textContent = '🌙';
+            }
+            
+            // Récupérer les infos de l'utilisateur s'il est connecté
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                console.log("👤 Utilisateur Telegram connecté :", user.first_name);
+                // Afficher un message de bienvenue personnalisé
+                showToast(`👋 Bienvenue ${user.first_name} sur ETEO !`, 3000);
+            }
+            
+            // Écouter les changements de thème en temps réel
+            tg.onEvent('themeChanged', function() {
+                if (tg.colorScheme === 'dark') {
+                    document.body.classList.add('dark');
+                    document.querySelector('.theme-btn').textContent = '☀️';
+                } else {
+                    document.body.classList.remove('dark');
+                    document.querySelector('.theme-btn').textContent = '🌙';
+                }
+            });
+            
+            console.log('✅ ETEO intégré à Telegram avec succès');
+        } else {
+            console.log('ℹ️ ETEO ouvert en dehors de Telegram (mode web)');
+            // En mode web, on garde le thème par défaut
+            const indicator = document.getElementById('telegramIndicator');
+            indicator.textContent = '🌐 Web';
+            indicator.classList.add('active');
+            indicator.style.background = 'rgba(255, 152, 0, 0.9)';
+        }
+        
+        // Initialiser le TTS Manager
+        initTTS();
+        
+        // Détection mobile pour l'audio
+        detectMobileAndShowOverlay();
+    });
+
+    // ============================================
     // =========== 1. CONFIGURATION DES LANGUES ====
     // ============================================
     const langConfig = {
@@ -625,25 +861,25 @@
             message: "Bienvenue sur ETEO, l'application d'apprentissage en ligne. Choisissez le français pour commencer votre inscription.",
             label: 'français',
             flag: '🇫🇷',
-            toastMessage: '✅ Message lu en français'  // Message en français
+            toastMessage: '✅ Message lu en français'
         },
         en: {
             message: "Welcome to ETEO, the online learning application. Choose English to start your registration.",
             label: 'english',
             flag: '🇬🇧',
-            toastMessage: '✅ Message read in English'  // Message en anglais
+            toastMessage: '✅ Message read in English'
         },
         es: {
             message: "Bienvenido a ETEO, la aplicación de aprendizaje en línea. Elige español para comenzar tu registro.",
             label: 'espagnol',
             flag: '🇪🇸',
-            toastMessage: '✅ Mensaje leído en español'  // Message en espagnol
+            toastMessage: '✅ Mensaje leído en español'
         },
         ru: {
             message: "Добро пожаловать в ETEO, приложение для онлайн-обучения. Выберите русский язык, чтобы начать регистрацию.",
             label: 'russe',
             flag: '🇷🇺',
-            toastMessage: '✅ Сообщение прочитано на русском'  // Message en russe
+            toastMessage: '✅ Сообщение прочитано на русском'
         }
     };
 
@@ -678,15 +914,121 @@
     }
 
     // ============================================
-    // =========== 4. BOUTON ÉCOUTER =============
+    // =========== 4. TTS MANAGER ================
+    // ============================================
+    function initTTS() {
+        if (window.ETEO && window.ETEO.TTS) {
+            window.ETEO.TTS.init();
+            
+            const indicator = document.getElementById('voiceIndicator');
+            if (window.ETEO.TTS.engine === 'capacitor') {
+                indicator.textContent = '🎙️ Capacitor (Natife)';
+                indicator.className = 'voice-indicator capacitor';
+                console.log('✅ VOIX NATIVE CAPACITOR DÉTECTÉE !');
+            } else if (window.ETEO.TTS.engine === 'web') {
+                indicator.textContent = '🎙️ Web Speech (Secours)';
+                indicator.className = 'voice-indicator web';
+                console.log('⚠️ Secours Web Speech activé');
+            } else {
+                indicator.textContent = '❌ Aucune voix';
+                indicator.className = 'voice-indicator error';
+                console.error('❌ Aucun moteur TTS disponible');
+            }
+        } else {
+            console.error('❌ TTS Manager non chargé !');
+            const indicator = document.getElementById('voiceIndicator');
+            indicator.textContent = '❌ Erreur TTS';
+            indicator.className = 'voice-indicator error';
+        }
+    }
+
+    // ============================================
+    // =========== 5. DÉVERROUILLAGE AUDIO =======
+    // ============================================
+    function isMobile() {
+        return /Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent);
+    }
+
+    function detectMobileAndShowOverlay() {
+        const isMobileDevice = isMobile();
+        
+        // Si c'est un mobile ET que c'est Telegram
+        if (isMobileDevice && window.Telegram && window.Telegram.WebApp) {
+            const overlay = document.getElementById('audioUnlockOverlay');
+            // Vérifier si l'audio est déjà débloqué
+            const audioUnlocked = sessionStorage.getItem('audioUnlocked');
+            if (!audioUnlocked) {
+                overlay.classList.add('show');
+                console.log('📱 Mobile détecté - Affichage overlay de déverrouillage');
+            }
+        }
+    }
+
+    function unlockAudioAndClose() {
+        try {
+            // 1. Créer un contexte audio
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            // 2. Jouer un son silencieux
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value = 440;
+            gainNode.gain.value = 0.01;
+            oscillator.start();
+            oscillator.stop(0.05);
+            
+            // 3. Marquer comme débloqué
+            sessionStorage.setItem('audioUnlocked', 'true');
+            
+            // 4. Fermer l'overlay
+            document.getElementById('audioUnlockOverlay').classList.remove('show');
+            
+            // 5. Message de confirmation
+            showToast('✅ Audio activé ! Vous pouvez maintenant écouter.', 3000);
+            
+            console.log('🔓 Audio débloqué avec succès !');
+            
+            // 6. Tester automatiquement
+            setTimeout(() => {
+                // Lire un message de test
+                if (window.ETEO && window.ETEO.TTS) {
+                    window.ETEO.TTS.speak('Audio activé avec succès', 'fr-FR');
+                }
+            }, 500);
+            
+        } catch (error) {
+            console.error('Erreur déverrouillage:', error);
+            showToast('❌ Veuillez réessayer', 3000);
+        }
+    }
+
+    // ============================================
+    // =========== 6. BOUTON ÉCOUTER =============
     // ============================================
     function listenLanguage(lang, event) {
         const btn = event ? event.currentTarget : null;
         
-        // Vérifier que le TTS est disponible
+        // Vérifier si le TTS est disponible
         if (!window.ETEO || !window.ETEO.TTS) {
             showToast('❌ Système vocal non disponible', 3000);
             return;
+        }
+
+        // ⭐ NOUVEAU : Vérifier si l'audio est débloqué sur mobile
+        if (isMobile() && window.Telegram && window.Telegram.WebApp) {
+            const audioUnlocked = sessionStorage.getItem('audioUnlocked');
+            if (!audioUnlocked) {
+                showToast('👆 Appuyez d\'abord sur "Activer le son"', 3000);
+                // Afficher l'overlay
+                const overlay = document.getElementById('audioUnlockOverlay');
+                overlay.classList.add('show');
+                return;
+            }
         }
 
         const config = langConfig[lang];
@@ -699,7 +1041,6 @@
         if (btn) {
             btn.disabled = true;
             btn.classList.add('listening');
-            const originalText = btn.innerHTML;
             btn.innerHTML = '🔊 Lecture...';
         }
 
@@ -715,8 +1056,7 @@
                                     lang === 'en' ? '🔊 Listen' :
                                     lang === 'es' ? '🔊 Escuchar' : '🔊 Слушать';
                 }
-                // ==== CORRECTION ICI : Utilisation du message traduit ====
-                showToast(config.toastMessage, 2000);  // Maintenant le message est dans la bonne langue
+                showToast(config.toastMessage, 2000);
             })
             .catch((error) => {
                 console.error('Erreur lors de la lecture :', error);
@@ -743,7 +1083,7 @@
     }
 
     // ============================================
-    // =========== 5. REDIRECTION (SANS VOIX) =====
+    // =========== 7. REDIRECTION ================
     // ============================================
     function redirectToLanguage(lang) {
         const target = pages[lang];
@@ -775,14 +1115,18 @@
         };
         showToast(`⏳ Redirection vers ${langNames[lang]}...`, 2000);
 
-        // Redirection UNIQUEMENT (SANS voix)
+        // Redirection
         setTimeout(() => {
+            // Si on est dans Telegram, fermer la Mini App avant de rediriger
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.close();
+            }
             window.location.href = target;
         }, 1500);
     }
 
     // ============================================
-    // =========== 6. INITIALISATION =============
+    // =========== 8. INITIALISATION =============
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
         // --- THÈME ---
@@ -791,36 +1135,9 @@
             document.querySelector('.theme-btn').textContent = '☀️';
         }
 
-        // --- INITIALISATION DU TTS MANAGER (AUDIT SEULEMENT) ---
-        if (window.ETEO && window.ETEO.TTS) {
-            window.ETEO.TTS.init();
-            
-            const indicator = document.getElementById('voiceIndicator');
-            if (window.ETEO.TTS.engine === 'capacitor') {
-                indicator.textContent = '🎙️ Capacitor (Natife)';
-                indicator.className = 'voice-indicator capacitor';
-                console.log('✅ VOIX NATIVE CAPACITOR DÉTECTÉE !');
-            } else if (window.ETEO.TTS.engine === 'web') {
-                indicator.textContent = '🎙️ Web Speech (Secours)';
-                indicator.className = 'voice-indicator web';
-                console.log('⚠️ Secours Web Speech activé');
-            } else {
-                indicator.textContent = '❌ Aucune voix';
-                indicator.className = 'voice-indicator error';
-                console.error('❌ Aucun moteur TTS disponible');
-            }
-        } else {
-            console.error('❌ TTS Manager non chargé !');
-            const indicator = document.getElementById('voiceIndicator');
-            indicator.textContent = '❌ Erreur TTS';
-            indicator.className = 'voice-indicator error';
-        }
-
         console.log('🚀 ETEO Accueil prêt !');
         console.log('🔈 Cliquez sur les boutons "Écouter" pour entendre les messages.');
     });
-
-    // ⚠️ PAS DE VOIX AUTOMATIQUE - L'utilisateur décide !
 </script>
 </body>
 </html>
