@@ -1,6 +1,6 @@
 // ============================================
 // =========== TTS MANAGER ====================
-// =========== Version avec diagnostic =======
+// =========== Version propre (sans diagnostic) =
 // ============================================
 
 window.ETEO = window.ETEO || {};
@@ -16,7 +16,7 @@ window.ETEO.TTS = {
         
         console.log("🔍 [ETEO TTS] Initialisation...");
         
-        // Créer le div de diagnostic
+        // Créer le div de diagnostic (Désactivé)
         this.createDiagnosticDiv();
 
         // Détection mobile
@@ -156,55 +156,8 @@ window.ETEO.TTS = {
     // =========== CRÉER LE DIV DIAGNOSTIC =======
     // ============================================
     createDiagnosticDiv: function() {
-        // Supprimer l'ancien si existant
-        const old = document.getElementById('ttsDiagnostic');
-        if (old) old.remove();
-        
-        this.diagnosticDiv = document.createElement('div');
-        this.diagnosticDiv.id = 'ttsDiagnostic';
-        this.diagnosticDiv.style.cssText = `
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.85);
-            color: #00ff00;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-family: monospace;
-            z-index: 99999;
-            max-width: 90%;
-            text-align: left;
-            line-height: 1.6;
-            border: 2px solid #00ff00;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-            pointer-events: none;
-            min-width: 200px;
-            transition: opacity 0.3s ease;
-        `;
-        this.diagnosticDiv.innerHTML = `
-            <b>🔬 ETEO TTS DIAGNOSTIC</b><br>
-            <span id="diagStatus">⏳ Initialisation...</span><br>
-            <span id="diagVoices">🔄 Chargement...</span>
-        `;
-        document.body.appendChild(this.diagnosticDiv);
-        
-        // Afficher pendant 30 secondes puis le cacher
-        setTimeout(() => {
-            if (this.diagnosticDiv) {
-                this.diagnosticDiv.style.opacity = '0.3';
-                this.diagnosticDiv.style.fontSize = '9px';
-                this.diagnosticDiv.style.padding = '6px 10px';
-            }
-        }, 30000);
-        
-        // Le cacher complètement après 60 secondes
-        setTimeout(() => {
-            if (this.diagnosticDiv) {
-                this.diagnosticDiv.style.display = 'none';
-            }
-        }, 60000);
+        // Désactivé : Ne crée plus la fenêtre noire de diagnostic
+        return;
     },
 
     // ============================================
@@ -390,4 +343,4 @@ if (document.readyState === 'loading') {
     window.ETEO.TTS.init();
 }
 
-console.log("✅ [ETEO TTS] Manager chargé - Mode diagnostic actif");
+console.log("✅ [ETEO TTS] Manager chargé - Prêt");
