@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ЭТЕО - Будущий Доктор - Начинающий 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT ПЛАГИНА ГОЛОСА ========== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        window.TextToSpeech = TextToSpeech;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        console.log('✅ Плагин TextToSpeech загружен!');
+        console.log('📱 Мобильный режим:', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4a2a6a, #6a3a8a, #8a4aaa);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #2a1a4a, #4a2a6a, #6a3a8a); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #8a4aaa; }
+        .header .subtitle { font-size: 0.9rem; color: #6a3a8a; margin-top: 5px; }
+        body.dark .header .subtitle { color: #d8c8e0; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #8a4aaa;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #8a4aaa; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #8a4aaa;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover { background: #6a3a8a; }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #8a4aaa; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #8a4aaa;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            background: #6a3a8a;
+            transform: scale(1.05);
+        }
+        .unlock-badge {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .locked-badge {
+            background: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .beta-info-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        /* ===== СТИЛИ ГОЛОСОВЫХ КНОПОК ===== */
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+        
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #888;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #8a4aaa;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .start-quiz-btn:hover {
+            background: #6a3a8a;
+            transform: scale(1.05);
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .note { color: #aaa; }
+        .scenario-box {
+            background: #f4ecf8;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-left: 4px solid #8a4aaa;
+        }
+        body.dark .scenario-box { background: #3a2a4a; }
+        .scenario-box .title { font-weight: bold; color: #6a3a8a; margin-bottom: 5px; }
+        body.dark .scenario-box .title { color: #aa8aba; }
+        .scenario-box .text { font-size: 0.9rem; color: #555; line-height: 1.5; }
+        body.dark .scenario-box .text { color: #ccc; }
+        .scenario-box .serious { color: #6a3a8a; font-weight: bold; }
+        body.dark .scenario-box .serious { color: #aa8aba; }
+
+        /* ================================================================ */
+        /* 🆕 СТИЛЬ ДЛЯ ПОПАПА СЦЕНАРИЯ */
+        /* ================================================================ */
+        #scenarioModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            animation: fadeIn 0.5s ease;
+        }
+        #scenarioModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 600px;
+            padding: 35px;
+            max-height: 80%;
+            overflow: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.6s ease;
+        }
+        body.dark #scenarioModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #scenarioModal .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+        }
+        #scenarioModal .modal-close:hover {
+            color: #f44336;
+        }
+        #scenarioModal .modal-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #scenarioModal .modal-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #8a4aaa;
+            margin-bottom: 15px;
+        }
+        #scenarioModal .modal-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 4px solid #8a4aaa;
+        }
+        body.dark #scenarioModal .modal-text {
+            color: #ccc;
+            background: #2a2a3e;
+        }
+        #scenarioModal .modal-text .serious {
+            color: #6a3a8a;
+            font-weight: bold;
+        }
+        body.dark #scenarioModal .modal-text .serious {
+            color: #aa8aba;
+        }
+        #scenarioModal .modal-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #scenarioModal .modal-btn {
+            background: #8a4aaa;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        #scenarioModal .modal-btn:hover {
+            background: #6a3a8a;
+            transform: scale(1.02);
+        }
+        #scenarioModal .modal-btn.secondary {
+            background: #4a2a6a;
+            color: white;
+        }
+        #scenarioModal .modal-btn.secondary:hover {
+            background: #3a1a5a;
+        }
+        #scenarioModal .modal-status {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 10px;
+            background: #f0f0f0;
+        }
+        body.dark #scenarioModal .modal-status {
+            color: #aaa;
+            background: #2a2a3e;
+        }
+        #scenarioModal .modal-status.playing {
+            background: #8a4aaa;
+            color: white;
+        }
+        #scenarioModal .modal-status.waiting {
+            background: #f39c12;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #8a4aaa;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item {
+            border-bottom-color: #444;
+        }
+        .user-rank-card {
+            background: linear-gradient(135deg, #4a2a6a, #8a4aaa);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .user-rank-card .rank-label {
+            font-size: 1.2rem;
+        }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #8a4aaa;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover { background: #6a3a8a; }
+
+        /* ================================================================ */
+        /* 🆕 СТИЛЬ ДЛЯ ПОПАПА ОЦЕНКИ БЕТА */
+        /* ================================================================ */
+        .beta-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        }
+        .beta-popup-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            padding: 35px 25px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        body.dark .beta-popup-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        .beta-popup-content .big-icon { font-size: 4rem; }
+        .beta-popup-content h2 { color: #8a4aaa; margin: 10px 0; }
+        body.dark .beta-popup-content h2 { color: #8a4aaa; }
+        .beta-popup-content p { color: #555; margin: 5px 0; }
+        body.dark .beta-popup-content p { color: #ccc; }
+        .beta-popup-content .stars {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 3rem;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .beta-popup-content .stars span { color: #ccc; transition: color 0.3s; }
+        .beta-popup-content .stars span.active { color: #ffc107; }
+        .beta-popup-content .rating-message {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .beta-popup-content .rating-message { color: #aaa; }
+        .beta-popup-content .beta-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        body.dark .beta-popup-content .beta-info { background: #2a2a3e; }
+        .beta-popup-content .beta-info p { color: #ff5722; font-weight: bold; margin: 0; }
+        .beta-popup-content .beta-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .beta-popup-content .beta-btn:hover {
+            background: #388e3c;
+            transform: scale(1.02);
+        }
+        
+        /* ===== КНОПКИ ПРОГРЕССА И МЕНЮ ===== */
+        .btn-progression {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-progression:hover {
+            background: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .btn-menu {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-menu:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator inactive" id="voiceIndicator">🔇 ИИ неактивен</div>
+
+<div class="container" id="app"></div>
+
+<!-- Модальное окно рейтинга -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 ВАША ПОЗИЦИЯ</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Загрузка рейтинга...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== КОНФИГУРАЦИЯ FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID ДЛЯ ЭТОЙ ВИКТОРИНЫ
+    // ============================================
+    const LEVEL_ID = "future_docteur_v1_debutant2_ru";
+
+    // ============================================
+    // =========== 1. РАСШИРЕННАЯ ГОЛОСОВАЯ СИСТЕМА =
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+
+    // ============================================
+    // 🔥 ФУНКЦИЯ : СБРОС ВСЕХ ГОЛОСОВЫХ КНОПОК
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Реактивация ВСЕХ кнопок");
+        
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Прочитать вопрос';
+            console.log("✅ voiceQuestionBtn реактивирован");
+        }
+        
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Прослушать ответ снова';
+            console.log("✅ voiceFeedbackBtn реактивирован");
+        }
+        
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Прочитать объяснение';
+            console.log("✅ voiceExplanationBtn реактивирован");
+        }
+        
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Прослушать результат';
+            console.log("✅ voiceResultBtn реактивирован");
+        }
+        
+        isSpeaking = false;
+        updateVoiceIndicator('active');
+        console.log("✅ Все голосовые кнопки теперь АКТИВНЫ!");
+    }
+
+    // ============================================
+    // 🔥 ФУНКЦИЯ : ОСТАНОВИТЬ ВОСПРОИЗВЕДЕНИЕ
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() вызван");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Stop Android выполнен");
+            }
+        } catch(e) { console.log("⚠️ Ошибка остановки Android:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Web Speech stop выполнен");
+            }
+        } catch(e) { console.log("⚠️ Ошибка остановки Web Speech:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking сброшен в false");
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 ФУНКЦИЯ : FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() вызван");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech недоступен");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'ru-RU';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const russianVoice = voices.find(v => v.lang.startsWith('ru'));
+            if (russianVoice) utterance.voice = russianVoice;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Web Speech callback выполнен");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech завершен (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Web Speech ошибка:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Принудительный callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Ошибка в fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ФУНКЦИЯ : SPEAK (с Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() вызван с:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Пустой текст, немедленный callback");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() выполнен");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Использование Capacitor TTS на Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'ru-RU', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS завершен");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Ошибка Capacitor TTS:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback на Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Принудительный callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Использование Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+            } else {
+                console.error("❌ Нет доступного TTS движка");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ОШИБКА в speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 АКТИВИРОВАТЬ ГОЛОС
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() вызван");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            if (isAndroid) {
+                if (window.Capacitor?.Plugins?.TextToSpeech) {
+                    console.log("✅ Capacitor TTS доступен на Android");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    updateVoiceIndicator('active');
+                } else {
+                    console.warn("⚠️ Capacitor TTS не найден на Android");
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback на Web Speech");
+                        voiceReady = true;
+                        voiceActivated = true;
+                        window.speechSynthesis.getVoices();
+                        updateVoiceIndicator('active');
+                    }
+                }
+            } else {
+                if (window.speechSynthesis) {
+                    console.log("✅ Web Speech доступен на ПК");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    window.speechSynthesis.getVoices();
+                    updateVoiceIndicator('active');
+                }
+            }
+            console.log("✅ Голос активирован, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Голос уже активирован");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        if (indicator) {
+            if (status === 'active') {
+                indicator.textContent = '🎙️ ИИ активен';
+                indicator.className = 'voice-indicator active';
+            } else if (status === 'speaking') {
+                indicator.textContent = '🎙️ Говорит...';
+                indicator.className = 'voice-indicator speaking';
+            } else {
+                indicator.textContent = '🔇 ИИ неактивен';
+                indicator.className = 'voice-indicator inactive';
+            }
+        }
+    }
+
+    // ============================================
+    // =========== ГОЛОСОВЫЕ ФУНКЦИИ =============
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() вызван");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Вопрос ${currentQuestion + 1} из ${questions.length}: ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Чтение...';
+            console.log("🔇 voiceQuestionBtn отключен");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "ru-RU", function() {
+            console.log("✅ speakQuestionOnly() завершен");
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() вызван");
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `Правильно! Это верный ответ! +${lastPointsEarned} баллов.`;
+        } else {
+            text = `Извините, это неверный ответ. Правильный ответ был: ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Чтение...';
+            console.log("🔇 voiceFeedbackBtn отключен");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "ru-RU", function() {
+            console.log("✅ speakFeedback() завершен");
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() вызван");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Объяснение: ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Чтение...';
+            console.log("🔇 voiceExplanationBtn отключен");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "ru-RU", function() {
+            console.log("✅ speakExplanation() завершен");
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() вызван");
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Ваш итоговый результат: ${score} из ${MAX_SCORE_WITH_BONUS}, что составляет ${percentage.toFixed(1)} процентов. `;
+        if (isUnlocked) {
+            text += "Поздравляем! Вы успешно подтвердили Начинающий уровень 2. Отлично!";
+        } else {
+            text += `Вам нужно еще ${(60 - percentage).toFixed(1)} процентов, чтобы подтвердить уровень. Продолжайте стараться!`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Чтение...';
+            console.log("🔇 voiceResultBtn отключен");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "ru-RU", function() {
+            console.log("✅ speakFinalResult() завершен");
+        });
+    }
+
+    // ============================================
+    // =========== ПРИВЯЗКА ГОЛОСОВЫХ СОБЫТИЙ =====
+    // ============================================
+    function attachVoiceEvents() {
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Событие привязано для voiceQuestionBtn");
+        }
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Событие привязано для voiceExplanationBtn");
+        }
+    }
+
+    // ============================================
+    // =========== 2. ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ =
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "MA"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Аноним" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    // ============================================
+    // =========== ФУНКЦИЯ РАЗБЛОКИРОВКИ ==========
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("future_docteur_v1_intermediaire1_ru_unlocked", "true");
+            localStorage.setItem("future_docteur_v1_debutant2_ru_score", percentage.toFixed(1));
+            console.log("✅ Уровень Средний 1 РАЗБЛОКИРОВАН! Результат: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("future_docteur_v1_intermediaire1_ru_unlocked", "false");
+            console.log("❌ Уровень Средний 1 ЗАБЛОКИРОВАН. Результат: " + percentage.toFixed(1) + "% (мин " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 СОХРАНЕНИЕ ПРОВЕРКИ ДЛЯ PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progression = JSON.parse(localStorage.getItem('eteo_progression')) || {};
+            const key = specialite + '_' + niveau;
+            progression[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progression));
+            
+            console.log('✅ Проверка сохранена для progression.html');
+        }
+    }
+
+    // ============================================
+    // 🔥 ПЕРЕЙТИ К PROGRESSION - ОПЦИЯ 2
+    // ============================================
+    function goToProgression() {
+        console.log("🔍 goToProgression() вызван");
+        
+        const validationData = {
+            specialite: 'Budushchiy_Doktor',
+            niveau: 'debutant2',
+            score: score,
+            total: MAX_SCORE_WITH_BONUS,
+            percentage: (score / MAX_SCORE_WITH_BONUS) * 100,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('eteo_validation', JSON.stringify(validationData));
+        console.log("✅ Проверка сохранена для progression");
+        
+        const url = '../../../../progression_ru.html?valider=Budushchiy_Doktor_debutant2&score=' + score + '&total=' + MAX_SCORE_WITH_BONUS;
+        console.log("🔀 Перенаправление на:", url);
+        window.location.href = url;
+    }
+
+    // ============================================
+    // =========== 3. ПОПАП СЦЕНАРИЯ =============
+    // ============================================
+    let scenarioPlaying = false;
+    let scenarioStarted = false;
+
+    function showScenarioPopup() {
+        const modal = document.createElement('div');
+        modal.id = 'scenarioModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeScenarioPopup()">✕</button>
+                <div class="modal-icon">📊</div>
+                <div class="modal-title">📖 Итоги первого месяца</div>
+                <div class="modal-text" id="scenarioText">
+                    <span class="serious">🔴 Контекст:</span> Др. Карим наконец открыл свой кабинет после месяцев подготовки. Но в конце первого месяца работы он делает горький вывод: пациенты не всегда приходят на прием, счета накапливаются, и его банковский кредит начинает давить. Сомнения закрадываются.<br><br>
+                    <span class="serious">💬 Обмен:</span> Др. Лейла, которая пережила точно такой же период годом ранее, навещает его, чтобы помочь проанализировать первые результаты и скорректировать стратегию.<br><br>
+                    <span class="serious">📋 Цель:</span> Понять реальные трудности первых месяцев работы, управление пропущенными приемами, денежными потоками, юридическими аспектами и важность строгого контроля.
+                </div>
+                <div class="modal-status waiting" id="scenarioStatus">👆 Нажмите в любом месте, чтобы прослушать сценарий</div>
+                <div class="modal-footer">
+                    <button class="modal-btn" id="btnEcouterScenario">🔊 Прослушать снова</button>
+                    <button class="modal-btn secondary" onclick="closeScenarioPopup()">✅ Понял, начнем!</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // 🔥 ЗАПУСТИТЬ ВОСПРОИЗВЕДЕНИЕ ПРИ ПЕРВОМ КЛИКЕ
+        const startScenario = function() {
+            if (scenarioStarted) return;
+            scenarioStarted = true;
+            
+            activateVoice();
+            
+            const scenarioText = document.getElementById('scenarioText');
+            if (scenarioText) {
+                const text = scenarioText.textContent;
+                const cleanText = text.replace(/[🔴💬📋📊]/g, '').trim();
+                speak(cleanText, 'ru-RU');
+                const statusEl = document.getElementById('scenarioStatus');
+                if (statusEl) {
+                    statusEl.textContent = '🔊 Идет чтение...';
+                    statusEl.className = 'modal-status playing';
+                }
+                scenarioPlaying = true;
+                
+                setTimeout(() => {
+                    const statusEl2 = document.getElementById('scenarioStatus');
+                    if (statusEl2 && scenarioPlaying) {
+                        statusEl2.textContent = '✅ Сценарий прочитан. Готовы начать!';
+                        statusEl2.className = 'modal-status';
+                    }
+                }, 28000);
+            }
+            
+            document.removeEventListener('click', startScenario);
+        };
+        
+        document.addEventListener('click', startScenario);
+        
+        document.getElementById('btnEcouterScenario').addEventListener('click', function() {
+            stopSpeaking();
+            const scenarioText = document.getElementById('scenarioText');
+            if (scenarioText) {
+                const text = scenarioText.textContent;
+                const cleanText = text.replace(/[🔴💬📋📊]/g, '').trim();
+                speak(cleanText, 'ru-RU');
+                const statusEl = document.getElementById('scenarioStatus');
+                if (statusEl) {
+                    statusEl.textContent = '🔊 Повторное чтение...';
+                    statusEl.className = 'modal-status playing';
+                }
+            }
+        });
+    }
+
+    function closeScenarioPopup() {
+        stopSpeaking();
+        const modal = document.getElementById('scenarioModal');
+        if (modal) {
+            modal.remove();
+        }
+        scenarioPlaying = false;
+        scenarioStarted = true;
+    }
+
+    // ============================================
+    // =========== 4. ЭКРАН ПРИВЕТСТВИЯ ==========
+    // ============================================
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header">
+                    <h1>📊 Будущий Доктор - Начинающий Уровень 2</h1>
+                    <div class="subtitle">Др. Карим анализирует свой первый месяц работы с др. Лейлой</div>
+                </div>
+                <div class="scenario-box">
+                    <div class="title">🎭 Сценарий - Уровень 2</div>
+                    <div class="text" id="scenarioTextDisplay">
+                        <span class="serious">🔴 Контекст:</span> Др. Карим наконец открыл свой кабинет после месяцев подготовки. Но в конце первого месяца работы он делает горький вывод: пациенты не всегда приходят на прием, счета накапливаются, и его банковский кредит начинает давить. Сомнения закрадываются.<br><br>
+                        <span class="serious">💬 Обмен:</span> Др. Лейла, которая пережила точно такой же период годом ранее, навещает его, чтобы помочь проанализировать первые результаты и скорректировать стратегию.
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>👤 Ваше имя (необязательно):</label>
+                    <input type="text" id="userName" placeholder="Напр: Др. Карим" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Ваша страна (обязательно):</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 Франция</option>
+                        <option value="MA" selected>🇲🇦 Марокко</option>
+                        <option value="CH">🇨🇭 Швейцария</option>
+                        <option value="CA">🇨🇦 Канада</option>
+                        <option value="BE">🇧🇪 Бельгия</option>
+                        <option value="SN">🇸🇳 Сенегал</option>
+                        <option value="CI">🇨🇮 Кот-д'Ивуар</option>
+                        <option value="CM">🇨🇲 Камерун</option>
+                        <option value="DZ">🇩🇿 Алжир</option>
+                        <option value="TN">🇹🇳 Тунис</option>
+                        <option value="US">🇺🇸 США</option>
+                        <option value="GB">🇬🇧 Великобритания</option>
+                        <option value="DE">🇩🇪 Германия</option>
+                        <option value="ES">🇪🇸 Испания</option>
+                        <option value="IT">🇮🇹 Италия</option>
+                        <option value="PT">🇵🇹 Португалия</option>
+                        <option value="TR">🇹🇷 Турция</option>
+                        <option value="RU">🇷🇺 Россия</option>
+                        <option value="UA">🇺🇦 Украина</option>
+                        <option value="KZ">🇰🇿 Казахстан</option>
+                        <option value="BY">🇧🇾 Беларусь</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">или</div>
+                    <input type="text" id="otherCountry" placeholder="Введите вашу страну (напр: Бразилия, Япония...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Начать викторину</button>
+                <div class="note">
+                    ⚠️ Правило: минимум 60% (225/375 баллов) для подтверждения уровня.<br>
+                    🎁 Бонус за скорость: +5 баллов, если ответите до окончания таймера.<br>
+                    📊 Максимально возможный результат с бонусом: 375 баллов (25 вопросов × 15 баллов)<br>
+                    🔒 <strong>БЕТА-ВЕРСИЯ</strong>: Уровни Средний и Экспертный будут доступны в финальной версии (6 месяцев).
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 5. ОТПРАВКА БАЛЛОВ В FIREBASE =
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Баллы отправлены в Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Ошибка Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 6. ВОПРОСЫ (25) ===============
+    // ============================================
+    const questions = [
+        // ============================================
+        // УПРАВЛЕНИЕ ПАЦИЕНТАМИ (5 вопросов)
+        // ============================================
+        {
+            question: "Карим замечает, что 30% пациентов не приходят. Лейла советует:",
+            options: [
+                "Снизить цены",
+                "Подтверждать по SMS за день",
+                "Отменить все приемы",
+                "Работать без записи"
+            ],
+            correct: 1,
+            explanation: "Др. Лейла: 'Карим, SMS-напоминания за день снижают количество пропущенных приемов на 50%. Это просто, быстро и эффективно. Установи программу с автоматическими напоминаниями.'"
+        },
+        {
+            question: "Пациенты не возвращаются после первого визита. Причина:",
+            options: [
+                "Слишком высокие цены",
+                "Недостаток отношений",
+                "Неудобные помещения",
+                "Плохое расположение"
+            ],
+            correct: 1,
+            explanation: "Др. Лейла: 'Карим, удержание пациентов строится на отношениях. Пациент, который чувствует, что его слушают и понимают, вернется. Удели время разговору, ответам на вопросы.'"
+        },
+        {
+            question: "Чтобы вернуть потерянных пациентов, Карим должен:",
+            options: [
+                "Позвонить им, чтобы узнать о них",
+                "Снизить гонорары",
+                "Игнорировать их отсутствие",
+                "Закрыть кабинет"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, простой звонок, чтобы узнать о пациенте, может быть достаточным, чтобы вернуть его. Это профессиональный и человечный жест, который ценят пациенты.'"
+        },
+        {
+            question: "Непришедший пациент стоит Кариму:",
+            options: [
+                "Времени и денег",
+                "Ничего",
+                "Репутации",
+                "Потерянных материалов"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, пропущенный прием - это потеря времени и денег. Времени, которое ты мог бы посвятить другому пациенту. Именно поэтому напоминания так важны.'"
+        },
+        {
+            question: "Чтобы уменьшить количество пропущенных приемов, нужно:",
+            options: [
+                "Систематически напоминать накануне",
+                "Увеличить количество слотов",
+                "Требовать предоплату",
+                "Отказываться от новых пациентов"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, систематическое напоминание накануне - самый эффективный метод. Некоторые кабинеты также требуют предоплату для сложных процедур, чтобы уменьшить отказы.'"
+        },
+
+        // ============================================
+        // ФИНАНСОВОЕ УПРАВЛЕНИЕ (5 вопросов)
+        // ============================================
+        {
+            question: "У Карима кредит 800 000 дирхамов. Его средний ежемесячный платеж:",
+            options: [
+                "5 000 - 8 000 дирхамов",
+                "10 000 - 15 000 дирхамов",
+                "20 000 - 25 000 дирхамов",
+                "30 000 - 40 000 дирхамов"
+            ],
+            correct: 1,
+            explanation: "Др. Лейла: 'Карим, для кредита 800 000 дирхамов на 7 лет ежемесячные платежи составляют около 10 000-15 000 дирхамов в зависимости от процентной ставки. Нужно включить эти расходы в бюджет.'"
+        },
+        {
+            question: "Постоянные расходы Карима включают в основном:",
+            options: [
+                "Налоги и зарплаты",
+                "Аренду и страховки",
+                "Оборудование и материалы",
+                "Обучение и поездки"
+            ],
+            correct: 1,
+            explanation: "Др. Лейла: 'Карим, аренда и страховки являются постоянными расходами. Они оплачиваются каждый месяц, даже если у тебя нет пациентов. Их нужно предусматривать.'"
+        },
+        {
+            question: "Точка безубыточности достигается, когда:",
+            options: [
+                "Пациентов много",
+                "Доходы покрывают расходы",
+                "Кредит погашен",
+                "Кабинет заполнен"
+            ],
+            correct: 1,
+            explanation: "Др. Лейла: 'Карим, точка безубыточности достигается, когда твои доходы покрывают постоянные и переменные расходы. Это цель, к которой нужно стремиться в первые месяцы.'"
+        },
+        {
+            question: "Чтобы сократить расходы, Карим может:",
+            options: [
+                "Договориться с поставщиками",
+                "Повысить гонорары",
+                "Сократить часы работы",
+                "Отказываться от пациентов"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, переговоры с поставщиками - хорошая практика. Проси скидки, сравнивай цены и объединяй заказы. Каждый сэкономленный дирхам важен.'"
+        },
+        {
+            question: "Ежемесячный контроль денежных потоков позволяет:",
+            options: [
+                "Предотвращать овердрафты",
+                "Увеличивать оборот",
+                "Удерживать пациентов",
+                "Снижать налоги"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, строгий контроль денежных потоков позволяет тебе предвидеть овердрафты и управлять расходами. Используй электронную таблицу или бухгалтерскую программу.'"
+        },
+
+        // ============================================
+        // ЮРИДИЧЕСКИЕ АСПЕКТЫ (4 вопроса)
+        // ============================================
+        {
+            question: "Карим должен зарегистрировать свою деятельность в ONMD в течение:",
+            options: [
+                "15 дней после открытия",
+                "30 дней после открытия",
+                "60 дней после открытия",
+                "90 дней после открытия"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, ты должен зарегистрировать свою деятельность в ONMD в течение 15 дней после открытия. Это юридическое обязательство, которое может повлечь санкции в случае задержки.'"
+        },
+        {
+            question: "Коммерческий договор аренды должен быть зарегистрирован в:",
+            options: [
+                "Налоговой службе",
+                "Торговом суде",
+                "Министерстве здравоохранения",
+                "Муниципалитете"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, коммерческий договор аренды должен быть зарегистрирован в налоговой службе в течение 30 дней после подписания. Это делает его действительным в отношении третьих лиц.'"
+        },
+        {
+            question: "Гонорары должны быть вывешены:",
+            options: [
+                "В приемной",
+                "Только на сайте",
+                "Только в секретариате",
+                "По требованию пациента"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, вывешивание гонораров обязательно и должно быть видно в приемной. Это деонтологическое и юридическое обязательство, которое позволяет избежать недопонимания.'"
+        },
+        {
+            question: "В случае спора с пациентом Карим должен:",
+            options: [
+                "Обратиться в совет Ордена",
+                "Немедленно подать жалобу",
+                "Игнорировать проблему",
+                "Снизить гонорары"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, в случае спора сначала нужно попытаться решить его мирным путем. Если это невозможно, совет Ордена может быть привлечен для медиации.'"
+        },
+
+        // ============================================
+        // РАЗВИТИЕ ПАЦИЕНТСКОЙ БАЗЫ (5 вопросов)
+        // ============================================
+        {
+            question: "Лучший способ привлечь пациентов:",
+            options: [
+                "Сарафанное радио",
+                "Платная реклама",
+                "Социальные сети",
+                "Скидки на цены"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, сарафанное радио - твой лучший актив. Попроси первых пациентов рассказывать о тебе. Предложи небольшой коммерческий жест тем, кто приводит нового пациента.'"
+        },
+        {
+            question: "Для удержания пациента важнее всего:",
+            options: [
+                "Доверительные отношения",
+                "Очень низкие цены",
+                "Регулярные подарки",
+                "Расширенный график"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, лояльность строится на доверительных отношениях. Внимание, эмпатия и качество лечения - основы удержания пациентов.'"
+        },
+        {
+            question: "Пациенты возвращаются, когда чувствуют:",
+            options: [
+                "Внимание и уважение",
+                "Быстрое лечение",
+                "Низкие цены",
+                "Роскошную обстановку"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, пациент, который чувствует внимание и уважение, вернется. Найди время понять его потребности и ответить на вопросы.'"
+        },
+        {
+            question: "Довольный пациент может привести:",
+            options: [
+                "Примерно 5 новых пациентов",
+                "Ни одного другого пациента",
+                "10 новых пациентов",
+                "2 новых пациентов"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, довольный пациент в среднем приводит до 5 новых. Это лучшая маркетинговая инвестиция, которую ты можешь сделать.'"
+        },
+        {
+            question: "Чтобы выделиться, Карим должен предлагать:",
+            options: [
+                "Превосходное качество лечения",
+                "Самые низкие цены",
+                "Регулярные акции",
+                "Круглосуточный график"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, качество лечения - это то, что будет отличать тебя. Пациенты ищут компетентного и человечного стоматолога, а не самого дешевого.'"
+        },
+
+        // ============================================
+        // УСТОЙЧИВОСТЬ И БАЛАНС (6 вопросов)
+        // ============================================
+        {
+            question: "Карим испытывает стресс в первые месяцы. Лейла советует:",
+            options: [
+                "Сделать шаг назад и дышать",
+                "Работать еще больше",
+                "Все бросить",
+                "Жаловаться близким"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, шаг назад важен в период стресса. Сделай 5-минутную паузу, переоцени ситуацию и действуй спокойно.'"
+        },
+        {
+            question: "Баланс работа/личная жизнь позволяет прежде всего:",
+            options: [
+                "Избежать выгорания",
+                "Больше зарабатывать",
+                "Иметь больше пациентов",
+                "Меньше работать"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, баланс работа/личная жизнь - ключ к предотвращению выгорания и поддержанию устойчивой профессиональной деятельности в долгосрочной перспективе.'"
+        },
+        {
+            question: "Чтобы сохранять моральный дух, Карим должен:",
+            options: [
+                "Праздновать маленькие победы",
+                "Игнорировать трудности",
+                "Сравнивать себя с другими",
+                "Полностью изолироваться"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, каждый вернувшийся пациент, каждый месяц с положительным балансом - это победа. Отмечай их, чтобы сохранять мотивацию.'"
+        },
+        {
+            question: "Устойчивость - это способность:",
+            options: [
+                "Восстанавливаться после трудностей",
+                "Избегать проблем",
+                "Работать без усталости",
+                "Игнорировать критику"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, устойчивость - ключевое качество для молодого доктора. Это способность восстанавливаться после трудностей и выходить из них более сильным.'"
+        },
+        {
+            question: "Чтобы преодолеть этот период, Карим должен:",
+            options: [
+                "Окружить себя поддержкой",
+                "Все решать самому",
+                "Ждать, пока пройдет",
+                "Работать день и ночь"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, ты не один. Окружи себя коллегами, семьей и наставниками. Поддержка важна для преодоления кризисов.'"
+        },
+        {
+            question: "Через 6 месяцев Карим осознает, что:",
+            options: [
+                "Начало всегда трудное",
+                "Стоматология не для него",
+                "Он должен сменить профессию",
+                "Он сделал неправильный выбор"
+            ],
+            correct: 0,
+            explanation: "Др. Лейла: 'Карим, начало всегда трудное. Но каждый месяц - это обучение. Скоро у тебя будет верная клиентская база, и ты сможешь выдохнуть.'"
+        }
+    ];
+
+    // ============================================
+    // =========== ВАЖНАЯ КОРРЕКЦИЯ ==============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10;
+    const MAX_SCORE_WITH_BONUS = questions.length * 15;
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("future_docteur_v1_debutant2_ru", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // ============================================
+    // =========== RENDER QUESTION ================
+    // ============================================
+    function renderQuestion() {
+        console.log("🔍 renderQuestion() - Вопрос", currentQuestion + 1);
+        isSpeaking = false;
+        
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${letter}. ${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header">
+                <h1>📊 Будущий Доктор - Начинающий Уровень 2</h1>
+                <div class="subtitle">Вопрос ${currentQuestion + 1}/${questions.length}</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Прочитать вопрос</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Объяснение:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Прочитать объяснение</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Осталось времени: <span id="timer">${timeLeft}</span> секунд</div>
+                <div class="score">🏆 Текущий результат: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Прервать</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Далее →</button>
+                </div>
+            </div>
+        `;
+        
+        attachVoiceEvents();
+        answerLocked = false;
+        startTimer();
+        lastAnswerCorrect = false;
+        lastCorrectAnswer = "";
+        lastPointsEarned = 0;
+        
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 500);
+    }
+
+    // ============================================
+    // =========== CHECK ANSWER ===================
+    // ============================================
+    function checkAnswer(selectedIndex) {
+        console.log("🔍 checkAnswer() - Вариант", String.fromCharCode(65 + selectedIndex));
+        
+        stopSpeaking();
+        
+        if (answerLocked) {
+            console.log("⏳ Ответ уже заблокирован");
+            return;
+        }
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            console.log("✅ Правильный ответ! +", pointsEarned, "баллов");
+        } else {
+            console.log("❌ Неправильный ответ. Правильный ответ:", shuffledOptions[currentCorrectIndex]);
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} баллов</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 баллов)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ Правильный ответ!' : '❌ Неправильный ответ'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Прослушать ответ снова</button>
+                </div>
+            `;
+            
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Событие привязано для voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Правильный ответ: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Текущий результат: ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `Правильный ответ! +${pointsEarned} баллов.`;
+        } else {
+            feedbackText = `Неправильный ответ. Правильный ответ был: ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Авто-чтение ответа");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "ru-RU", function() {
+            console.log("✅ Авто-ответ завершен");
+        });
+    }
+
+    // ============================================
+    // =========== NEXT QUESTION ==================
+    // ============================================
+    function nextQuestion() {
+        console.log("🔍 nextQuestion() вызван");
+        
+        stopSpeaking();
+        
+        if (!answerLocked) {
+            console.log("⚠️ Пожалуйста, выберите ответ перед продолжением");
+            return;
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== НАВИГАЦИЯ ======================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_ru.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard_ru.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        console.log("🔍 endQuiz() вызван");
+        
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        const isUnlocked = unlockLevel3(percentage);
+        
+        sauvegarderValidation('Budushchiy_Doktor', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Викторина завершена!</h1>
+                <div class="final-score">Результат: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Процент: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ?
+                        `<div class="unlock-badge">✅ Уровень Средний 1 разблокирован! 🎊</div>
+                         <div class="beta-info-badge">🔒 БЕТА: Экспертный уровень появится после 6 месяцев оценки.</div>` :
+                        `<div class="locked-badge">⚠️ Недостаточно баллов (требуется минимум 60% для открытия следующего уровня)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ?
+                        '📚 Перейдите в меню для доступа к уровню Средний 1.' :
+                        `💪 Вам не хватает ${(60 - percentage).toFixed(1)}% для открытия следующего уровня. Попробуйте снова!`}
+                </div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Прослушать результат</button>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0;">
+                    <button class="share-btn" onclick="shareScore()">📤 Поделиться результатом</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Оставить отзыв</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Мировой рейтинг</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Главное меню</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Моя прогрессия</button>
+                </div>
+            </div>
+        `;
+        
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Событие привязано для voiceResultBtn");
+        }
+        
+        if (isUnlocked) {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+            
+            setTimeout(() => {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2000);
+    }
+
+    // ============================================
+    // =========== МОДАЛЬНОЕ ОКНО РЕЙТИНГА =======
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 Нет сохраненных результатов для этого уровня.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Ваше место</div>
+                        <div class="rank-number">${userRank}-е место</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} баллов (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Вы еще не в рейтинге этого уровня</div>
+                        <div>Пройдите викторину снова, чтобы появиться!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #8a4aaa;">🏆 ТОП-20 - Будущий Доктор Начинающий 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(138,74,170,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Аноним"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 Нет результатов для этого уровня</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Ошибка Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Невозможно загрузить рейтинг.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Неизвестная ошибка'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== ПОПАП БЕТА - ОПЦИЯ 2 (RU) =====
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Доктор";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.className = 'beta-popup-overlay';
+        modal.innerHTML = `
+            <div class="beta-popup-content">
+                <div class="big-icon">🎉🏆🎉</div>
+                <h2>Поздравляем ${userName}!</h2>
+                <p>Вы успешно подтвердили <strong>оба Начальных уровня</strong>.<br>Какой впечатляющий путь!</p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Оцените БЕТА-версию 🌟</p>
+                    <div class="stars" id="starRating">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p class="rating-message" id="ratingMessage"></p>
+                </div>
+                
+                <div class="beta-info">
+                    <p>🚀 <strong>Экспертный уровень</strong> появится после <strong>6 месяцев оценки</strong> этой БЕТА-версии.<br><br>
+                    Ваш отзыв помогает нам улучшать ETEO. Спасибо за ваше доверие, <strong>${userName}</strong>!</p>
+                </div>
+                
+                <button class="beta-btn" onclick="closeBetaPopup()">Вернуться в меню</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // ✅ ОПЦИЯ 2 : Полное голосовое чтение сообщения (на русском)
+        stopSpeaking();
+        
+        setTimeout(() => {
+            const fullMessage = `Поздравляем ${userName}! Вы успешно подтвердили оба Начальных уровня. ` +
+                               `Пожалуйста, оцените БЕТА-версию, нажав на звезды. ` +
+                               `Экспертный уровень появится после шести месяцев оценки. ` +
+                               `Спасибо за ваше доверие.`;
+            
+            isSpeaking = true;
+            updateVoiceIndicator('speaking');
+            speak(fullMessage, "ru-RU", function() {
+                console.log("✅ Сообщение БЕТА-попапа прочитано автоматически");
+                isSpeaking = false;
+                updateVoiceIndicator('active');
+            });
+        }, 600);
+        
+        // Управление звездами
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ Спасибо за вашу оценку! Ваш отзыв сохранен.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+                
+                // ✅ Голосовое подтверждение оценки (на русском)
+                const confirmationMessage = `Спасибо за вашу оценку ${rating} из 5. Ваш отзыв сохранен.`;
+                
+                stopSpeaking();
+                isSpeaking = true;
+                updateVoiceIndicator('speaking');
+                speak(confirmationMessage, "ru-RU", function() {
+                    console.log("✅ Подтверждение оценки прочитано");
+                    isSpeaking = false;
+                    updateVoiceIndicator('active');
+                });
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'ru',
+                nivel: 'debutant2',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Оценка БЕТА отправлена!");
+        } catch (error) {
+            console.error("❌ Ошибка оценки БЕТА:", error);
+        }
+    }
+
+    // ============================================
+    // =========== ДРУГИЕ ФУНКЦИИ ================
+    // ============================================
+    function abandonQuiz() {
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("future_docteur_v1_debutant2_ru", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel3(partialPercentage);
+        
+        sauvegarderValidation('Budushchiy_Doktor', 'debutant2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>❌ Викторина прервана</h1>
+                <div class="final-score">Частичный результат: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div>Процент: ${partialPercentage.toFixed(1)}%</div>
+                <div style="margin:20px 0;">🏆 Этот результат сохранен в рейтинге.</div>
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Вернуться в меню</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Моя прогрессия</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Будущий Доктор\nМой результат на уровне Начинающий 2: ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\nПроверь меня на ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'Результат ETEO', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Результат скопирован в буфер обмена!");
+            }).catch(() => {
+                alert("📋 Чтобы поделиться, скопируйте этот текст:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        console.log("🚀 startQuiz() вызван");
+        closeScenarioPopup();
+        saveUserInfo();
+        console.log("🔊 Активация голоса...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Викторина запущена");
+    }
+
+    // ============================================
+    // =========== ИНИЦИАЛИЗАЦИЯ ==================
+    // ============================================
+    console.log("🚀 Страница загружена - ETEO Викторина Будущий Доктор (RU) - Начинающий 2");
+    console.log("📱 window.Capacitor =", window.Capacitor);
+    
+    if (window.Capacitor) {
+        console.log("📱 Платформа =", window.Capacitor.getPlatform());
+        console.log("📱 Плагины =", Object.keys(window.Capacitor.Plugins || {}));
+    }
+    
+    document.body.addEventListener('click', function firstClick() { 
+        console.log("🖱️ Первый клик - Активация голоса");
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+
+    setTimeout(() => {
+        showScenarioPopup();
+    }, 800);
+</script>
+</body>
+</html>

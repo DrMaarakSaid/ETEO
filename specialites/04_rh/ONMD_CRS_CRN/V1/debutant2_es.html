@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Colegio Nacional y Consejos - Principiante 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT DEL PLUGIN VOZ ========== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        window.TextToSpeech = TextToSpeech;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        console.log('✅ Plugin TextToSpeech cargado!');
+        console.log('📱 Modo móvil:', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover { transform: scale(1.02); background: #5a6fd6; }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            transform: scale(1.05);
+        }
+        .unlock-badge {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .locked-badge {
+            background: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .beta-info-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        /* ===== ESTILOS DE BOTONES DE VOZ ===== */
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+        
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #888;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .start-quiz-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .close-btn:hover {
+            transform: scale(1.1);
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item { border-bottom-color: #444; }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number { font-size: 2rem; font-weight: bold; }
+        .user-rank-card .rank-label { font-size: 1.2rem; }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        
+        /* ===== ESTILOS DEL POPUP BETA ===== */
+        .beta-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        }
+        .beta-popup-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            padding: 35px 25px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        body.dark .beta-popup-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        .beta-popup-content .big-icon { font-size: 4rem; }
+        .beta-popup-content h2 { color: #667eea; margin: 10px 0; }
+        body.dark .beta-popup-content h2 { color: #667eea; }
+        .beta-popup-content p { color: #555; margin: 5px 0; }
+        body.dark .beta-popup-content p { color: #ccc; }
+        .beta-popup-content .stars {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 3rem;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .beta-popup-content .stars span { color: #ccc; transition: color 0.3s; }
+        .beta-popup-content .stars span.active { color: #ffc107; }
+        .beta-popup-content .rating-message {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .beta-popup-content .rating-message { color: #aaa; }
+        .beta-popup-content .beta-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        body.dark .beta-popup-content .beta-info { background: #2a2a3e; }
+        .beta-popup-content .beta-info p { color: #ff5722; font-weight: bold; margin: 0; }
+        .beta-popup-content .beta-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .beta-popup-content .beta-btn:hover {
+            background: #388e3c;
+            transform: scale(1.02);
+        }
+        
+        /* ===== BOTONES DE PROGRESIÓN Y MENÚ ===== */
+        .btn-progression {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-progression:hover {
+            background: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .btn-menu {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-menu:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator inactive" id="voiceIndicator">🔇 IA inactiva</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de clasificación -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 SU POSICIÓN</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Cargando clasificación...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURACIÓN FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID PARA ESTE QUIZ
+    // ============================================
+    const LEVEL_ID = "onmd_v1_debutant2_es";
+
+    // ============================================
+    // =========== 1. SISTEMA DE VOZ AVANZADO =====
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+
+    // ============================================
+    // 🔥 FUNCIÓN : REINICIAR TODOS LOS BOTONES DE VOZ
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Reactivando TODOS los botones");
+        
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Leer la pregunta';
+            console.log("✅ voiceQuestionBtn reactivado");
+        }
+        
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Volver a escuchar feedback';
+            console.log("✅ voiceFeedbackBtn reactivado");
+        }
+        
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Leer explicación';
+            console.log("✅ voiceExplanationBtn reactivado");
+        }
+        
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Escuchar tu resultado';
+            console.log("✅ voiceResultBtn reactivado");
+        }
+        
+        isSpeaking = false;
+        updateVoiceIndicator('active');
+        console.log("✅ ¡Todos los botones de voz están ahora ACTIVOS!");
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN : DETENER LA VOZ
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() llamado");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Stop Android ejecutado");
+            }
+        } catch(e) { console.log("⚠️ Error al detener Android:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Web Speech stop ejecutado");
+            }
+        } catch(e) { console.log("⚠️ Error al detener Web Speech:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking reiniciado a false");
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN : FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() llamado");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech no disponible");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'es-ES';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voices = window.speechSynthesis.getVoices();
+            let spanishVoice = voices.find(v => v.lang.startsWith('es') && v.localService === true);
+            if (!spanishVoice) {
+                spanishVoice = voices.find(v => v.lang.startsWith('es'));
+            }
+            if (spanishVoice) utterance.voice = spanishVoice;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Web Speech callback ejecutado");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech terminado (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Web Speech error:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Forzando callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Error en fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN : CORREGIR TEXTO PARA ESPAÑOL
+    // ============================================
+    function corregirTextoParaEspanol(text) {
+        let corrected = text;
+        corrected = corrected.replace(/Dr\.?\s+/g, 'Doctor ');
+        corrected = corrected.replace(/Dra\.?\s+/g, 'Doctora ');
+        corrected = corrected.replace(/\bDr\b/g, 'Doctor');
+        corrected = corrected.replace(/\bDra\b/g, 'Doctora');
+        return corrected;
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN : SPEAK (con Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() llamado con:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Texto vacío, callback inmediato");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        // Corregir texto para español
+        let correctedText = text;
+        if (lang === 'es-ES' || lang === 'es') {
+            correctedText = corregirTextoParaEspanol(text);
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() ejecutado");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Usando plugin Capacitor TTS en Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: correctedText, 
+                    lang: lang || 'es-ES', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS completado");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Error Capacitor TTS:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback a Web Speech");
+                        fallbackWebSpeech(correctedText, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Forzando callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Usando Web Speech API");
+                fallbackWebSpeech(correctedText, lang, safeCallback);
+            } else {
+                console.error("❌ No hay motor TTS disponible");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERROR en speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ACTIVAR VOZ
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() llamado");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            if (isAndroid) {
+                if (window.Capacitor?.Plugins?.TextToSpeech) {
+                    console.log("✅ Capacitor TTS disponible en Android");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    updateVoiceIndicator('active');
+                } else {
+                    console.warn("⚠️ Capacitor TTS no encontrado en Android");
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback a Web Speech");
+                        voiceReady = true;
+                        voiceActivated = true;
+                        window.speechSynthesis.getVoices();
+                        updateVoiceIndicator('active');
+                    }
+                }
+            } else {
+                if (window.speechSynthesis) {
+                    console.log("✅ Web Speech disponible en PC");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    window.speechSynthesis.getVoices();
+                    updateVoiceIndicator('active');
+                }
+            }
+            console.log("✅ Voz activada, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Voz ya activada");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        if (indicator) {
+            if (status === 'active') {
+                indicator.textContent = '🎙️ IA activa';
+                indicator.className = 'voice-indicator active';
+            } else if (status === 'speaking') {
+                indicator.textContent = '🎙️ Hablando...';
+                indicator.className = 'voice-indicator speaking';
+            } else {
+                indicator.textContent = '🔇 IA inactiva';
+                indicator.className = 'voice-indicator inactive';
+            }
+        }
+    }
+
+    // ============================================
+    // =========== FUNCIONES DE VOZ ==============
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() llamado");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Pregunta ${currentQuestion + 1} de ${questions.length}: ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceQuestionBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakQuestionOnly() completado");
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() llamado");
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `¡Correcto! ¡Esa es la respuesta correcta! +${lastPointsEarned} puntos.`;
+        } else {
+            text = `Lo siento, esa no es la respuesta correcta. La respuesta correcta era: ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceFeedbackBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakFeedback() completado");
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() llamado");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Explicación: ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceExplanationBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakExplanation() completado");
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() llamado");
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Tu puntuación final es ${score} de ${MAX_SCORE_WITH_BONUS}, lo que es ${percentage.toFixed(1)} por ciento. `;
+        if (isUnlocked) {
+            text += "¡Felicitaciones! Has validado el Nivel Principiante 2. ¡Bien hecho!";
+        } else {
+            text += `Necesitas un ${(60 - percentage).toFixed(1)} por ciento más para validar el nivel. ¡Sigue intentándolo!`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceResultBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakFinalResult() completado");
+        });
+    }
+
+    // ============================================
+    // =========== ASIGNAR EVENTOS DE VOZ =========
+    // ============================================
+    function attachVoiceEvents() {
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Evento asignado para voiceQuestionBtn");
+        }
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Evento asignado para voiceExplanationBtn");
+        }
+    }
+
+    // ============================================
+    // =========== 2. INFO USUARIO ===============
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "MA"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anónimo" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    // ============================================
+    // =========== FUNCIÓN DESBLOQUEO ============
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("onmd_v1_intermediaire1_es_unlocked", "true");
+            localStorage.setItem("onmd_v1_debutant2_es_score", percentage.toFixed(1));
+            console.log("✅ Nivel Intermedio 1 DESBLOQUEADO! Puntuación: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("onmd_v1_intermediaire1_es_unlocked", "false");
+            console.log("❌ Nivel Intermedio 1 BLOQUEADO. Puntuación: " + percentage.toFixed(1) + "% (mín " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 GUARDAR VALIDACIÓN PARA PROGRESSION.HTML
+    // ================================================================
+    function guardarValidacion(especialidad, nivel, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: especialidad,
+                niveau: nivel,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progreso = JSON.parse(localStorage.getItem('eteo_progreso')) || {};
+            const key = especialidad + '_' + nivel;
+            progreso[key] = true;
+            localStorage.setItem('eteo_progreso', JSON.stringify(progreso));
+            
+            console.log('✅ Validación guardada para progression.html');
+        }
+    }
+
+    // ============================================
+    // 🔥 IR A PROGRESSION - OPCIÓN 2
+    // ============================================
+    function goToProgression() {
+        console.log("🔍 goToProgression() llamado");
+        
+        const validationData = {
+            specialite: 'ONMD_Colegio_Nacional_Consejos',
+            niveau: 'principiante2',
+            score: score,
+            total: MAX_SCORE_WITH_BONUS,
+            percentage: (score / MAX_SCORE_WITH_BONUS) * 100,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('eteo_validation', JSON.stringify(validationData));
+        console.log("✅ Validación guardada para progression");
+        
+        const url = '../../../../progression_es.html?valider=ONMD_Colegio_Nacional_Consejos_principiante2&score=' + score + '&total=' + MAX_SCORE_WITH_BONUS;
+        console.log("🔀 Redirigiendo a:", url);
+        window.location.href = url;
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen" style="text-align:center">
+                <div class="header"><h1>🏛️ Colegio Nacional y Consejos - Principiante 2</h1><p>¡Bienvenido Doctor!</p></div>
+                <div class="input-group" style="margin-bottom:20px; text-align:left">
+                    <label>👤 Su nombre (opcional) :</label>
+                    <input type="text" id="userName" placeholder="Ej: Dr. Martin" value="${getUserName()}" style="width:100%; padding:12px; border-radius:10px">
+                </div>
+                <div class="input-group" style="margin-bottom:20px; text-align:left">
+                    <label>🌍 Su país (obligatorio) :</label>
+                    <select id="userCountry" style="width:100%; padding:12px; border-radius:10px">
+                        <option value="FR">🇫🇷 Francia</option>
+                        <option value="MA" selected>🇲🇦 Marruecos</option>
+                        <option value="CH">🇨🇭 Suiza</option>
+                        <option value="CA">🇨🇦 Canadá</option>
+                        <option value="BE">🇧🇪 Bélgica</option>
+                        <option value="SN">🇸🇳 Senegal</option>
+                        <option value="CI">🇨🇮 Costa de Marfil</option>
+                        <option value="CM">🇨🇲 Camerún</option>
+                        <option value="DZ">🇩🇿 Argelia</option>
+                        <option value="TN">🇹🇳 Túnez</option>
+                        <option value="US">🇺🇸 Estados Unidos</option>
+                        <option value="GB">🇬🇧 Reino Unido</option>
+                        <option value="DE">🇩🇪 Alemania</option>
+                        <option value="ES">🇪🇸 España</option>
+                        <option value="IT">🇮🇹 Italia</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turquía</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">o</div>
+                    <input type="text" id="otherCountry" placeholder="Ingrese su país (ej: Brasil, Japón...)" style="width:100%; padding:12px; border-radius:10px; margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()" style="background:#4caf50; color:white; border:none; padding:12px 25px; border-radius:30px; cursor:pointer">🚀 Comenzar el quiz</button>
+                <div class="note" style="margin-top:15px">
+                    ⚠️ Regla: 60% mínimo (225/375 puntos) para validar el nivel.<br>
+                    🎁 Bonus de rapidez: +5 puntos si responde antes de que termine el temporizador.<br>
+                    📊 Puntuación máxima posible con bonus: 375 puntos (25 preguntas × 15 puntos)<br>
+                    🔒 <strong>Versión BETA</strong>: Los niveles Intermedio y Experto estarán disponibles en la versión final (6 meses).
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ENVÍO SCORE FIREBASE =======
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score enviado a Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Error Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. PREGUNTAS (25) ==============
+    // ============================================
+  const questions = [
+    {
+        question: "El Doctor Taki, después de 8 años de ejercicio, desea presentarse a las elecciones del consejo nacional. Según el artículo 21 de la ley 07-05, ¿cuál es la condición de elegibilidad?",
+        options: [
+            "Estar inscrito en el registro desde hace 5 años",
+            "Haberse ejercido la profesión desde al menos 8 años",
+            "Ser mayor de 40 años",
+            "Haber sido presidente de un consejo regional"
+        ],
+        correct: 1,
+        explanation: "El artículo 21 prevé que son elegibles los médicos dentistas que hayan ejercido la profesión desde al menos 8 años en la fecha de presentación de la candidatura."
+    },
+    {
+        question: "Según el artículo 22, el mandato de los miembros del consejo nacional es de:",
+        options: [
+            "2 años",
+            "4 años",
+            "6 años",
+            "8 años"
+        ],
+        correct: 1,
+        explanation: "El artículo 22 dispone que los miembros del consejo nacional son elegidos por cuatro años."
+    },
+    {
+        question: "El Dr Touitou explica al Dr Taki que según el artículo 22, un miembro del consejo nacional no puede acumular su mandato con:",
+        options: [
+            "Un mandato sindical",
+            "Un mandato de consejo regional",
+            "Un puesto de profesor",
+            "Una función ministerial"
+        ],
+        correct: 1,
+        explanation: "El artículo 22 precisa que no pueden acumular las funciones de miembro del consejo nacional y del consejo regional."
+    },
+    {
+        question: "Según el artículo 24, el consejo nacional está presidido por:",
+        options: [
+            "Un miembro elegido por sus pares",
+            "Un representante del ministerio de Salud",
+            "Un miembro de derecho del sector público",
+            "El decano de la facultad de medicina dental"
+        ],
+        correct: 0,
+        explanation: "El artículo 24 dispone que el consejo nacional elige en su seno a su presidente entre sus miembros."
+    },
+    {
+        question: "Según el artículo 24, el presidente del consejo nacional es elegido por un período de:",
+        options: [
+            "2 años",
+            "4 años",
+            "6 años",
+            "8 años"
+        ],
+        correct: 1,
+        explanation: "El artículo 24 prevé que el presidente es elegido por un período de cuatro años."
+    },
+    {
+        question: "Según el artículo 26, el consejo nacional se reúne al menos:",
+        options: [
+            "Una vez al mes",
+            "Una vez por trimestre",
+            "Dos veces al año",
+            "Una vez al año"
+        ],
+        correct: 1,
+        explanation: "El artículo 26 dispone que el consejo nacional se reúne al menos una vez por trimestre."
+    },
+    {
+        question: "Según el artículo 27, el consejo nacional puede adoptar un reglamento interno que debe ser aprobado por:",
+        options: [
+            "El ministerio de Salud",
+            "El primer ministro",
+            "La asamblea general del Colegio",
+            "La secretaría general del gobierno"
+        ],
+        correct: 2,
+        explanation: "El artículo 27 prevé que el consejo nacional puede adoptar un reglamento interno que debe ser aprobado por la asamblea general del Colegio."
+    },
+    {
+        question: "Según el artículo 28, miembros de derecho están en el consejo nacional. Entre ellos, ¿cuántos dentistas del sector público?",
+        options: [
+            "2",
+            "4",
+            "6",
+            "8"
+        ],
+        correct: 2,
+        explanation: "El artículo 28 prevé que seis médicos dentistas que ejercen en el sector público están como miembros de derecho."
+    },
+    {
+        question: "Según el artículo 36, el consejo regional está compuesto por miembros elegidos por escrutinio:",
+        options: [
+            "Mayoritario uninominal",
+            "Proporcional",
+            "Mayoritario a dos vueltas",
+            "Mixto"
+        ],
+        correct: 0,
+        explanation: "El artículo 36 prevé que los miembros del consejo regional son elegidos por escrutinio mayoritario uninominal."
+    },
+    {
+        question: "Según el artículo 36, ¿cuántos miembros componen un consejo regional cuando hay más de 400 dentistas?",
+        options: [
+            "5 miembros",
+            "7 miembros",
+            "9 miembros",
+            "11 miembros"
+        ],
+        correct: 2,
+        explanation: "El artículo 36 dispone que el consejo regional se compone de 9 miembros cuando hay más de 400 dentistas."
+    },
+    {
+        question: "Según el artículo 37, el mandato de los miembros del consejo regional es de:",
+        options: [
+            "2 años",
+            "4 años",
+            "6 años",
+            "8 años"
+        ],
+        correct: 1,
+        explanation: "El artículo 37 dispone que los miembros del consejo regional son elegidos por cuatro años."
+    },
+    {
+        question: "Según el artículo 39, se crea un consejo regional en cada región cuando el número de dentistas es igual o superior a:",
+        options: [
+            "200",
+            "300",
+            "400",
+            "500"
+        ],
+        correct: 2,
+        explanation: "El artículo 39 prevé que se crea un consejo regional en cada región cuando el número de médicos dentistas que ejercen en la región es igual o superior a 400."
+    },
+    {
+        question: "Según el artículo 48, el consejo regional es consultado por el ministro sobre:",
+        options: [
+            "Cuestiones profesionales que interesan a la región",
+            "Cuestiones políticas nacionales",
+            "Cuestiones económicas internacionales",
+            "Cuestiones sociales generales"
+        ],
+        correct: 0,
+        explanation: "El artículo 48 prevé que el consejo regional es consultado por el ministro sobre cualquier cuestión profesional que interese a la región."
+    },
+    {
+        question: "Según el artículo 49, los consejos regionales están encargados de:",
+        options: [
+            "La gestión de los registros del Colegio",
+            "La gestión de los contenciosos nacionales",
+            "La revisión de las leyes",
+            "La formación de los dentistas"
+        ],
+        correct: 0,
+        explanation: "El artículo 49 precisa que los consejos regionales están encargados de la gestión de los registros del Colegio a nivel regional."
+    },
+    {
+        question: "Según el artículo 49, los consejos regionales pueden pronunciar las siguientes sanciones disciplinarias:",
+        options: [
+            "La amonestación y la censura",
+            "La exclusión únicamente",
+            "La multa y la prisión",
+            "La suspensión y la exclusión"
+        ],
+        correct: 0,
+        explanation: "El artículo 49 precisa que los consejos regionales pueden pronunciar las sanciones disciplinarias previstas en el artículo 55, con excepción de la exclusión."
+    },
+    {
+        question: "Según el artículo 55, ¿cuál es la sanción más grave que puede pronunciar el Colegio?",
+        options: [
+            "La suspensión",
+            "La exclusión del registro",
+            "La amonestación",
+            "La censura"
+        ],
+        correct: 1,
+        explanation: "El artículo 55 prevé que la exclusión del registro del colegio es la sanción más grave, que conlleva la prohibición definitiva de ejercer."
+    },
+    {
+        question: "Según el artículo 55, la amonestación o censura puede ir acompañada de una multa cuyo monto es de:",
+        options: [
+            "1.000 a 5.000 DH",
+            "5.000 a 10.000 DH",
+            "10.000 a 20.000 DH",
+            "20.000 a 50.000 DH"
+        ],
+        correct: 1,
+        explanation: "El artículo 55 prevé que la pena de amonestación o censura puede ir acompañada de una multa de 5.000 a 10.000 DH."
+    },
+    {
+        question: "Según el artículo 58, la acción disciplinaria ordinal se ejerce en apelación ante:",
+        options: [
+            "El consejo regional",
+            "El consejo nacional",
+            "El tribunal de primera instancia",
+            "La corte de apelación"
+        ],
+        correct: 1,
+        explanation: "El artículo 58 prevé que la acción disciplinaria ordinal se ejerce, en primera instancia, ante el consejo regional y, en apelación, ante el consejo nacional."
+    },
+    {
+        question: "Según el artículo 60, el consejo regional conoce de las quejas contra los dentistas presentadas por:",
+        options: [
+            "El paciente mismo",
+            "El ministro de Salud",
+            "El sindicato de dentistas",
+            "El ministerio público"
+        ],
+        correct: 0,
+        explanation: "El artículo 60 prevé que el consejo regional conoce de las quejas presentadas por los pacientes o por el presidente del consejo regional."
+    },
+    {
+        question: "Según el artículo 60, ¿cuál es el plazo para que el consejo regional se pronuncie sobre una queja?",
+        options: [
+            "30 días",
+            "60 días",
+            "90 días",
+            "120 días"
+        ],
+        correct: 1,
+        explanation: "El artículo 60 precisa que el consejo regional debe pronunciarse sobre la queja en un plazo de 60 días a partir de su conocimiento."
+    },
+    {
+        question: "Según el artículo 61, la decisión del consejo regional puede ser objeto de apelación ante el consejo nacional en un plazo de:",
+        options: [
+            "15 días",
+            "30 días",
+            "60 días",
+            "90 días"
+        ],
+        correct: 1,
+        explanation: "El artículo 61 prevé que la decisión del consejo regional puede ser objeto de apelación ante el consejo nacional en un plazo de 30 días."
+    },
+    {
+        question: "Según el artículo 62, ¿cuál es el plazo para que el consejo nacional se pronuncie sobre una apelación?",
+        options: [
+            "30 días",
+            "60 días",
+            "90 días",
+            "120 días"
+        ],
+        correct: 1,
+        explanation: "El artículo 62 dispone que el consejo nacional debe pronunciarse sobre la apelación en un plazo de 60 días."
+    },
+    {
+        question: "Según el artículo 63, la decisión del consejo nacional en apelación es:",
+        options: [
+            "Sin apelación",
+            "Sujeta a apelación ante el Consejo de Estado",
+            "Sujeta a apelación ante el Tribunal Supremo",
+            "Sujeta a recurso de casación"
+        ],
+        correct: 0,
+        explanation: "El artículo 63 precisa que la decisión del consejo nacional en apelación es definitiva y sin apelación."
+    },
+    {
+        question: "Según el artículo 64, la solicitud de reforma o anulación de una decisión del consejo nacional debe presentarse ante el consejo superior del colegio en un plazo de:",
+        options: [
+            "15 días",
+            "30 días",
+            "2 meses",
+            "3 meses"
+        ],
+        correct: 2,
+        explanation: "El artículo 64 prevé que la solicitud de reforma o anulación debe presentarse ante el consejo superior del colegio en los dos meses siguientes a la notificación de la decisión."
+    },
+    {
+        question: "Según el artículo 64, ¿puede recurrirse una decisión del consejo regional ante el consejo nacional?",
+        options: [
+            "Sí, en un plazo de 30 días",
+            "Sí, en un plazo de 60 días",
+            "No, la decisión es definitiva",
+            "Sí, en un plazo de 90 días"
+        ],
+        correct: 0,
+        explanation: "El artículo 64 prevé que la decisión del consejo regional puede ser objeto de apelación ante el consejo nacional en un plazo de 30 días."
+    }
+];
+
+    // ============================================
+    // =========== CORRECCIÓN CRUCIAL ============
+    // ============================================
+    const MAX_SCORE_BASE = questions.length * 10;
+    const MAX_SCORE_WITH_BONUS = questions.length * 15; // 375 puntos
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("onmd_v1_debutant2_es", JSON.stringify({ score: finalScore, maxScore, percentage, date: new Date().toISOString() }));
+        return percentage;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // ============================================
+    // =========== RENDER QUESTION ================
+    // ============================================
+    function renderQuestion() {
+        console.log("🔍 renderQuestion() - Pregunta", currentQuestion + 1);
+        isSpeaking = false;
+        
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${letter}. ${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>🏛️ Colegio Nacional y Consejos - Principiante 2</h1><p>Pregunta ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Leer la pregunta</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explicación :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Leer explicación</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Tiempo restante : <span id="timer">${timeLeft}</span> segundos</div>
+                <div class="score">🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonar</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Siguiente →</button>
+                </div>
+            </div>
+        `;
+        
+        attachVoiceEvents();
+        answerLocked = false;
+        startTimer();
+        lastAnswerCorrect = false;
+        lastCorrectAnswer = "";
+        lastPointsEarned = 0;
+        
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 500);
+    }
+
+    // ============================================
+    // =========== CHECK ANSWER ===================
+    // ============================================
+    function checkAnswer(selectedIndex) {
+        console.log("🔍 checkAnswer() - Opción", String.fromCharCode(65 + selectedIndex));
+        
+        stopSpeaking();
+        
+        if (answerLocked) {
+            console.log("⏳ Respuesta ya bloqueada");
+            return;
+        }
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            console.log("✅ ¡Respuesta correcta! +", pointsEarned, "puntos");
+        } else {
+            console.log("❌ Respuesta incorrecta. Respuesta correcta:", shuffledOptions[currentCorrectIndex]);
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} puntos</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 puntos)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ ¡Respuesta correcta!' : '❌ Respuesta incorrecta'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Volver a escuchar feedback</button>
+                </div>
+            `;
+            
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Evento asignado para voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Respuesta correcta : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `¡Respuesta correcta! +${pointsEarned} puntos.`;
+        } else {
+            feedbackText = `Respuesta incorrecta. La respuesta correcta era: ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Auto-lectura del feedback");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "es-ES", function() {
+            console.log("✅ Auto-feedback completado");
+        });
+    }
+
+    // ============================================
+    // =========== NEXT QUESTION ==================
+    // ============================================
+    function nextQuestion() {
+        console.log("🔍 nextQuestion() llamado");
+        
+        stopSpeaking();
+        
+        if (!answerLocked) {
+            console.log("⚠️ Por favor, seleccione una respuesta antes de continuar");
+            return;
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVEGACIÓN =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_es.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        console.log("🔍 endQuiz() llamado");
+        
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        const isUnlocked = unlockLevel3(percentage);
+        
+        guardarValidacion('ONMD_Colegio_Nacional_Consejos', 'principiante2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 ¡Quiz terminado!</h1>
+                <div class="final-score">Puntuación : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Porcentaje : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ?
+                        `<div class="unlock-badge">✅ ¡Nivel Intermedio 1 desbloqueado! 🎊</div>
+                         <div class="beta-info-badge">🔒 BETA: El nivel Experto llegará tras 6 meses de evaluación.</div>` :
+                        `<div class="locked-badge">⚠️ Puntuación insuficiente (mínimo 60% requerido para desbloquear el siguiente nivel)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ?
+                        '📚 Ve al menú para acceder al Nivel Intermedio 1.' :
+                        `💪 Te falta un ${(60 - percentage).toFixed(1)}% más para desbloquear el siguiente nivel. ¡Vuelve a intentarlo!`}
+                </div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Escuchar tu resultado</button>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0;">
+                    <button class="share-btn" onclick="shareScore()">📤 Compartir mi puntuación</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Dar mi opinión</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Clasificación mundial</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Menú principal</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Ver mi progresión</button>
+                </div>
+            </div>
+        `;
+        
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Evento asignado para voiceResultBtn");
+        }
+        
+        if (isUnlocked) {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+            
+            setTimeout(() => {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2000);
+    }
+
+    // ============================================
+    // =========== POPUP CLASIFICACIÓN MODAL =====
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No hay puntuaciones registradas para este nivel por el momento.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Su clasificación</div>
+                        <div class="rank-number">${userRank}${userRank === 1 ? 'ª' : userRank === 2 ? 'ª' : userRank === 3 ? 'ª' : 'ª'} posición</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} puntos (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Todavía no estás en la clasificación de este nivel</div>
+                        <div>¡Vuelve a hacer el quiz para aparecer!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Colegio Nacional y Consejos Principiante 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anónimo"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No hay puntuaciones para este nivel</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Error Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ No se pudo cargar la clasificación.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Error desconocido'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== POPUP BETA - OPCIÓN 2 (ES) ====
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.className = 'beta-popup-overlay';
+        modal.innerHTML = `
+            <div class="beta-popup-content">
+                <div class="big-icon">🎉🏆🎉</div>
+                <h2>¡Felicidades ${userName}!</h2>
+                <p>Has validado los <strong>dos niveles Principiantes</strong> con éxito.<br>¡Qué recorrido tan impresionante!</p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Evalúa la versión BETA 🌟</p>
+                    <div class="stars" id="starRating">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p class="rating-message" id="ratingMessage"></p>
+                </div>
+                
+                <div class="beta-info">
+                    <p>🚀 <strong>La continuación (Intermedio & Experto)</strong> llegará tras <strong>6 meses de evaluación</strong> de esta versión Beta.<br><br>
+                    Tu opinión nos ayuda a mejorar ETEO. ¡Gracias por tu confianza, <strong>${userName}</strong>!</p>
+                </div>
+                
+                <button class="beta-btn" onclick="closeBetaPopup()">Volver al menú</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // ✅ OPCIÓN 2 : Lectura automática del mensaje (en español)
+        stopSpeaking();
+        
+        setTimeout(() => {
+            const fullMessage = `¡Felicidades ${userName}! Has validado los dos niveles Principiantes con éxito. ` +
+                               `Por favor, evalúa la versión BETA haciendo clic en las estrellas. ` +
+                               `La continuación, Intermedio y Experto, llegará tras seis meses de evaluación. ` +
+                               `Gracias por tu confianza.`;
+            
+            isSpeaking = true;
+            updateVoiceIndicator('speaking');
+            speak(fullMessage, "es-ES", function() {
+                console.log("✅ Mensaje BETA leído automáticamente");
+                isSpeaking = false;
+                updateVoiceIndicator('active');
+            });
+        }, 600);
+        
+        // Gestión de estrellas
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ ¡Gracias por tu evaluación! Tu opinión ha sido registrada.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+                
+                // ✅ Confirmación vocal de la evaluación (en español)
+                const confirmationMessage = `Gracias por tu evaluación de ${rating} sobre 5. Tu opinión ha sido registrada.`;
+                
+                stopSpeaking();
+                isSpeaking = true;
+                updateVoiceIndicator('speaking');
+                speak(confirmationMessage, "es-ES", function() {
+                    console.log("✅ Confirmación de evaluación leída");
+                    isSpeaking = false;
+                    updateVoiceIndicator('active');
+                });
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'es',
+                nivel: 'principiante2',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Evaluación Beta enviada !");
+        } catch (error) {
+            console.error("❌ Error evaluación Beta:", error);
+        }
+    }
+
+    // ============================================
+    // =========== OTRAS FUNCIONES ===============
+    // ============================================
+    function abandonQuiz() {
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("onmd_v1_debutant2_es", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel3(partialPercentage);
+        
+        guardarValidacion('ONMD_Colegio_Nacional_Consejos', 'principiante2', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>❌ Quiz abandonado</h1>
+                <div class="final-score">Puntuación parcial : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div>Porcentaje : ${partialPercentage.toFixed(1)}%</div>
+                <div style="margin:20px 0;">🏆 Esta puntuación ha sido registrada en la clasificación.</div>
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Volver al menú</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Ver mi progresión</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Colegio Nacional y Consejos\nMi puntuación en el nivel Principiante 2 : ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\n¡Desafíame en ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Puntuación', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ ¡Puntuación copiada al portapapeles!");
+            }).catch(() => {
+                alert("📋 Para compartir, copia este texto :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        console.log("🚀 startQuiz() llamado");
+        saveUserInfo();
+        console.log("🔊 Activando voz...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Quiz iniciado");
+    }
+
+    // ============================================
+    // =========== INICIALIZACIÓN ================
+    // ============================================
+    console.log("🚀 Página cargada - ETEO Quiz Colegio Nacional y Consejos (ES) - Principiante 2");
+    console.log("📱 window.Capacitor =", window.Capacitor);
+    
+    if (window.Capacitor) {
+        console.log("📱 Plataforma =", window.Capacitor.getPlatform());
+        console.log("📱 Plugins =", Object.keys(window.Capacitor.Plugins || {}));
+    }
+    
+    document.body.addEventListener('click', function firstClick() { 
+        console.log("🖱️ Primer clic - Activando voz");
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
