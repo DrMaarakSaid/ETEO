@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Стоматологическое общественное здравоохранение - Начинающий 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== ИМПОРТ ПЛАГИНА ГОЛОСА ========= -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        window.TextToSpeech = TextToSpeech;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        console.log('✅ Плагин TextToSpeech загружен!');
+        console.log('📱 Мобильный режим:', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* ===== НОВЫЕ СТИЛИ ===== */
+        .btn-progression {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-progression:hover {
+            background: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .btn-menu {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-menu:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+        
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #888;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .beta-info-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        /* ===== СТИЛИ ДЛЯ BETA ПОПАПА ===== */
+        .beta-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        }
+        .beta-popup-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            padding: 35px 25px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        body.dark .beta-popup-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        .beta-popup-content .big-icon { font-size: 4rem; }
+        .beta-popup-content h2 { color: #667eea; margin: 10px 0; }
+        body.dark .beta-popup-content h2 { color: #667eea; }
+        .beta-popup-content p { color: #555; margin: 5px 0; }
+        body.dark .beta-popup-content p { color: #ccc; }
+        .beta-popup-content .stars {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 3rem;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .beta-popup-content .stars span { color: #ccc; transition: color 0.3s; }
+        .beta-popup-content .stars span.active { color: #ffc107; }
+        .beta-popup-content .rating-message {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .beta-popup-content .rating-message { color: #aaa; }
+        .beta-popup-content .beta-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        body.dark .beta-popup-content .beta-info { background: #2a2a3e; }
+        .beta-popup-content .beta-info p { color: #ff5722; font-weight: bold; margin: 0; }
+        .beta-popup-content .beta-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .beta-popup-content .beta-btn:hover {
+            background: #388e3c;
+            transform: scale(1.02);
+        }
+        
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .close-btn:hover {
+            transform: scale(1.1);
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item { border-bottom-color: #444; }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number { font-size: 2rem; font-weight: bold; }
+        .user-rank-card .rank-label { font-size: 1.2rem; }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator inactive" id="voiceIndicator">🔇 ИИ неактивен</div>
+
+<div class="container" id="app"></div>
+
+<!-- Модальное окно рейтинга -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 ВАША ПОЗИЦИЯ</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Загрузка рейтинга...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== КОНФИГУРАЦИЯ FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID ДЛЯ ЭТОГО КВИЗА
+    // ============================================
+    const LEVEL_ID = "sante_publique_v1_debutant2_ru";
+
+    // ============================================
+    // =========== 1. РАСШИРЕННАЯ СИСТЕМА ГОЛОСА =
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+
+    // ============================================
+    // 🔥 ФУНКЦИЯ: СБРОС ВСЕХ КНОПОК ГОЛОСА
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Активация ВСЕХ кнопок");
+        
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Прочитать вопрос';
+            console.log("✅ voiceQuestionBtn активирован");
+        }
+        
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Повторить обратную связь';
+            console.log("✅ voiceFeedbackBtn активирован");
+        }
+        
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Прочитать объяснение';
+            console.log("✅ voiceExplanationBtn активирован");
+        }
+        
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Прослушать результат';
+            console.log("✅ voiceResultBtn активирован");
+        }
+        
+        isSpeaking = false;
+        updateVoiceIndicator('active');
+        console.log("✅ Все кнопки голоса АКТИВНЫ!");
+    }
+
+    // ============================================
+    // 🔥 ФУНКЦИЯ: ОСТАНОВИТЬ ВОСПРОИЗВЕДЕНИЕ
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() вызван");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Остановка Android выполнена");
+            }
+        } catch(e) { console.log("⚠️ Ошибка остановки Android:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Остановка Web Speech выполнена");
+            }
+        } catch(e) { console.log("⚠️ Ошибка остановки Web Speech:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking сброшен в false");
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 ФУНКЦИЯ: FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() вызван");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech недоступен");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'ru-RU';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const russianVoice = voices.find(v => v.lang.startsWith('ru'));
+            if (russianVoice) utterance.voice = russianVoice;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Web Speech callback выполнен");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech завершен (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Web Speech ошибка:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Принудительный callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Ошибка в fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ФУНКЦИЯ: SPEAK (с Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() вызван с:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Пустой текст, немедленный callback");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() выполнен");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Использование Capacitor TTS на Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'ru-RU', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS завершен");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Ошибка Capacitor TTS:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback на Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Принудительный callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Использование Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+            } else {
+                console.error("❌ Нет доступного TTS движка");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ОШИБКА в speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 АКТИВАЦИЯ ГОЛОСА
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() вызван");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            if (isAndroid) {
+                if (window.Capacitor?.Plugins?.TextToSpeech) {
+                    console.log("✅ Capacitor TTS доступен на Android");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    updateVoiceIndicator('active');
+                } else {
+                    console.warn("⚠️ Capacitor TTS не найден на Android");
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback на Web Speech");
+                        voiceReady = true;
+                        voiceActivated = true;
+                        window.speechSynthesis.getVoices();
+                        updateVoiceIndicator('active');
+                    }
+                }
+            } else {
+                if (window.speechSynthesis) {
+                    console.log("✅ Web Speech доступен на ПК");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    window.speechSynthesis.getVoices();
+                    updateVoiceIndicator('active');
+                }
+            }
+            console.log("✅ Голос активирован, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Голос уже активирован");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        if (indicator) {
+            if (status === 'active') {
+                indicator.textContent = '🎙️ ИИ активен';
+                indicator.className = 'voice-indicator active';
+            } else if (status === 'speaking') {
+                indicator.textContent = '🎙️ Говорит...';
+                indicator.className = 'voice-indicator speaking';
+            } else {
+                indicator.textContent = '🔇 ИИ неактивен';
+                indicator.className = 'voice-indicator inactive';
+            }
+        }
+    }
+
+    // ============================================
+    // =========== ФУНКЦИИ ГОЛОСА ================
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() вызван");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Вопрос ${currentQuestion + 1} из ${questions.length}: ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Читает...';
+            console.log("🔇 voiceQuestionBtn отключен");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "ru-RU", function() {
+            console.log("✅ speakQuestionOnly() завершен");
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() вызван");
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `Правильно! Это верный ответ! +${lastPointsEarned} очков.`;
+        } else {
+            text = `К сожалению, это неверный ответ. Правильный ответ был: ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Читает...';
+            console.log("🔇 voiceFeedbackBtn отключен");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "ru-RU", function() {
+            console.log("✅ speakFeedback() завершен");
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() вызван");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Объяснение: ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Читает...';
+            console.log("🔇 voiceExplanationBtn отключен");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "ru-RU", function() {
+            console.log("✅ speakExplanation() завершен");
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() вызван");
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Ваш итоговый результат - ${score} из ${MAX_SCORE}, что составляет ${percentage.toFixed(1)} процентов. `;
+        if (isUnlocked) {
+            text += "Поздравляем! Вы успешно прошли уровень Начинающий 2. Отличная работа!";
+        } else {
+            text += `Вам нужно еще ${(60 - percentage).toFixed(1)} процентов, чтобы пройти уровень. Продолжайте стараться!`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Читает...';
+            console.log("🔇 voiceResultBtn отключен");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "ru-RU", function() {
+            console.log("✅ speakFinalResult() завершен");
+        });
+    }
+
+    // ============================================
+    // =========== НАЗНАЧЕНИЕ СОБЫТИЙ ГОЛОСА =====
+    // ============================================
+    function attachVoiceEvents() {
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Событие назначено для voiceQuestionBtn");
+        }
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Событие назначено для voiceExplanationBtn");
+        }
+    }
+
+    // ============================================
+    // =========== 2. ИНФОРМАЦИЯ ПОЛЬЗОВАТЕЛЯ ====
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "RU"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Аноним" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>🏛️ Стоматологическое общественное здравоохранение - Начинающий Уровень 2</h1><p>Добро пожаловать, Доктор!</p></div>
+                <div class="input-group">
+                    <label>👤 Ваше имя (необязательно):</label>
+                    <input type="text" id="userName" placeholder="Напр: Др. Иванов" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Ваша страна (обязательно):</label>
+                    <select id="userCountry">
+                        <option value="RU">🇷🇺 Россия</option>
+                        <option value="BY">🇧🇾 Беларусь</option>
+                        <option value="UA">🇺🇦 Украина</option>
+                        <option value="KZ">🇰🇿 Казахстан</option>
+                        <option value="UZ">🇺🇿 Узбекистан</option>
+                        <option value="ES">🇪🇸 Испания</option>
+                        <option value="FR">🇫🇷 Франция</option>
+                        <option value="DE">🇩🇪 Германия</option>
+                        <option value="IT">🇮🇹 Италия</option>
+                        <option value="US">🇺🇸 США</option>
+                        <option value="GB">🇬🇧 Великобритания</option>
+                        <option value="MA">🇲🇦 Марокко</option>
+                        <option value="TR">🇹🇷 Турция</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">или</div>
+                    <input type="text" id="otherCountry" placeholder="Введите вашу страну (напр: Бразилия, Япония...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Начать викторину</button>
+                <div class="note">
+                    ⚠️ Правило: минимум 60% (225/375 баллов) для разблокировки <strong>Уровня Средний 1</strong>.<br>
+                    🎁 Бонус скорости: +5 баллов, если вы ответите до окончания таймера.<br>
+                    📊 Максимальный возможный балл с бонусом: 375 баллов (25 вопросов × 15 баллов)<br>
+                    🔒 <strong>БЕТА-версия</strong>: Уровни Средний и Эксперт будут доступны в финальной версии (6 месяцев).
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ОТПРАВКА В FIREBASE ========
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "RU";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Результат отправлен в Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Ошибка Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. ВОПРОСЫ (25) ===============
+    // ============================================
+  const questions = [
+    {
+        question: "Доктор Хафси является членом ONMD. Согласно закону 07-05, каков статус Национальной коллегии врачей-стоматологов?",
+        options: [
+            "Государственный орган при Министерстве здравоохранения",
+            "Орган частного права, выполняющий миссию общественной службы",
+            "Некоммерческая профессиональная ассоциация",
+            "Профсоюз, защищающий интересы частных стоматологов"
+        ],
+        correct: 1,
+        explanation: "ONMD является органом частного права, выполняющим миссию общественной службы, с юридическим статусом, регулируемым законом 07-05, обнародованным Дахыром от 17 апреля 2007 года."
+    },
+    {
+        question: "Согласно закону 07-05, обязаны ли все стоматологи, практикующие в Марокко, быть членами ONMD?",
+        options: [
+            "Нет, членство в Коллегии является добровольным",
+            "Да, Коллегия обязательно объединяет всех стоматологов, практикующих в частном секторе",
+            "Да, но только стоматологов, работающих в государственном секторе",
+            "Нет, только стоматологи марокканского гражданства"
+        ],
+        correct: 1,
+        explanation: "Статья 1 закона 07-05 предусматривает, что ONMD объединяет всех врачей-стоматологов, практикующих в частном секторе в Марокко."
+    },
+    {
+        question: "Доктор Фадли зарегистрирован в реестре ONMD. Согласно исследованию восприятия стоматологов, какой аспект управления реестром Коллегии получил наибольшее удовлетворение?",
+        options: [
+            "Контроль текста профессиональных вывесок",
+            "Проверка договоров о сотрудничестве",
+            "Облегчение регистрации в реестре Коллегии",
+            "Организация дежурств"
+        ],
+        correct: 2,
+        explanation: "Исследование, проведенное в 2016-2017 годах, показало, что 67,5% стоматологов были удовлетворены облегчением регистрации в реестре Коллегии, в то время как только 21,9% — контролем вывесок."
+    },
+    {
+        question: "Согласно тому же исследованию, какой аспект регулирования ONMD большинство стоматологов считает недостаточным?",
+        options: [
+            "Выдача разрешений на замену",
+            "Контроль текста профессиональных вывесок",
+            "Проверка национальных дипломов",
+            "Организация дежурств"
+        ],
+        correct: 1,
+        explanation: "48,2% опрошенных стоматологов выразили недовольство контролем текста профессиональных вывесок, что делает этот пункт наиболее критикуемым."
+    },
+    {
+        question: "Доктор Хафси беспокоится о незаконной практике профессии. По данным ONMD, сколько ложных стоматологов незаконно практикуют в Марокко?",
+        options: [
+            "Около 500",
+            "Около 1000",
+            "Более 3300",
+            "Более 10000"
+        ],
+        correct: 2,
+        explanation: "По данным ONMD, более 3300 ложных врачей-стоматологов незаконно практикуют в Марокко, ежедневно подвергая опасности жизнь граждан."
+    },
+    {
+        question: "Доктор Фадли обеспокоен практиками некоторых 'изготовителей зубных протезов'. По данным ONMD, в чем основная проблема?",
+        options: [
+            "Они изготавливают некачественные протезы",
+            "Они принимают пациентов для псевдомедицинских процедур вне рамок своей лицензии",
+            "Они продают слишком дорогие протезы",
+            "Они не декларируют свои доходы"
+        ],
+        correct: 1,
+        explanation: "ONMD предупреждает о 'изготовителях зубных протезов', которые принимают пациентов для псевдомедицинских процедур, проводимых в условиях вопиющей незаконности, вне рамок их лицензии, которая ограничивается изготовлением по рецепту."
+    },
+    {
+        question: "По данным ONMD, каковы последствия незаконной практики в стоматологии?",
+        options: [
+            "Только некачественное лечение",
+            "Смерти, постоянные инвалидности и инфекционные заболевания",
+            "Более высокие расходы для пациентов",
+            "Простая недобросовестная конкуренция для законных стоматологов"
+        ],
+        correct: 1,
+        explanation: "ONMD сообщает о драматических инцидентах: смертях из-за использования поддельных или просроченных анестетиков, случайных передозировках, постоянных инвалидностях или инфекционных заболеваниях, полученных в антисанитарных условиях."
+    },
+    {
+        question: "Доктор Хафси интересуется проектом закона 25-14. По данным ONMD, какова основная цель этого текста?",
+        options: [
+            "Повышение тарифов на стоматологические услуги",
+            "Защита законной и регулируемой практики и борьба с самозванцами",
+            "Создание новых стоматологических факультетов",
+            "Изменение условий регистрации в Коллегии"
+        ],
+        correct: 1,
+        explanation: "Проект закона №25-14 направлен на защиту законной и регулируемой практики профессий по приготовлению и обработке медицинских изделий, включая зубных протезистов, чтобы отстранить самозванцев."
+    },
+    {
+        question: "По данным ONMD, почему шарлатаны в стоматологии выступают против проекта закона 25-14?",
+        options: [
+            "Чтобы получить лучшее вознаграждение",
+            "Чтобы создать путаницу и попытаться изменить текст",
+            "Чтобы протестовать против условий труда",
+            "Чтобы запросить академическое образование"
+        ],
+        correct: 1,
+        explanation: "ONMD осуждает дезинформационную кампанию шарлатанов, направленную на создание путаницы среди граждан и парламентариев, чтобы попытаться внести поправки в проект закона."
+    },
+    {
+        question: "Доктор Фадли узнал, что в некоторых регионах Марокко наблюдается нехватка стоматологов. Какое решение было принято для решения этой проблемы?",
+        options: [
+            "Наем только иностранных стоматологов",
+            "Привлечение стоматологов частного сектора по Декрету 2.12.507",
+            "Закрытие кабинетов в сельских районах",
+            "Повышение стоимости консультаций"
+        ],
+        correct: 1,
+        explanation: "Декрет №2.12.507 позволяет Министерству здравоохранения привлекать стоматологов частного сектора для работы неполный рабочий день в государственных больницах, особенно для дежурств."
+    },
+    {
+        question: "Согласно Декрету 2.12.507, каков лимит ежемесячного вознаграждения для привлеченного стоматолога?",
+        options: [
+            "5000 дирхамов",
+            "7143 дирхама",
+            "10000 дирхамов",
+            "15000 дирхамов"
+        ],
+        correct: 1,
+        explanation: "Декрет 2.12.507 устанавливает максимальное ежемесячное вознаграждение в размере 7143 дирхамов, выплачиваемых по истечении срока в пределах 11 месяцев в году."
+    },
+    {
+        question: "Доктор Хафси хочет заключить договор. Согласно статье 6 Декрета 2.12.507, каковы условия eligibility?",
+        options: [
+            "Быть моложе 30 лет",
+            "Быть зарегистрированным в Коллегии и не иметь дисциплинарных взысканий",
+            "Практиковать исключительно в сельской местности",
+            "Иметь более 10 лет опыта"
+        ],
+        correct: 1,
+        explanation: "Статья 6 Декрета 2.12.507 устанавливает, что кандидаты должны быть зарегистрированы в профессиональной коллегии, не иметь дисциплинарных взысканий и не быть осужденными за преступления против личности или посягательства на общественную мораль."
+    },
+    {
+        question: "Согласно Декрету 2.12.507, какова максимальная продолжительность типового договора?",
+        options: [
+            "6 месяцев",
+            "11 месяцев, автоматически возобновляемый 3 раза",
+            "2 года",
+            "5 лет"
+        ],
+        correct: 1,
+        explanation: "Согласно статье 5 Декрета 2.12.507, договор заключается на максимальный срок одиннадцать месяцев, автоматически возобновляемый не более трех раз."
+    },
+    {
+        question: "Доктор Фадли работает по договору в больнице. Согласно Декрету 2.12.507, какой власти он подчиняется?",
+        options: [
+            "Только Национальной коллегии врачей-стоматологов",
+            "Руководителю государственного медицинского учреждения",
+            "Никакой власти, он независим",
+            "Министерству торговли"
+        ],
+        correct: 1,
+        explanation: "Статья 9 Декрета 2.12.507 уточняет, что привлеченный стоматолог подчиняется руководителю медицинского учреждения."
+    },
+    {
+        question: "Согласно Декрету 2.12.507, каковы обязанности привлеченного стоматолога в отношении ответственности?",
+        options: [
+            "Он не несет ответственности за свои действия",
+            "Он руководит и контролирует работу интернов, находящихся под его началом",
+            "Ответственность лежит только на больнице",
+            "Он освобожден от любой ответственности"
+        ],
+        correct: 1,
+        explanation: "Статья 9 Декрета 2.12.507 предусматривает, что привлеченные стоматологи руководят и контролируют работу интернов и персонала, находящегося непосредственно под их началом."
+    },
+    {
+        question: "По данным ONMD, каково влияние незаконной практики на репутацию Марокко на международном уровне?",
+        options: [
+            "Никакого влияния, это маргинальное явление",
+            "Некоторые иностранные посольства выпустили предупреждения для своих граждан",
+            "Марокко хвалят за борьбу с этим явлением",
+            "Туристов привлекают низкие цены"
+        ],
+        correct: 1,
+        explanation: "Некоторые иностранные посольства выпустили официальные предупреждения для своих граждан, предостерегая их о рисках, связанных с лечением в неаккредитованных учреждениях в Марокко."
+    },
+    {
+        question: "Доктор Хафси интересуется борьбой с незаконной практикой. Какие заведения особенно подвергаются атакам ONMD?",
+        options: [
+            "Стоматологические кабинеты в сельской местности",
+            "Заведения, известные как 'изготовители зубных протезов'",
+            "Частные стоматологические клиники по договору",
+            "Стоматологические отделения государственных больниц"
+        ],
+        correct: 1,
+        explanation: "ONMD предупреждает о заведениях, известных как 'изготовители зубных протезов', где граждан принимают для псевдомедицинских процедур в условиях вопиющей незаконности."
+    },
+    {
+        question: "Согласно демографическим данным, какова диспропорция распределения стоматологов в государственном секторе в Марокко?",
+        options: [
+            "Она идеально сбалансирована",
+            "Колеблется от 1 стоматолога на 12 631 до 1 на 728 634 жителей в зависимости от регионов",
+            "Во всех регионах соотношение схожее",
+            "Сельские районы обслуживаются лучше, чем городские"
+        ],
+        correct: 1,
+        explanation: "Соотношение государственных стоматологов значительно варьируется: от 1 стоматолога на 12 631 жителей в некоторых регионах до 1 стоматолога на 728 634 жителей в других."
+    },
+    {
+        question: "По данным ONMD, каково влияние незаконной практики на общественное здравоохранение?",
+        options: [
+            "Минимальный риск для пациентов",
+            "Прямая угроза здоровью граждан и безопасности национальной системы здравоохранения",
+            "Простая проблема экономической конкуренции",
+            "Исключительно деонтологический вопрос"
+        ],
+        correct: 1,
+        explanation: "ONMD рассматривает эту практику как 'прямую угрозу здоровью граждан и безопасности национальной системы здравоохранения', призывая к срочным действиям."
+    },
+    {
+        question: "По данным ONMD, какова роль зубных протезистов в правовых рамках?",
+        options: [
+            "Они могут принимать пациентов на консультации",
+            "Их лицензия ограничивается изготовлением протезов по рецепту стоматолога",
+            "Они могут проводить медицинские процедуры в своей лаборатории",
+            "Они имеют право устанавливать зубные имплантаты"
+        ],
+        correct: 1,
+        explanation: "ONMD напоминает, что лицензия зубных протезистов ограничивается изготовлением протезов по рецепту врача-стоматолога, без приема пациентов и проведения медицинских процедур."
+    },
+    {
+        question: "Доктор Фадли хочет узнать мнение Международной стоматологической федерации (FDI) о незаконной практике в Марокко. Какова их позиция?",
+        options: [
+            "Она поддерживает шарлатанов в их инициативе",
+            "Она выразила свое возмущение и поддерживает действия ONMD",
+            "Она нейтральна в этом вопросе",
+            "Она не высказывалась"
+        ],
+        correct: 1,
+        explanation: "FDI, объединяющая 900 000 врачей-стоматологов в 137 странах, выразила 'возмущение' в письме президенту ONMD, поддерживая борьбу с незаконной практикой."
+    },
+    {
+        question: "Согласно исследованию восприятия стоматологов, какой процент из них считает необходимым создание постоянных контрольных комиссий?",
+        options: [
+            "50%",
+            "76,3%",
+            "21,9%",
+            "67,5%"
+        ],
+        correct: 1,
+        explanation: "Исследование показало, что 76,3% опрошенных стоматологов считают необходимым создание постоянных контрольных комиссий для борьбы с незаконной практикой."
+    },
+    {
+        question: "Согласно закону 07-05, каковы основные миссии ONMD?",
+        options: [
+            "Только управление реестром Коллегии",
+            "Регулирование, управление жалобами, борьба с незаконной практикой, непрерывное обучение и государственно-частное партнерство",
+            "Установление тарифов на стоматологические услуги",
+            "Управление стоматологическими взаимными фондами"
+        ],
+        correct: 1,
+        explanation: "Миссии ONMD, описанные в статье 13 закона 07-05, охватывают управление реестром, регулирование, жалобы и претензии, борьбу с незаконной практикой, непрерывное обучение, государственно-частное партнерство и социальное обеспечение."
+    },
+    {
+        question: "Доктор Хафси интересуется ролью Марокко в стоматологическом здравоохранении в Африке. Какова амбиция Королевства по данным ONMD?",
+        options: [
+            "Стать медицинским центром мирового уровня в Африке",
+            "Ограничиться подготовкой стоматологов для местного рынка",
+            "Сократить количество стоматологических факультетов",
+            "Ограничить доступ к стоматологической помощи"
+        ],
+        correct: 0,
+        explanation: "ONMD подчеркивает, что Марокко стремится стать медицинским центром мирового уровня в Африке, что требует борьбы с незаконной практикой, наносящей ущерб этому имиджу."
+    },
+    {
+        question: "Согласно Декрету 2.12.507, что может привести к расторжению договора привлеченного стоматолога?",
+        options: [
+            "Простое заявление стоматолога без предварительного уведомления",
+            "Отсутствие на трех рабочих сменах без уважительной причины",
+            "Несогласие с графиком работы",
+            "Запрос министерства в любое время"
+        ],
+        correct: 1,
+        explanation: "Статья 10 Декрета 2.12.507 предусматривает, что любое отсутствие на трех рабочих сменах без предварительного уведомления и без уважительной причины является основанием для расторжения договора администрацией без предупреждения."
+    },
+    {
+        question: "По данным ONMD, какова связь между крупными международными мероприятиями и борьбой с незаконной практикой?",
+        options: [
+            "Никакой связи, мероприятия не касаются этого вопроса",
+            "Марокко готовится принимать туристов, что требует усиленного санитарного контроля",
+            "Мероприятия привлекают только законных стоматологов",
+            "Незаконная практика - исключительно местная проблема"
+        ],
+        correct: 1,
+        explanation: "ONMD подчеркивает, что Марокко готовится к проведению крупных туристических и спортивных международных мероприятий, что делает необходимым усиленный контроль для обеспечения стандартов санитарной безопасности."
+    }
+];
+
+    // ============================================
+    // =========== МАКСИМАЛЬНЫЙ БАЛЛ ============
+    // ============================================
+    const MAX_SCORE = questions.length * 15; // 375 баллов
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("sante_publique_v1_debutant2_ru", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== РАЗБЛОКИРОВКА УРОВНЯ СРЕДНИЙ 1 =
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("sante_publique_v1_intermediaire1_ru_unlocked", "true");
+            localStorage.setItem("sante_publique_v1_debutant2_ru_score", percentage.toFixed(1));
+            console.log("✅ Уровень Средний 1 РАЗБЛОКИРОВАН! Результат: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("sante_publique_v1_intermediaire1_ru_unlocked", "false");
+            console.log("❌ Уровень Средний 1 ЗАБЛОКИРОВАН. Результат: " + percentage.toFixed(1) + "% (минимум " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 СОХРАНЕНИЕ ВАЛИДАЦИИ ДЛЯ PROGRESSION.HTML
+    // ================================================================
+    function guardarValidacion(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progreso = JSON.parse(localStorage.getItem('eteo_progreso')) || {};
+            const key = specialite + '_' + niveau;
+            progreso[key] = true;
+            localStorage.setItem('eteo_progreso', JSON.stringify(progreso));
+            
+            console.log('✅ Валидация сохранена для progression.html');
+        }
+    }
+
+    // ============================================
+    // 🔥 ПЕРЕХОД К PROGRESSION - ВАРИАНТ 2
+    // ============================================
+    function goToProgression() {
+        console.log("🔍 goToProgression() вызван");
+        
+        const validationData = {
+            specialite: 'Стоматологическое_общественное_здравоохранение',
+            niveau: 'начинающий2',
+            score: score,
+            total: MAX_SCORE,
+            percentage: (score / MAX_SCORE) * 100,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('eteo_validation', JSON.stringify(validationData));
+        console.log("✅ Валидация сохранена для progression");
+        
+        const url = '../../../../progression_ru.html?valider=Стоматологическое_общественное_здравоохранение_начинающий2&score=' + score + '&total=' + MAX_SCORE;
+        console.log("🔀 Перенаправление на:", url);
+        window.location.href = url;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // ============================================
+    // =========== ОТОБРАЖЕНИЕ ВОПРОСА ===========
+    // ============================================
+    function renderQuestion() {
+        console.log("🔍 renderQuestion() - Вопрос", currentQuestion + 1);
+        isSpeaking = false;
+        
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${letter}. ${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>🏛️ Стоматологическое общественное здравоохранение - Начинающий Уровень 2</h1><p>Вопрос ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Прочитать вопрос</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Объяснение:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Прочитать объяснение</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Осталось времени: <span id="timer">${timeLeft}</span> секунд</div>
+                <div class="score">🏆 Текущий результат: ${score}/${MAX_SCORE}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Прервать</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Далее →</button>
+                </div>
+            </div>
+        `;
+        
+        attachVoiceEvents();
+        answerLocked = false;
+        startTimer();
+        lastAnswerCorrect = false;
+        lastCorrectAnswer = "";
+        lastPointsEarned = 0;
+        
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 500);
+    }
+
+    // ============================================
+    // =========== ПРОВЕРКА ОТВЕТА ===============
+    // ============================================
+    function checkAnswer(selectedIndex) {
+        console.log("🔍 checkAnswer() - Вариант", String.fromCharCode(65 + selectedIndex));
+        
+        stopSpeaking();
+        
+        if (answerLocked) {
+            console.log("⏳ Ответ уже заблокирован");
+            return;
+        }
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            console.log("✅ Правильный ответ! +", pointsEarned, "баллов");
+        } else {
+            console.log("❌ Неправильный ответ. Правильный ответ:", shuffledOptions[currentCorrectIndex]);
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} баллов</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 баллов)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ Правильный ответ!' : '❌ Неправильный ответ'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Повторить обратную связь</button>
+                </div>
+            `;
+            
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Событие назначено для voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Правильный ответ: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Текущий результат: ${score}/${MAX_SCORE}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `Правильный ответ! +${pointsEarned} баллов.`;
+        } else {
+            feedbackText = `Неправильный ответ. Правильный ответ был: ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Автоматическое чтение обратной связи");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "ru-RU", function() {
+            console.log("✅ Авто-обратная связь завершена");
+        });
+    }
+
+    // ============================================
+    // =========== СЛЕДУЮЩИЙ ВОПРОС ==============
+    // ============================================
+    function nextQuestion() {
+        console.log("🔍 nextQuestion() вызван");
+        
+        stopSpeaking();
+        
+        if (!answerLocked) {
+            console.log("⚠️ Пожалуйста, выберите ответ перед продолжением");
+            return;
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== НАВИГАЦИЯ ======================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_ru.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        console.log("🔍 endQuiz() вызван");
+        
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        
+        saveScore(score, MAX_SCORE);
+        
+        const isUnlocked = unlockLevel3(percentage);
+        
+        guardarValidacion('Стоматологическое_общественное_здравоохранение', 'начинающий2', score, MAX_SCORE);
+        
+        sendScoreToFirebase(score, MAX_SCORE, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Викторина завершена!</h1>
+                <div class="final-score">Результат: ${score}/${MAX_SCORE}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Процент: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ?
+                        `<div class="unlock-badge">✅ Уровень Средний 1 разблокирован! 🎊</div>
+                         <div class="beta-info-badge">🔒 БЕТА: Уровень Эксперт появится через 6 месяцев оценки.</div>` :
+                        `<div class="locked-badge">⚠️ Недостаточно баллов (требуется минимум 60% для разблокировки следующего уровня)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ?
+                        '📚 Перейдите в меню для доступа к Уровню Средний 1.' :
+                        `💪 Вам не хватает ${(60 - percentage).toFixed(1)}% для разблокировки следующего уровня. Попробуйте снова!`}
+                </div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Прослушать результат</button>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0;">
+                    <button class="share-btn" onclick="shareScore()">📤 Поделиться результатом</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Оставить отзыв</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Мировой рейтинг</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Главное меню</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Моё продвижение</button>
+                </div>
+            </div>
+        `;
+        
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Событие назначено для voiceResultBtn");
+        }
+        
+        if (isUnlocked) {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+            
+            setTimeout(() => {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2000);
+    }
+
+    // ============================================
+    // =========== МОДАЛЬНОЕ ОКНО РЕЙТИНГА =======
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 Пока нет результатов для этого уровня.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Ваша позиция</div>
+                        <div class="rank-number">${userRank}-е место</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} баллов (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Вы пока не в рейтинге этого уровня</div>
+                        <div>Пройдите викторину, чтобы появиться!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 ТОП 20 - Стоматологическое общественное здравоохранение Начинающий 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Аноним"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Ошибка Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Не удалось загрузить рейтинг.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Неизвестная ошибка'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== BETA ПОПАП - ВАРИАНТ 2 (RU) ===
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Доктор";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.className = 'beta-popup-overlay';
+        modal.innerHTML = `
+            <div class="beta-popup-content">
+                <div class="big-icon">🎉🏆🎉</div>
+                <h2>Поздравляем ${userName}!</h2>
+                <p>Вы успешно прошли <strong>оба уровня Начинающий</strong>.<br>Впечатляющий путь!</p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Оцените БЕТА-версию 🌟</p>
+                    <div class="stars" id="starRating">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p class="rating-message" id="ratingMessage"></p>
+                </div>
+                
+                <div class="beta-info">
+                    <p>🚀 <strong>Уровень Эксперт</strong> появится после <strong>6 месяцев оценки</strong> этой БЕТА-версии.<br><br>
+                    Ваше мнение помогает нам улучшать ETEO. Спасибо за доверие, <strong>${userName}</strong>!</p>
+                </div>
+                
+                <button class="beta-btn" onclick="closeBetaPopup()">Вернуться в меню</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // ✅ ОПЦИЯ 2: Полное голосовое чтение сообщения (на русском)
+        stopSpeaking();
+        
+        setTimeout(() => {
+            const fullMessage = `Поздравляем ${userName}! Вы успешно прошли оба уровня Начинающий. ` +
+                               `Пожалуйста, оцените БЕТА-версию, нажав на звездочки. ` +
+                               `Уровень Эксперт появится после шести месяцев оценки. ` +
+                               `Спасибо за доверие.`;
+            
+            isSpeaking = true;
+            updateVoiceIndicator('speaking');
+            speak(fullMessage, "ru-RU", function() {
+                console.log("✅ Сообщение BETA попапа прочитано автоматически");
+                isSpeaking = false;
+                updateVoiceIndicator('active');
+            });
+        }, 600);
+        
+        // Управление звездами
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ Спасибо за вашу оценку! Ваше мнение сохранено.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+                
+                // ✅ Голосовое подтверждение оценки (на русском)
+                const confirmationMessage = `Спасибо за вашу оценку ${rating} из 5. Ваше мнение сохранено.`;
+                
+                stopSpeaking();
+                isSpeaking = true;
+                updateVoiceIndicator('speaking');
+                speak(confirmationMessage, "ru-RU", function() {
+                    console.log("✅ Подтверждение оценки прочитано");
+                    isSpeaking = false;
+                    updateVoiceIndicator('active');
+                });
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Аноним";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "RU";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'ru',
+                nivel: 'начинающий2',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Оценка БЕТА отправлена!");
+        } catch (error) {
+            console.error("❌ Ошибка отправки оценки БЕТА:", error);
+        }
+    }
+
+    // ============================================
+    // =========== ДРУГИЕ ФУНКЦИИ ================
+    // ============================================
+    function abandonQuiz() {
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE) * 100;
+        localStorage.setItem("sante_publique_v1_debutant2_ru", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel3(partialPercentage);
+        
+        guardarValidacion('Стоматологическое_общественное_здравоохранение', 'начинающий2', score, MAX_SCORE);
+        
+        sendScoreToFirebase(score, MAX_SCORE, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>❌ Викторина прервана</h1>
+                <div class="final-score">Промежуточный результат: ${score}/${MAX_SCORE}</div>
+                <div>Процент: ${partialPercentage.toFixed(1)}%</div>
+                <div style="margin:20px 0;">🏆 Этот результат сохранен в рейтинге.</div>
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Вернуться в меню</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Моё продвижение</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE) * 100;
+        const text = `🎓 ETEO - Стоматологическое общественное здравоохранение\nМой результат на уровне Начинающий 2: ${score}/${MAX_SCORE} (${percentage.toFixed(1)}%)\nПроверь меня в ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'Результат ETEO', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Результат скопирован в буфер обмена!");
+            }).catch(() => {
+                alert("📋 Чтобы поделиться, скопируйте этот текст:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        console.log("🚀 startQuiz() вызван");
+        saveUserInfo();
+        console.log("🔊 Активация голоса...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Викторина запущена");
+    }
+
+    // ============================================
+    // =========== ИНИЦИАЛИЗАЦИЯ ==================
+    // ============================================
+    console.log("🚀 Страница загружена - ETEO Quiz Стоматологическое общественное здравоохранение (RU) - Начинающий 2");
+    console.log("📱 window.Capacitor =", window.Capacitor);
+    
+    if (window.Capacitor) {
+        console.log("📱 Платформа =", window.Capacitor.getPlatform());
+        console.log("📱 Плагины =", Object.keys(window.Capacitor.Plugins || {}));
+    }
+    
+    document.body.addEventListener('click', function firstClick() { 
+        console.log("🖱️ Первый клик - Активация голоса");
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
