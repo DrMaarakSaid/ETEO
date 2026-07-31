@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Dental Anesthesiology - Beginner 1</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT DU PLUGIN VOIX ========== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        window.TextToSpeech = TextToSpeech;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        console.log('✅ Plugin TextToSpeech loaded!');
+        console.log('📱 Mobile mode:', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            transform: scale(1.05);
+        }
+        .btn-progression {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-progression:hover {
+            background: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .btn-menu {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-menu:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+        
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .close-btn:hover {
+            transform: scale(1.1);
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item { border-bottom-color: #444; }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number { font-size: 2rem; font-weight: bold; }
+        .user-rank-card .rank-label { font-size: 1.2rem; }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator inactive" id="voiceIndicator">🔇 AI inactive</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de classement -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 YOUR POSITION</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Loading ranking...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURATION FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID POUR CE QUIZ
+    // ============================================
+    const LEVEL_ID = "anesthesiologie_v1_debutant1_en";
+
+    // ============================================
+    // =========== 1. VOICE SYSTEM ================
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+
+    // ============================================
+    // 🔥 FUNCTION: RESET ALL VOICE BUTTONS
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Reactivating ALL buttons");
+        
+        // ✅ Button "Read question"
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Read question';
+            console.log("✅ voiceQuestionBtn reactivated");
+        }
+        
+        // ✅ Button "Re-listen to feedback"
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Re-listen to feedback';
+            console.log("✅ voiceFeedbackBtn reactivated");
+        }
+        
+        // ✅ Button "Read explanation"
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Read explanation';
+            console.log("✅ voiceExplanationBtn reactivated");
+        }
+        
+        // ✅ Button "Listen to your result"
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Listen to your result';
+            console.log("✅ voiceResultBtn reactivated");
+        }
+        
+        // ✅ Reset isSpeaking
+        isSpeaking = false;
+        
+        // ✅ Update indicator
+        updateVoiceIndicator('active');
+        
+        console.log("✅ All voice buttons are now ACTIVE!");
+    }
+
+    // ============================================
+    // 🔥 FUNCTION: STOP SPEAKING
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() called");
+        
+        // ✅ STOP on Android (Capacitor)
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Android stop successful");
+            }
+        } catch(e) { console.log("⚠️ Android stop error:", e); }
+        
+        // ✅ STOP on PC (Web Speech)
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Web Speech stop successful");
+            }
+        } catch(e) { console.log("⚠️ Web Speech stop error:", e); }
+        
+        // ✅ Reset isSpeaking
+        isSpeaking = false;
+        console.log("✅ isSpeaking reset to false");
+        
+        // ✅ 🔥 REACTIVATE ALL BUTTONS IMMEDIATELY
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 FUNCTION: FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() called");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech not available");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const englishVoice = voices.find(v => v.lang.startsWith('en'));
+            if (englishVoice) utterance.voice = englishVoice;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Web Speech callback executed");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech finished (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Web Speech error:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            // ✅ SAFETY TIMEOUT (5 seconds max)
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ Web Speech TIMEOUT - Forcing callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Error in fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FUNCTION: SPEAK (Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() called with:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Empty text, immediate callback");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        // ✅ DETECT ANDROID VIA CAPACITOR
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        // ✅ SAFETY FUNCTION FOR FORCED CALLBACK
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() executed");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            // ✅ PRIORITY: CAPACITOR TTS ON ANDROID
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Using Capacitor TTS plugin on Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'en-US', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS finished");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Capacitor TTS error:", error);
+                    // ✅ Fallback to Web Speech on error
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback to Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                // ✅ SAFETY TIMEOUT (5 seconds max)
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ Capacitor TTS TIMEOUT - Forcing callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Using Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+                
+            } else {
+                console.error("❌ No TTS engine available");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERROR in speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ACTIVATE VOICE
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() called");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            if (isAndroid) {
+                if (window.Capacitor?.Plugins?.TextToSpeech) {
+                    console.log("✅ Capacitor TTS available on Android");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    updateVoiceIndicator('active');
+                } else {
+                    console.warn("⚠️ Capacitor TTS not found on Android");
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback to Web Speech");
+                        voiceReady = true;
+                        voiceActivated = true;
+                        window.speechSynthesis.getVoices();
+                        updateVoiceIndicator('active');
+                    }
+                }
+            } else {
+                if (window.speechSynthesis) {
+                    console.log("✅ Web Speech available on PC");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    window.speechSynthesis.getVoices();
+                    updateVoiceIndicator('active');
+                }
+            }
+            console.log("✅ Voice activated, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Voice already activated");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        if (indicator) {
+            if (status === 'active') {
+                indicator.textContent = '🎙️ AI active';
+                indicator.className = 'voice-indicator active';
+            } else if (status === 'speaking') {
+                indicator.textContent = '🎙️ Speaking...';
+                indicator.className = 'voice-indicator speaking';
+            } else {
+                indicator.textContent = '🔇 AI inactive';
+                indicator.className = 'voice-indicator inactive';
+            }
+        }
+    }
+
+    // ============================================
+    // =========== VOICE FUNCTIONS ================
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() called");
+        
+        // ✅ 1. STOP any ongoing reading
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Question ${currentQuestion + 1} of ${questions.length}: ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        // ✅ 2. DISABLE BUTTON
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Reading...';
+            console.log("🔇 voiceQuestionBtn disabled");
+        }
+        
+        // ✅ 3. START SPEAKING
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "en-US", function() {
+            console.log("✅ speakQuestionOnly() finished");
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() called");
+        
+        // ✅ 1. STOP any ongoing reading
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `Correct answer! +${lastPointsEarned} points.`;
+        } else {
+            text = `Wrong answer. The correct answer was: ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        // ✅ 2. DISABLE BUTTON
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Reading...';
+            console.log("🔇 voiceFeedbackBtn disabled");
+        }
+        
+        // ✅ 3. START SPEAKING
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "en-US", function() {
+            console.log("✅ speakFeedback() finished");
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() called");
+        
+        // ✅ 1. STOP any ongoing reading
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Explanation: ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        // ✅ 2. DISABLE BUTTON
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Reading...';
+            console.log("🔇 voiceExplanationBtn disabled");
+        }
+        
+        // ✅ 3. START SPEAKING
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "en-US", function() {
+            console.log("✅ speakExplanation() finished");
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() called");
+        
+        // ✅ 1. STOP any ongoing reading
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Your final score is ${score} out of ${MAX_SCORE_WITH_BONUS}, which is ${percentage.toFixed(1)} percent. `;
+        if (isUnlocked) {
+            text += "Congratulations! You unlocked Level 2. Great job!";
+        } else {
+            text += `You need ${(60 - percentage).toFixed(1)} more percent to unlock Level 2. Keep trying!`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        // ✅ 2. DISABLE BUTTON
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Reading...';
+            console.log("🔇 voiceResultBtn disabled");
+        }
+        
+        // ✅ 3. START SPEAKING
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "en-US", function() {
+            console.log("✅ speakFinalResult() finished");
+        });
+    }
+
+    // ============================================
+    // =========== 2. USER INFO ==================
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "FR"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anonymous" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>💉 Dental Anesthesiology - Beginner Level 1</h1><p>Welcome Doctor!</p></div>
+                <div class="input-group">
+                    <label>👤 Your name (optional):</label>
+                    <input type="text" id="userName" placeholder="Ex: Dr. Smith" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Your country (required):</label>
+                    <select id="userCountry">
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="MA">🇲🇦 Morocco</option>
+                        <option value="CH">🇨🇭 Switzerland</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="BE">🇧🇪 Belgium</option>
+                        <option value="SN">🇸🇳 Senegal</option>
+                        <option value="CI">🇨🇮 Ivory Coast</option>
+                        <option value="CM">🇨🇲 Cameroon</option>
+                        <option value="DZ">🇩🇿 Algeria</option>
+                        <option value="TN">🇹🇳 Tunisia</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="ES">🇪🇸 Spain</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="TR">🇹🇷 Turkiye</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">or</div>
+                    <input type="text" id="otherCountry" placeholder="Enter your country (e.g., Brazil, Japan...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Start Quiz</button>
+                <div class="note">
+                    ⚠️ Rule: 60% minimum (225/375 points) to unlock <strong>Beginner Level 2</strong>.<br>
+                    🎁 Speed bonus: +5 points if you answer before the timer ends.<br>
+                    📊 Maximum possible score with bonus: 375 points (25 questions × 15 points)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. FIREBASE SCORE =============
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "FR";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Score sent to Firebase!");
+            return true;
+        } catch (error) {
+            console.error("❌ Firebase error:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. QUESTIONS (25) =============
+    // ============================================
+    const questions = [
+        { 
+            question: "How is local anesthesia precisely defined within contemporary dental practice?", 
+            options: [
+                "The transient and reversible suppression of nociceptive thermal and painful sensitivity within a restricted anatomical area", 
+                "The complete and induced loss of protective reflexes and consciousness associated with deep pharmacological hypnosis", 
+                "The elective reduction of situational anxiety through the administration of low-dose central nervous depressants", 
+                "The modification of cortical perception thresholds utilizing structured psychological dissociation and relaxation techniques"
+            ], 
+            correct: 0, 
+            explanation: "Local anesthesia reversibly blocks nerve conduction in a targeted zone without altering the patient's consciousness." 
+        },
+        { 
+            question: "Which pharmacological molecule currently represents the most widely utilized local anesthetic agent?", 
+            options: [
+                "Lidocaine hydrochloride 2%, which remains the standard reference amide molecule for routine clinical procedures", 
+                "Articaine hydrochloride 4%, characterized by an enhanced thiophene ring facilitating superior bone tissue diffusion", 
+                "Mepivacaine hydrochloride 3%, frequently selected for its mild intrinsic vasoconstrictive properties in short treatments", 
+                "Prilocaine hydrochloride 4%, noted for its low systemic toxicity profile but carrying a potential risk of methemoglobinemia"
+            ], 
+            correct: 0, 
+            explanation: "Lidocaine 2% is the historical standard reference for modern amide anesthetics, though articaine 4% is also heavily utilized." 
+        },
+        { 
+            question: "Which vasoconstrictive agent is most commonly associated with commercial lidocaine formulations?", 
+            options: [
+                "Epinephrine (adrenaline) formulated at a standard titration of 1:100,000 to maximize local biological efficiency", 
+                "Norepinephrine (noradrenaline), which induces potent peripheral vasoconstriction but carries an elevated risk of tissue necrosis", 
+                "Phenylephrine hydrochloride, a synthetic alpha-1 selective adrenergic agonist with limited cardiac side effects", 
+                "Vasopressin, a neurohypophyseal peptide hormone exerting direct non-adrenergic vasoconstrictive activity on capillaries"
+            ], 
+            correct: 0, 
+            explanation: "Epinephrine is the gold standard vasoconstrictor, acting on both alpha and beta-adrenergic receptors to control local blood flow." 
+        },
+        { 
+            question: "What is the primary clinical rationale for adding a vasoconstrictor to a local anesthetic solution?", 
+            options: [
+                "To prolong the anesthetic duration, minimize systemic toxicity risks, and improve localized operative field homeostasis", 
+                "To accelerate the onset of action while deliberately increasing the acute postoperative painful symptomatology", 
+                "To modify the chemical pH of the solution to match the physiological neutrality of inflamed peripheral tissues", 
+                "To drastically lower the manufacturing cost of the cartridge by reducing the required mass of pure anesthetic salt"
+            ], 
+            correct: 0, 
+            explanation: "Vasoconstriction delays systemic absorption, which extends pulpal anesthesia and reduces the peak plasma concentration of the drug." 
+        },
+        { 
+            question: "What is the recognized maximum safe dose of lidocaine with epinephrine in a healthy adult patient?", 
+            options: [
+                "7 mg/kg of body weight, up to an absolute absolute maximum threshold of 500 mg per single clinical session", 
+                "4.4 mg/kg of body weight, representing the maximum conservative ceiling established for pediatric cohorts", 
+                "10 mg/kg of body weight, a high threshold exclusively tolerated during extensive general surgical interventions", 
+                "2 mg/kg of body weight, a restrictive limit strictly reserved for patients presenting with advanced renal failure"
+            ], 
+            correct: 0, 
+            explanation: "For a standard 70 kg adult, 7 mg/kg allows a maximum of 500 mg, equivalent to roughly 13 to 14 standard 1.8 mL cartridges at 2%." 
+        },
+        { 
+            question: "What is the maximum recommended dosage guidelines for a healthy adult receiving articaine 4% with epinephrine?", 
+            options: [
+                "7 mg/kg of body weight, aligning with the maximal systemic threshold due to rapid hepatic and plasma hydrolysis", 
+                "4.4 mg/kg of body weight, representing a protective restricted ceiling applied to minimize cardiotoxic risks", 
+                "10 mg/kg of body weight, an elevated safety margin justified by the complete absence of plasma protein binding", 
+                "2 mg/kg of body weight, a severe regulatory restriction mandatory for all therapeutic procedures in the anterior maxilla"
+            ], 
+            correct: 0, 
+            explanation: "Articaine possesses an ester group in addition to its amide structure, allowing rapid breakdown by plasma cholinesterases and a favorable safety margin." 
+        },
+        { 
+            question: "What is the maximum safe dose of lidocaine when administered without any vasoconstrictive adjunct?", 
+            options: [
+                "4.4 mg/kg of body weight, up to an absolute systemic ceiling threshold not exceeding 300 mg per session", 
+                "7 mg/kg of body weight, a threshold that remains unchanged regardless of peripheral microvascular blood flow velocity", 
+                "10 mg/kg of body weight, an empirical limit applied only when managing acute inflammatory phenomena in deep spaces", 
+                "2 mg/kg of body weight, a highly conservative restriction enforced during routine infiltration in hypervascularized zones"
+            ], 
+            correct: 0, 
+            explanation: "Without epinephrine, plain lidocaine induces vasodilation, leading to rapid systemic absorption, shortened clinical effect, and higher toxicity risks." 
+        },
+        { 
+            question: "What is the typical clinical onset time for a local anesthetic effect using standard lidocaine 2%?", 
+            options: [
+                "2 to 3 minutes following successful deposition of the solution into the target anatomical workspace", 
+                "30 seconds maximum, reflecting an instantaneous intracellular diffusion through the neural phospholipid bilayer", 
+                "5 to 10 minutes, a prolonged latency period routinely observed with high-molecular weight ester compounds", 
+                "15 minutes minimum, requiring a mandatory prior chemical buffering of the solution before tissue insertion"
+            ], 
+            correct: 0, 
+            explanation: "Lidocaine exhibits a rapid onset (2-3 min), though articaine can diffuse slightly quicker through dense bony structures." 
+        },
+        { 
+            question: "What is the average expected duration of effective pulpal anesthesia using lidocaine 2% with epinephrine?", 
+            options: [
+                "60 to 90 minutes of profound endodontic and operative analgesia, satisfying most conservative procedures", 
+                "30 minutes maximum, a brief therapeutic window insufficient for complex multi-rooted tooth interventions", 
+                "120 minutes of uninterrupted pulpal insensitivity, systematically extending into the deep post-operative phase", 
+                "15 minutes, a transient effect restricted to superficial mucosal curettage or mobile primary tooth extractions"
+            ], 
+            correct: 0, 
+            explanation: "While soft tissue anesthesia lasts 3 to 5 hours, true pulpal (hard tissue) anesthesia averages 60 to 90 minutes with a vasoconstrictor." 
+        },
+        { 
+            question: "How are local anesthetic modalities classified within contemporary clinical dentistry?", 
+            options: [
+                "Topical, infiltrative (supraperiosteal), regional block (conduction), intraligamentary, and intraosseous techniques", 
+                "Inhalation, intravenous, rectal, intramuscular, and general endotracheal pharmacological management schemes", 
+                "Sedative, hypnotic, neuroleptic, dissociative, and non-pharmacological cognitive-behavioral therapies", 
+                "Superficial, intermediate, profound, subtotal, and ultra-deep micro-regional biochemical blocks"
+            ], 
+            correct: 0, 
+            explanation: "The selection among these modalities is dictated by the specific quadrant, bone density, and degree of localized inflammation." 
+        },
+        { 
+            question: "How is an infiltrative or supraperiosteal anesthetic technique precisely characterized?", 
+            options: [
+                "The deposition of the anesthetic solution into the mucobuccal fold near the terminal microscopic nerve branches", 
+                "The targeted delivery of the chemical agent adjacent to a major proximal nerve trunk to block a vast territory", 
+                "The direct administration of ultra-low doses into the systemic circulation via a superficial venous access path", 
+                "The deep introduction of the active principles into the core skeletal muscle mass of the medial pterygoid"
+            ], 
+            correct: 0, 
+            explanation: "Infiltration relies on the diffusion of the anesthetic through the thin cortical bone plate, which is highly effective in the maxilla." 
+        },
+        { 
+            question: "How is a regional block or nerve conduction anesthesia precisely characterized?", 
+            options: [
+                "The deposition of the solution around a major peripheral nerve trunk distant from the immediate operative field", 
+                "The localized application of an un-pressurized liquid compound directly over a macroscopically intact mucosal barrier", 
+                "The intra-marrow delivery of micro-doses through a mechanical perforation of the cortical bone plate", 
+                "The forced introduction of a hyperbaric fluid directly into the vascular meshwork of the periodontal ligament"
+            ], 
+            correct: 0, 
+            explanation: "Nerve blocks interrupt transmission along an entire nerve pathway, rendering an extensive anatomical quadrant completely insensitive." 
+        },
+        { 
+            question: "Which main neural structure is targeted during a conventional mandibular regional anesthesia?", 
+            options: [
+                "The inferior alveolar nerve (IAN) as it enters the mandibular foramen within the pterygomandibular space", 
+                "The long buccal nerve as it crosses the anterior border of the ramus over the internal oblique line", 
+                "The lingual nerve sitting superficially along the medial surface of the alveolar process near the third molar", 
+                "The mental nerve as it exits the cortical bone infrastructure between the mandibular premolar roots"
+            ], 
+            correct: 0, 
+            explanation: "An inferior alveolar nerve block desensitizes the mandibular teeth, lower lip, and anterior two-thirds of the tongue via collateral lingual block." 
+        },
+        { 
+            question: "How is an intraligamentary anesthetic technique precisely defined?", 
+            options: [
+                "The injection of the anesthetic solution under high mechanical pressure directly into the periodontal ligament space", 
+                "The superficial deposition of a fluid compound beneath the mobile mucosa of the unattached gingival margin", 
+                "The targeted delivery of the active principles into the deep fibers of the masseteric muscle structure", 
+                "The indirect trans-medullary diffusion achieved by introducing a liquid solution through the interdental papilla"
+            ], 
+            correct: 0, 
+            explanation: "Intraligamentary anesthesia delivers localized, brief, and intense pulp anesthesia per individual tooth, utilizing specialized high-pressure syringes." 
+        },
+        { 
+            question: "Which needle configurations are most frequently selected for routine local injections in dentistry?", 
+            options: [
+                "Ultra-thin short or long disposable needles typically ranging from 25 to 30 Gauge in diameter specifications", 
+                "Thick, rigid surgical needles exceeding 18 Gauge designed for deep macro-compartment soft tissue access", 
+                "Extra-long beveled needles exclusively calibrated for deep intramuscular gluteal pharmacological delivery", 
+                "Flexible blunt-tipped micro-cannulas manufactured for the continuous administration of intravenous fluids"
+            ], 
+            correct: 0, 
+            explanation: "Higher Gauge numbers indicate thinner needles; 27G and 30G needles provide excellent clinical accuracy and minimal tissue trauma." 
+        },
+        { 
+            question: "What is the primary technical reason for utilizing standard 1.8 mL glass anesthetic cartridges?", 
+            options: [
+                "It represents the internationally standardized volumetric capacity designed to fit securely into breech-loading aspirating syringes", 
+                "It constitutes the maximum physical fluid volume that a human mucosal tissue can tolerate before undergoing tearing", 
+                "It corresponds to the exact minimum quantity required to trigger a systemic central analgesic effect via oral pathways", 
+                "It matches the precise volumetric output delivered by an automated single stroke of a pneumatic compressor unit"
+            ], 
+            correct: 0, 
+            explanation: "The dental carpule (1.7 to 1.8 mL) is engineered to interface seamlessly with standard dental aspirating syringes and single-use needles." 
+        },
+        { 
+            question: "What is the clinical objective of applying a topical anesthetic gel or spray?", 
+            options: [
+                "To desensitize the superficial mucosal receptors prior to needle insertion to minimize initial puncture discomfort", 
+                "To achieve a deep pulpal nerve block capable of permitting the painless extirpation of a vital root canal system", 
+                "To induce a permanent reduction in salivary flow by chemically neutralizing the submandibular duct secretions", 
+                "To establish an antimicrobial barrier layer capable of replacing surgical hand scrubbing protocols"
+            ], 
+            correct: 0, 
+            explanation: "Topical agents (high-concentration benzocaine or lidocaine) dull the initial prick of the needle when left in contact with dried mucosa for 1-2 minutes." 
+        },
+        { 
+            question: "What is the immediate primary physiological risk associated with an accidental intravascular injection?", 
+            options: [
+                "The instantaneous onset of systemic systemic toxicity affecting both the central nervous and cardiovascular systems", 
+                "The progressive development of a delayed Type IV hypersensitivity immune response against the amide molecule", 
+                "The immediate ischemic necrosis of the overlying mucosa secondary to local mechanical compression forces", 
+                "The formation of a voluminous, encapsulated hematome requiring urgent surgical extra-oral drainage procedures"
+            ], 
+            correct: 0, 
+            explanation: "Accidental direct entry into a blood vessel elevates plasma drug levels instantly, simulating an overdose even with minimal volumes." 
+        },
+        { 
+            question: "What are the early, classic clinical signs of systemic toxicity secondary to local anesthetic overdose?", 
+            options: [
+                "Perioral numbness, a subjective metallic taste, auditory tinnitus, muscle twitching, and potential generalized convulsions", 
+                "Deep, uninterrupted somnolence associated with severe respiratory bradypnea and an absolute loss of motor tone", 
+                "Violent projectile vomiting paired with high-grade pyrexia and a generalized macular cutaneous eruption", 
+                "Acute joint stiffness migrating rapidly across large articulations accompanied by an intense localized pruritus"
+            ], 
+            correct: 0, 
+            explanation: "Local anesthetics cross the blood-brain barrier at toxic levels, initially inhibiting inhibitory pathways, which leads to CNS excitation before depression." 
+        },
+        { 
+            question: "What is the correct immediate management protocol for a patient presenting mild initial toxicity signs?", 
+            options: [
+                "Terminate the injection immediately, position the patient safely, administer supplemental oxygen, and monitor vitals", 
+                "Accelerate the injection speed to complete the technical procedure before the patient loses full motor control", 
+                "Administer an additional dose of a alternative local anesthetic molecule to stabilize the cell membranes", 
+                "Disregard the clinical manifestations and proceed normally with high-speed mechanical cavity preparation"
+            ], 
+            correct: 0, 
+            explanation: "Stopping the drug delivery instantly prevents plasma concentrations from reaching severe cardiotoxic levels." 
+        },
+        { 
+            question: "How is an authentic allergic hypersensitivity reaction to modern amide local anesthetics qualified?", 
+            options: [
+                "Extremely rare, with clinical adverse events more frequently triggered by chemical preservatives or latex allergens", 
+                "An exceedingly frequent clinical occurrence requiring systematic preoperative skin-prick testing for all patients", 
+                "An inevitable biological event occurring systematically upon the second exposure to any molecule of the amide group", 
+                "A phenomenon sitting exclusively within the domain of pediatric cohorts presenting with severe food allergies"
+            ], 
+            correct: 0, 
+            explanation: "True allergy to amide anesthetics is exceptional; reactions are typically psychogenic (vasovagal) or tied to preservatives like sodium bisulfite." 
+        },
+        { 
+            question: "What alternative option is indicated for a patient with a fully documented allergy to an amide local anesthetic?", 
+            options: [
+                "Utilize an ester-type anesthetic alternative with caution, or refer for management under general anesthesia", 
+                "Administer the exact same amide molecule but dilute it with sterile saline water to a final titration of 10 percent", 
+                "Proceed with the planned invasive surgical treatments without any form of pharmacological pain control", 
+                "Substitute the local anesthetic agent with an intravenous infusion of a broad-spectrum bactericidal antibiotic"
+            ], 
+            correct: 0, 
+            explanation: "Cross-reactivity within the amide group is possible; confirmed cases require completely different chemical families or specialized hospital management." 
+        },
+        { 
+            question: "Which clinical conditions constitute absolute contraindications to the use of epinephrine in dental solutions?", 
+            options: [
+                "Confirmed pheochromocytoma, uncontrolled severe hyperthyroidism, and a documented recent myocardial infarction", 
+                "Well-controlled essential hypertension, diet-regulated Type II diabetes mellitus, and mild seasonal allergic asthma", 
+                "Chronic superficial gingival inflammation, advanced physiological dentinal wear, and a history of motion sickness", 
+                "Mild anxiety disorder, a history of uncomplicated orthodontic treatments, and an allergy to penicillin derivatives"
+            ], 
+            correct: 0, 
+            explanation: "In these high-risk scenarios, the endogenous-like surge of exogenous epinephrine can precipitate severe hypertensive crises or fatal arrhythmias." 
+        },
+        { 
+            question: "What is the physiological risk of administering an epinephrine-containing anesthetic to a patient on non-selective beta-blockers?", 
+            options: [
+                "An acute hypertensive crisis paired with reflex bradycardia due to unopposed alpha-1 adrenergic vasoconstriction", 
+                "An immediate, catastrophic collapse of peripheral blood pressure resulting in sudden anaphylactic shock states", 
+                "A total inactivation of the anesthetic molecule preventing any development of localized nerve conduction blocks", 
+                "An accelerated hepatic clearance of the active principles reducing the clinical duration to under three minutes"
+            ], 
+            correct: 0, 
+            explanation: "Blocking beta-2 mediated vasodilation leaves alpha-1 mediated vasoconstriction completely unopposed, risking a severe increase in blood pressure." 
+        },
+        { 
+            question: "What is the technical objective of performing an aspiration test prior to injecting any local solution?", 
+            options: [
+                "To apply negative pressure to verify that the needle tip does not reside inside the lumen of a blood vessel", 
+                "To generate a positive pressure wave to force the anesthetic fluid past dense anatomical ligamentous barriers", 
+                "To check the internal mechanical patency of the needle shaft by venting air bubbles out of the glass carpule", 
+                "To extract a micro-sample of local tissue fluids to measure the surrounding pathological extracellular pH value"
+            ], 
+            correct: 0, 
+            explanation: "Aspiration is a critical safety step; seeing blood in the cartridge means the needle is intravascular and must be repositioned." 
+        }
+    ];
+
+    // ============================================
+    // =========== MAX SCORE ======================
+    // ============================================
+    const MAX_SCORE_WITH_BONUS = questions.length * 15;
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("anesthesiologie_v1_debutant1_en", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== UNLOCK LEVEL 2 ================
+    // ============================================
+    function unlockLevel2(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("anesthesiologie_v1_debutant2_en_unlocked", "true");
+            localStorage.setItem("anesthesiologie_v1_debutant1_en_score", percentage.toFixed(1));
+            console.log("✅ Level 2 UNLOCKED! Score: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("anesthesiologie_v1_debutant2_en_unlocked", "false");
+            console.log("❌ Level 2 LOCKED. Score: " + percentage.toFixed(1) + "% (min " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 SAVE VALIDATION FOR PROGRESSION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            // 1. Save to eteo_validation
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            // 2. 🔥 Save to eteo_progression
+            const progressionData = JSON.parse(localStorage.getItem('eteo_progression') || '{}');
+            const key = specialite + '_' + niveau;
+            progressionData[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progressionData));
+            
+            console.log('✅ Validation saved for progression.html');
+        }
+    }
+
+    // ================================================================
+    // 🔥 GO TO PROGRESSION
+    // ================================================================
+    function goToProgression() {
+        console.log("🔍 goToProgression() called");
+        
+        const validationData = {
+            specialite: 'Dental Anesthesiology',
+            niveau: 'debutant1',
+            score: score,
+            total: MAX_SCORE_WITH_BONUS,
+            percentage: (score / MAX_SCORE_WITH_BONUS) * 100,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('eteo_validation', JSON.stringify(validationData));
+        console.log("✅ Validation saved for progression");
+        
+        const url = '../../../../progression_en.html?valider=Dental Anesthesiology_debutant1&score=' + score + '&total=' + MAX_SCORE_WITH_BONUS;
+        console.log("🔀 Redirecting to:", url);
+        window.location.href = url;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // ============================================
+    // =========== RENDER QUESTION ================
+    // ============================================
+    function renderQuestion() {
+        console.log("🔍 renderQuestion() - Question", currentQuestion + 1);
+        isSpeaking = false;
+        
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${letter}. ${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>💉 Dental Anesthesiology - Beginner Level 1</h1><p>Question ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Read question</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explanation:</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Read explanation</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Time left: <span id="timer">${timeLeft}</span> seconds</div>
+                <div class="score">🏆 Current score: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandon</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Next →</button>
+                </div>
+            </div>
+        `;
+        
+        // ✅ Attach voice events
+        attachVoiceEvents();
+        answerLocked = false;
+        startTimer();
+        lastAnswerCorrect = false;
+        lastCorrectAnswer = "";
+        lastPointsEarned = 0;
+        
+        // ✅ Auto-read question after 500ms
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 500);
+    }
+
+    // ============================================
+    // =========== ATTACH VOICE EVENTS ============
+    // ============================================
+    function attachVoiceEvents() {
+        // ✅ Button "Read question"
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Event attached to voiceQuestionBtn");
+        }
+        
+        // ✅ Button "Read explanation" (if visible)
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Event attached to voiceExplanationBtn");
+        }
+    }
+
+    // ============================================
+    // =========== CHECK ANSWER ===================
+    // ============================================
+    function checkAnswer(selectedIndex) {
+        console.log("🔍 checkAnswer() - Option", String.fromCharCode(65 + selectedIndex));
+        
+        // ✅ STOP reading
+        stopSpeaking();
+        
+        if (answerLocked) {
+            console.log("⏳ Answer already locked");
+            return;
+        }
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            console.log("✅ Correct answer! +", pointsEarned, "points");
+        } else {
+            console.log("❌ Wrong answer. Correct answer:", shuffledOptions[currentCorrectIndex]);
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} points</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 points)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ Correct answer!' : '❌ Wrong answer'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Re-listen to feedback</button>
+                </div>
+            `;
+            
+            // ✅ Attach event for feedback button
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Event attached to voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Correct answer: ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Current score: ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        // ✅ AUTO-READ FEEDBACK
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `Correct answer! +${pointsEarned} points.`;
+        } else {
+            feedbackText = `Wrong answer. The correct answer was: ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Auto-reading feedback");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "en-US", function() {
+            console.log("✅ Auto-feedback finished");
+        });
+    }
+
+    // ============================================
+    // =========== NEXT QUESTION ==================
+    // ============================================
+    function nextQuestion() {
+        console.log("🔍 nextQuestion() called");
+        
+        // ✅ STOP reading
+        stopSpeaking();
+        
+        if (!answerLocked) {
+            console.log("⚠️ Please answer before continuing");
+            return;
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVIGATION =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_en.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        console.log("🔍 endQuiz() called");
+        
+        // ✅ STOP reading
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        const isUnlocked = unlockLevel2(percentage);
+        
+        sauvegarderValidation('Dental Anesthesiology', 'debutant1', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 Quiz completed!</h1>
+                <div class="final-score">Score: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Percentage: <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ? 
+                        '<div class="unlock-badge">✅ Beginner Level 2 unlocked! 🎊</div>' : 
+                        '<div class="locked-badge">⚠️ Insufficient score (minimum 60% required to unlock the next level)</div>'}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ? 
+                        '📚 Go to the menu to access Level 2.' : 
+                        `💪 You need ${(60 - percentage).toFixed(1)}% more to unlock Level 2. Try again!`}
+                </div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Listen to your result</button>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0;">
+                    <button class="share-btn" onclick="shareScore()">📤 Share my score</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Give feedback</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 World ranking</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Main menu</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Check my progression</button>
+                </div>
+            </div>
+        `;
+        
+        // ✅ Attach event for result button
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Event attached to voiceResultBtn");
+        }
+        
+        // Auto-read result after 1 second
+        setTimeout(() => {
+            speakFinalResult();
+        }, 1000);
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2000);
+    }
+
+    // ============================================
+    // =========== POPUP RANKING MODAL ============
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anonymous";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No scores recorded for this level yet.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Your ranking</div>
+                        <div class="rank-number">${userRank}e position</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} points (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 You are not yet in the ranking for this level</div>
+                        <div>Take the quiz to appear!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Dental Anesthesiology Beginner 1</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anonymous"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No scores for this level</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Firestore error:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ Unable to load ranking.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Unknown error'}</span></div>`;
+        }
+    }
+
+    function abandonQuiz() {
+        // ✅ STOP reading
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("anesthesiologie_v1_debutant1_en", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel2(partialPercentage);
+        sauvegarderValidation('Dental Anesthesiology', 'debutant1', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>❌ Quiz abandoned</h1>
+                <div class="final-score">Partial score: ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div>Percentage: ${partialPercentage.toFixed(1)}%</div>
+                <div style="margin:20px 0;">🏆 This score has been recorded in the ranking.</div>
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Back to menu</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 My progression</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Dental Anesthesiology Beginner 1\nMy score: ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\nChallenge me on ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ Score copied to clipboard!");
+            }).catch(() => {
+                alert("📋 To share, copy this text:\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        console.log("🚀 startQuiz() called");
+        saveUserInfo();
+        console.log("🔊 Activating voice...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Quiz started");
+    }
+
+    // ============================================
+    // =========== INITIALIZATION ==================
+    // ============================================
+    console.log("🚀 Page loaded - ETEO Quiz Dental Anesthesiology (EN)");
+    console.log("📱 window.Capacitor =", window.Capacitor);
+    
+    if (window.Capacitor) {
+        console.log("📱 Platform =", window.Capacitor.getPlatform());
+        console.log("📱 Plugins =", Object.keys(window.Capacitor.Plugins || {}));
+    }
+    
+    document.body.addEventListener('click', function firstClick() { 
+        console.log("🖱️ First click - Activating voice");
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>

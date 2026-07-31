@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Implantología - Principiante 1</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT DU PLUGIN VOIX ========== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        window.TextToSpeech = TextToSpeech;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        console.log('✅ Plugin TextToSpeech cargado!');
+        console.log('📱 Modo móvil:', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            transform: scale(1.05);
+        }
+        .btn-progression {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-progression:hover {
+            background: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .btn-menu {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-menu:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+        
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .close-btn:hover {
+            transform: scale(1.1);
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item { border-bottom-color: #444; }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number { font-size: 2rem; font-weight: bold; }
+        .user-rank-card .rank-label { font-size: 1.2rem; }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator inactive" id="voiceIndicator">🔇 IA inactiva</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de clasificación -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 SU POSICIÓN</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Cargando clasificación...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURACIÓN FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID PARA ESTE QUIZ
+    // ============================================
+    const LEVEL_ID = "implantologie_v1_debutant1_es";
+
+    // ============================================
+    // =========== 1. SISTEMA DE VOZ ==============
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+
+    // ============================================
+    // 🔥 FUNCIÓN: REACTIVAR TODOS LOS BOTONES
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Reactivando TODOS los botones");
+        
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Leer pregunta';
+            console.log("✅ voiceQuestionBtn reactivado");
+        }
+        
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Reescuchar retroalimentación';
+            console.log("✅ voiceFeedbackBtn reactivado");
+        }
+        
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Leer explicación';
+            console.log("✅ voiceExplanationBtn reactivado");
+        }
+        
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Escuchar su resultado';
+            console.log("✅ voiceResultBtn reactivado");
+        }
+        
+        isSpeaking = false;
+        updateVoiceIndicator('active');
+        console.log("✅ ¡Todos los botones de voz están ahora ACTIVOS!");
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN: DETENER LA VOZ
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() llamado");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Detención Android realizada");
+            }
+        } catch(e) { console.log("⚠️ Error detención Android:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Detención Web Speech realizada");
+            }
+        } catch(e) { console.log("⚠️ Error detención Web Speech:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking reiniciado a false");
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN: FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() llamado");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech no disponible");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'es-ES';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+            if (spanishVoice) utterance.voice = spanishVoice;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Web Speech callback ejecutado");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech finalizado (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Error Web Speech:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Forzando callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Error en fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN: HABLAR (Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() llamado con:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Texto vacío, callback inmediato");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() ejecutado");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Usando plugin Capacitor TTS en Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: text, 
+                    lang: lang || 'es-ES', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS finalizado");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Error Capacitor TTS:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback a Web Speech");
+                        fallbackWebSpeech(text, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Forzando callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Usando Web Speech API");
+                fallbackWebSpeech(text, lang, safeCallback);
+                
+            } else {
+                console.error("❌ No hay motor TTS disponible");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERROR en speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ACTIVACIÓN DE VOZ
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() llamado");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            if (isAndroid) {
+                if (window.Capacitor?.Plugins?.TextToSpeech) {
+                    console.log("✅ Capacitor TTS disponible en Android");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    updateVoiceIndicator('active');
+                } else {
+                    console.warn("⚠️ Capacitor TTS no encontrado en Android");
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback a Web Speech");
+                        voiceReady = true;
+                        voiceActivated = true;
+                        window.speechSynthesis.getVoices();
+                        updateVoiceIndicator('active');
+                    }
+                }
+            } else {
+                if (window.speechSynthesis) {
+                    console.log("✅ Web Speech disponible en PC");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    window.speechSynthesis.getVoices();
+                    updateVoiceIndicator('active');
+                }
+            }
+            console.log("✅ Voz activada, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Voz ya activada");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        if (indicator) {
+            if (status === 'active') {
+                indicator.textContent = '🎙️ IA activa';
+                indicator.className = 'voice-indicator active';
+            } else if (status === 'speaking') {
+                indicator.textContent = '🎙️ Hablando...';
+                indicator.className = 'voice-indicator speaking';
+            } else {
+                indicator.textContent = '🔇 IA inactiva';
+                indicator.className = 'voice-indicator inactive';
+            }
+        }
+    }
+
+    // ============================================
+    // =========== FUNCIONES DE VOZ ===============
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() llamado");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Pregunta ${currentQuestion + 1} de ${questions.length}: ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceQuestionBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakQuestionOnly() finalizado");
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() llamado");
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `¡Respuesta correcta! +${lastPointsEarned} puntos.`;
+        } else {
+            text = `Respuesta incorrecta. La respuesta correcta era: ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceFeedbackBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakFeedback() finalizado");
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() llamado");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Explicación: ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceExplanationBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakExplanation() finalizado");
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() llamado");
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Su puntuación final es de ${score} sobre ${MAX_SCORE_WITH_BONUS}, lo que supone un ${percentage.toFixed(1)} por ciento. `;
+        if (isUnlocked) {
+            text += "¡Felicitaciones! Ha desbloqueado el Nivel 2. ¡Excelente trabajo!";
+        } else {
+            text += `Necesita un ${(60 - percentage).toFixed(1)} por ciento más para desbloquear el Nivel 2. ¡Siga esforzándose!`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceResultBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakFinalResult() finalizado");
+        });
+    }
+
+    // ============================================
+    // =========== 2. INFORMACIÓN USUARIO ========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "ES"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anónimo" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>🦷 Implantología - Principiante Nivel 1</h1><p>¡Bienvenido Doctor!</p></div>
+                <div class="input-group">
+                    <label>👤 Su nombre (opcional) :</label>
+                    <input type="text" id="userName" placeholder="Ej: Dr. Martínez" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Su país (obligatorio) :</label>
+                    <select id="userCountry">
+                        <option value="ES">🇪🇸 España</option>
+                        <option value="MX">🇲🇽 México</option>
+                        <option value="AR">🇦🇷 Argentina</option>
+                        <option value="CO">🇨🇴 Colombia</option>
+                        <option value="PE">🇵🇪 Perú</option>
+                        <option value="CL">🇨🇱 Chile</option>
+                        <option value="VE">🇻🇪 Venezuela</option>
+                        <option value="EC">🇪🇨 Ecuador</option>
+                        <option value="GT">🇬🇹 Guatemala</option>
+                        <option value="CU">🇨🇺 Cuba</option>
+                        <option value="DO">🇩🇴 República Dominicana</option>
+                        <option value="PR">🇵🇷 Puerto Rico</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="MA">🇲🇦 Marruecos</option>
+                        <option value="TR">🇹🇷 Turquía</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">o</div>
+                    <input type="text" id="otherCountry" placeholder="Ingrese su país (ej: Brasil, Japón, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Comenzar el quiz</button>
+                <div class="note">
+                    ⚠️ Regla: 60% mínimo (225/375 puntos) para desbloquear el nivel <strong>Principiante 2</strong>.<br>
+                    🎁 Bono de rapidez: +5 puntos si responde antes del final del temporizador.<br>
+                    📊 Puntuación máxima posible con bono: 375 puntos (25 preguntas × 15 puntos)
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ENVÍO PUNTUACIÓN FIREBASE ==
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "ES";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Puntuación enviada a Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Error Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. PREGUNTAS (25) =============
+    // ============================================
+    const questions = [
+        { 
+            question: "¿Qué define fundamentalmente la implantología oral en el contexto de la odontología restauradora moderna?", 
+            options: [
+                "Un procedimiento de rehabilitación protésica basado en la colocación de elementos de titanio anclados en el hueso maxilar para reemplazar las raíces dentales perdidas", 
+                "Un método de extracción quirúrgica mínimamente invasiva de las raíces residuales", 
+                "Un tratamiento de remineralización local de las superficies radiculares expuestas", 
+                "Un protocolo de ortodoncia acelerada diseñado para reducir los espacios edéntulos"
+            ], 
+            correct: 0, 
+            explanation: "La implantología oral utiliza implantes osteointegrados, generalmente de titanio, que sirven como soporte para prótesis unitarias, puentes o dentaduras completas." 
+        },
+        { 
+            question: "¿Qué científico descubrió el fenómeno de la osteointegración, concepto fundamental en implantología?", 
+            options: [
+                "El Dr. Carl Misch, por sus trabajos sobre la biomecánica", 
+                "El profesor Per-Ingvar Brånemark en la década de 1950, quien observó la fusión del titanio con el tejido óseo", 
+                "El Dr. John Charnley, pionero de la cirugía protésica de cadera", 
+                "El profesor André Schroeder, por sus estudios sobre la cerámica"
+            ], 
+            correct: 1, 
+            explanation: "Per-Ingvar Brånemark, profesor sueco, descubrió accidentalmente la osteointegración en 1952 durante estudios de microcirculación, utilizando cámaras de titanio implantadas en tejido óseo." 
+        },
+        { 
+            question: "¿Cuál es la definición precisa del término 'osteointegración'?", 
+            options: [
+                "La formación de un tejido fibroso denso alrededor de la superficie del implante, asegurando su estabilidad", 
+                "La unión estructural y funcional directa entre el hueso vivo y la superficie de un implante sometido a carga", 
+                "La encapsulación del implante por una membrana conjuntiva avascular", 
+                "La mineralización secundaria de los tejidos periimplantarios por depósito de cristales de hidroxiapatita"
+            ], 
+            correct: 1, 
+            explanation: "La osteointegración se caracteriza por un contacto íntimo y directo entre el hueso y la superficie del implante, sin interposición de tejido blando, a nivel microscópico." 
+        },
+        { 
+            question: "¿Qué propiedad hace que el titanio sea el material de elección para los implantes dentales?", 
+            options: [
+                "Su bajo coste de producción y su facilidad de mecanizado", 
+                "Su alta densidad, que le confiere una resistencia excepcional", 
+                "Su biocompatibilidad excepcional, resistencia a la corrosión y capacidad de osteointegración", 
+                "Su capacidad para liberar iones fluorados con acción antibacteriana"
+            ], 
+            correct: 2, 
+            explanation: "El titanio forma una capa de óxido (TiO₂) estable y no tóxica que permite la osteointegración. Su módulo de elasticidad es próximo al del hueso, lo que reduce el efecto de apantallamiento." 
+        },
+        { 
+            question: "¿Cuál es la importancia de la rugosidad de la superficie del implante en el proceso de osteointegración?", 
+            options: [
+                "Una superficie lisa facilita la fijación celular y acelera la cicatrización", 
+                "Una superficie rugosa o microtexturada aumenta la superficie de contacto y favorece la adhesión y proliferación osteoblástica", 
+                "La rugosidad es solo un factor estético sin influencia clínica", 
+                "Una superficie pulida reduce el riesgo de periimplantitis a largo plazo"
+            ], 
+            correct: 1, 
+            explanation: "Las superficies rugosas (arenado, ataque ácido, plasma-spray) mejoran la osteointegración al aumentar la superficie de contacto y crear micro-retentivos para las células óseas." 
+        },
+        { 
+            question: "¿Cuáles son las indicaciones principales de un implante dental unitario?", 
+            options: [
+                "Reemplazar una sola pieza dentaria perdida, conservando las estructuras vecinas", 
+                "Anclar una prótesis completa sobre 4 a 6 implantes en pacientes edéntulos totales", 
+                "Rehabilitar un sector posterior con múltiples ausencias dentales consecutivas", 
+                "Estabilizar una prótesis removible en mandíbula atrófica"
+            ], 
+            correct: 0, 
+            explanation: "El implante unitario es la solución más conservadora para reemplazar un diente aislado, evitando el tallado de las piezas adyacentes." 
+        },
+        { 
+            question: "¿Cuál es la indicación de un puente sobre implantes?", 
+            options: [
+                "Reemplazar una corona unitaria en una zona de baja masticación", 
+                "Reemplazar varios dientes contiguos con 2 o más implantes como pilares", 
+                "Sobredentadura para pacientes desdentados en oclusión inestable", 
+                "Reemplazar un diente en sector estético anterior"
+            ], 
+            correct: 1, 
+            explanation: "El puente sobre implantes es una solución fija que utiliza varios implantes como soportes para una prótesis de varios elementos, ideal para sectores edéntulos múltiples." 
+        },
+        { 
+            question: "¿Qué condición de salud ósea es generalmente aceptada para la colocación de implantes dentales?", 
+            options: [
+                "Hueso de tipo 4 (hueso esponjoso de baja densidad) en cualquier situación", 
+                "Presencia de enfermedad periodontal activa no tratada, pero compensada por antibióticos", 
+                "Volumen y densidad ósea suficientes para asegurar la estabilidad primaria y la osteointegración", 
+                "Una atrofia severa que requiere exclusivamente implantes cortos"
+            ], 
+            correct: 2, 
+            explanation: "La evaluación preimplantaria incluye un análisis volumétrico y cualitativo del hueso, mediante radiología (CBCT) para determinar la cantidad y calidad del hueso disponible." 
+        },
+        { 
+            question: "¿Cuál es el tiempo de cicatrización ósea estándar recomendado antes de la carga funcional de un implante en el maxilar superior?", 
+            options: [
+                "Una carga inmediata (0 días) es siempre posible en todos los casos", 
+                "3 a 4 meses de cicatrización para permitir una osteointegración óptima", 
+                "6 a 8 semanas mínimas, independientemente de la calidad del hueso", 
+                "Un mínimo de 12 meses para todos los implantes maxilares"
+            ], 
+            correct: 1, 
+            explanation: "En el maxilar superior, que es menos denso, se recomienda un período de cicatrización de 3 a 4 meses para una osteointegración completa antes de la carga protésica." 
+        },
+        { 
+            question: "¿Cuál es el tiempo de cicatrización ósea estándar recomendado antes de la carga funcional en la mandíbula?", 
+            options: [
+                "Inmediatamente después de la colocación, debido a la alta densidad ósea", 
+                "2 a 3 meses de cicatrización antes de la carga protésica", 
+                "6 meses para todos los casos mandibulares", 
+                "No hay diferencia con el maxilar superior, 4 meses en ambos casos"
+            ], 
+            correct: 1, 
+            explanation: "La mandíbula, que es más densa, permite un período de cicatrización un poco más corto, de 2 a 3 meses, antes de la carga." 
+        },
+        { 
+            question: "¿Cuál es la elección más adecuada de tipo de implante para una zona con alta densidad ósea y requerimientos estéticos?", 
+            options: [
+                "Implantes cónicos de rosca doble con superficie hidrofílica", 
+                "Implantes cilíndricos lisos sin rosca", 
+                "Implantes de cerámica de zirconia con conexión interna", 
+                "Implantes cortos de 4 mm de longitud"
+            ], 
+            correct: 0, 
+            explanation: "Los implantes cónicos permiten una excelente estabilidad primaria en hueso denso, y la superficie hidrofílica acelera la osteointegración, lo que es beneficioso para los resultados estéticos." 
+        },
+        { 
+            question: "¿Qué factor es crítico para el éxito a largo plazo de un implante dental?", 
+            options: [
+                "La elección exclusiva de una prótesis atornillada", 
+                "La ausencia total de carga durante un año", 
+                "La presencia de un sellado biológico y un mantenimiento periodontal riguroso", 
+                "La utilización de un cemento de fijación temporal"
+            ], 
+            correct: 2, 
+            explanation: "El éxito a largo plazo requiere un sellado biológico (epitelio de unión) alrededor del cuello del implante y una higiene oral meticulosa para prevenir la periimplantitis." 
+        },
+        { 
+            question: "¿Qué complicación tardía es más comúnmente asociada a los implantes dentales?", 
+            options: [
+                "La fractura del implante por fatiga del titanio", 
+                "La periimplantitis, una inflamación infecciosa de los tejidos alrededor del implante", 
+                "La pérdida de la osteointegración por causas idiopáticas", 
+                "La ruptura de la conexión del pilar protésico"
+            ], 
+            correct: 1, 
+            explanation: "La periimplantitis es la principal causa de fracaso tardío de los implantes. Se caracteriza por una inflamación y pérdida ósea progresiva, similar a la periodontitis." 
+        },
+        { 
+            question: "¿Cómo se define la estabilidad primaria de un implante?", 
+            options: [
+                "La estabilidad mecánica inmediata obtenida al momento de la colocación, gracias al anclaje en el hueso cortical", 
+                "La integración biológica completa después de 6 meses de cicatrización", 
+                "La ausencia de movilidad durante los controles de mantenimiento anual", 
+                "La fijación de la prótesis sobre el implante mediante cemento"
+            ], 
+            correct: 0, 
+            explanation: "La estabilidad primaria es puramente mecánica y depende de la densidad ósea, la geometría del implante y la técnica quirúrgica. Es esencial para la osteointegración." 
+        },
+        { 
+            question: "¿Qué es la estabilidad secundaria de un implante?", 
+            options: [
+                "El resultado de la osteointegración biológica que ocurre después del remodelado óseo", 
+                "La estabilidad inicial obtenida por compresión de la cortical", 
+                "La estabilidad obtenida después de la colocación de la prótesis definitiva", 
+                "El ajuste micrométrico del pilar protésico"
+            ], 
+            correct: 0, 
+            explanation: "La estabilidad secundaria es biológica; resulta de la formación de nuevo hueso y el remodelado alrededor del implante, reemplazando gradualmente la estabilidad primaria inicial." 
+        },
+        { 
+            question: "¿Cuál es la principal ventaja de un implante de diámetro estrecho (3 mm o menos)?", 
+            options: [
+                "Permite la colocación en espacios interradiculares estrechos y en crestas óseas finas", 
+                "Ofrece una mayor resistencia a las fuerzas masticatorias", 
+                "Facilita la osteointegración gracias a su superficie reducida", 
+                "Permite una carga inmediata siempre posible"
+            ], 
+            correct: 0, 
+            explanation: "Los implantes de diámetro estrecho están indicados para áreas con poco espacio (incisivos inferiores, espacios interdentales) o para crestas óseas finas, evitando procedimientos de regeneración ósea." 
+        },
+        { 
+            question: "¿Cuál es la técnica quirúrgica que consiste en colocar un implante en el alveolo de extracción inmediato?", 
+            options: [
+                "La técnica de carga inmediata", 
+                "La implantación post-exodoncia o inmediata", 
+                "La técnica de regeneración ósea guiada", 
+                "La elevación del seno maxilar"
+            ], 
+            correct: 1, 
+            explanation: "La implantación inmediata se realiza en el mismo acto quirúrgico que la extracción dental, reduciendo el número de intervenciones y preservando los tejidos." 
+        },
+        { 
+            question: "¿Cuál es la indicación principal de la elevación del seno maxilar?", 
+            options: [
+                "La colocación de implantes en el maxilar posterior donde la altura ósea es insuficiente", 
+                "La colocación de implantes en la mandíbula anterior con atrofia", 
+                "La extracción de quistes maxilares complejos", 
+                "La corrección de una maloclusión severa"
+            ], 
+            correct: 0, 
+            explanation: "La elevación del seno maxilar es una técnica de aumento óseo que permite ganar altura ósea en el maxilar posterior, creando un espacio entre el seno y la cresta alveolar." 
+        },
+        { 
+            question: "¿Qué técnica permite aumentar el espesor de una cresta alveolar demasiado fina para la colocación de implantes?", 
+            options: [
+                "La regeneración ósea guiada con membrana y material de injerto", 
+                "La elevación del seno maxilar", 
+                "La expansión de la cresta mediante osteotomía", 
+                "La osteointegración acelerada mediante fármacos"
+            ], 
+            correct: 0, 
+            explanation: "La regeneración ósea guiada utiliza membranas (reabsorbibles o no) y materiales de injerto (hueso autógeno, xenogénico o sintético) para aumentar el volumen óseo." 
+        },
+        { 
+            question: "¿Cuál es el factor limitante principal para la colocación de implantes en la región mandibular posterior?", 
+            options: [
+                "La altura insuficiente del hueso alveolar por encima del conducto dentario inferior", 
+                "La falta de densidad ósea en esta región", 
+                "La presencia del agujero mentoniano", 
+                "La cercanía de la glándula submandibular"
+            ], 
+            correct: 0, 
+            explanation: "El conducto dentario inferior contiene el paquete vásculo-nervioso. Es necesario respetar una distancia de seguridad (al menos 2 mm) para evitar lesiones neurológicas." 
+        },
+        { 
+            question: "¿Cuál es el concepto de 'carga inmediata' en implantología oral?", 
+            options: [
+                "La colocación de una prótesis provisional o definitiva dentro de las 48 horas siguientes a la cirugía", 
+                "La aplicación de fuerzas masticatorias inmediatamente después de la colocación del implante", 
+                "La colocación de la corona definitiva al día siguiente de la cirugía", 
+                "La fijación de un pilar de cicatrización el mismo día de la cirugía"
+            ], 
+            correct: 0, 
+            explanation: "La carga inmediata consiste en colocar una prótesis provisional funcional en el mismo acto quirúrgico o dentro de las primeras 48 horas, generalmente para implantes con excelente estabilidad primaria." 
+        },
+        { 
+            question: "¿Cuál de estas afirmaciones sobre la conexión del pilar es correcta?", 
+            options: [
+                "Una conexión hexagonal interna ofrece una mayor estabilidad y sellado biológico que una conexión externa", 
+                "La conexión externa es superior en resistencia a la fatiga", 
+                "El tipo de conexión no influye en el éxito del implante", 
+                "La conexión cónica interna es menos estable que la hexagonal"
+            ], 
+            correct: 0, 
+            explanation: "Las conexiones internas (hexágono interno o conexión cónica) ofrecen una mejor distribución de cargas y un sellado biológico superior, reduciendo la microfiltración bacteriana." 
+        },
+        { 
+            question: "¿Cuál es la complicación más frecuente en la cirugía de elevación del seno maxilar?", 
+            options: [
+                "La perforación de la membrana sinusal durante el procedimiento", 
+                "La fractura del hueso maxilar residual", 
+                "La migración del injerto óseo hacia los senos", 
+                "La lesión del nervio infraorbitario"
+            ], 
+            correct: 0, 
+            explanation: "La perforación de la membrana de Schneider es la complicación más común durante la elevación del seno. Generalmente se maneja mediante reparación primaria sin consecuencias mayores." 
+        },
+        { 
+            question: "¿Cuál es la definición de un implante 'zigomático'?", 
+            options: [
+                "Un implante anclado en el hueso cigomático para pacientes con atrofia maxilar severa", 
+                "Un implante de diámetro muy reducido para espacios estrechos", 
+                "Un implante de titanio con recubrimiento de hidroxiapatita", 
+                "Un implante diseñado para la región anterior del maxilar"
+            ], 
+            correct: 0, 
+            explanation: "Los implantes zigomáticos son implantes largos (30 a 50 mm) que se anclan en el hueso cigomático, evitando la necesidad de injertos óseos en pacientes con atrofia maxilar severa." 
+        },
+        { 
+            question: "¿Qué se entiende por 'periimplantitis mucositis'?", 
+            options: [
+                "Una inflamación reversible limitada a la mucosa periimplantaria, sin pérdida ósea", 
+                "Una inflamación irreversible con pérdida ósea avanzada", 
+                "La formación de un tejido fibroso alrededor del implante", 
+                "La osteointegración excesiva que conduce a la anquilosis"
+            ], 
+            correct: 0, 
+            explanation: "La mucositis periimplantaria es una inflamación de los tejidos blandos, comparable a la gingivitis, y es reversible si se trata precozmente. Puede evolucionar a periimplantitis si no se maneja." 
+        }
+    ];
+
+    // ============================================
+    // =========== MAX SCORE ======================
+    // ============================================
+    const MAX_SCORE_WITH_BONUS = questions.length * 15;
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("implantologie_v1_debutant1_es", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== DESBLOQUEAR NIVEL 2 ============
+    // ============================================
+    function unlockLevel2(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("implantologie_v1_debutant2_es_unlocked", "true");
+            localStorage.setItem("implantologie_v1_debutant1_es_score", percentage.toFixed(1));
+            console.log("✅ Nivel 2 DESBLOQUEADO ! Puntuación: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("implantologie_v1_debutant2_es_unlocked", "false");
+            console.log("❌ Nivel 2 BLOQUEADO. Puntuación: " + percentage.toFixed(1) + "% (mín " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 GUARDAR VALIDACIÓN PARA PROGRESION.HTML
+    // ================================================================
+    function sauvegarderValidation(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progressionData = JSON.parse(localStorage.getItem('eteo_progression') || '{}');
+            const key = specialite + '_' + niveau;
+            progressionData[key] = true;
+            localStorage.setItem('eteo_progression', JSON.stringify(progressionData));
+            
+            console.log('✅ Validación guardada para progresion.html');
+        }
+    }
+
+    // ================================================================
+    // 🔥 IR A PROGRESIÓN - chemin CORRECT (4 niveaux vers le haut)
+    // ================================================================
+    function goToProgression() {
+        console.log("🔍 goToProgression() llamado");
+        
+        const validationData = {
+            specialite: 'Implantologia_Dental',
+            niveau: 'principiante1',
+            score: score,
+            total: MAX_SCORE_WITH_BONUS,
+            percentage: (score / MAX_SCORE_WITH_BONUS) * 100,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('eteo_validation', JSON.stringify(validationData));
+        console.log("✅ Validación guardada para progression");
+        
+        // ✅ Chemin CORRECT : 4 niveaux pour arriver à la racine www
+        const url = '../../../../progression_es.html?valider=Implantologia_Dental_principiante1&score=' + score + '&total=' + MAX_SCORE_WITH_BONUS;
+        console.log("🔀 Redirigiendo a:", url);
+        window.location.href = url;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // ============================================
+    // =========== RENDER QUESTION ================
+    // ============================================
+    function renderQuestion() {
+        console.log("🔍 renderQuestion() - Pregunta", currentQuestion + 1);
+        isSpeaking = false;
+        
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${letter}. ${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>🦷 Implantología - Principiante Nivel 1</h1><p>Pregunta ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Leer pregunta</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explicación :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Leer explicación</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Tiempo restante : <span id="timer">${timeLeft}</span> segundos</div>
+                <div class="score">🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonar</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Siguiente →</button>
+                </div>
+            </div>
+        `;
+        
+        attachVoiceEvents();
+        answerLocked = false;
+        startTimer();
+        lastAnswerCorrect = false;
+        lastCorrectAnswer = "";
+        lastPointsEarned = 0;
+        
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 500);
+    }
+
+    // ============================================
+    // =========== ADJUNTAR EVENTOS DE VOZ ========
+    // ============================================
+    function attachVoiceEvents() {
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Evento adjuntado a voiceQuestionBtn");
+        }
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Evento adjuntado a voiceExplanationBtn");
+        }
+    }
+
+    // ============================================
+    // =========== CHECK ANSWER ===================
+    // ============================================
+    function checkAnswer(selectedIndex) {
+        console.log("🔍 checkAnswer() - Opción", String.fromCharCode(65 + selectedIndex));
+        
+        stopSpeaking();
+        
+        if (answerLocked) {
+            console.log("⏳ Respuesta ya bloqueada");
+            return;
+        }
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            console.log("✅ ¡Respuesta correcta! +", pointsEarned, "puntos");
+        } else {
+            console.log("❌ Respuesta incorrecta. Respuesta correcta:", shuffledOptions[currentCorrectIndex]);
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} puntos</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 puntos)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ ¡Respuesta correcta!' : '❌ Respuesta incorrecta'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Reescuchar retroalimentación</button>
+                </div>
+            `;
+            
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Evento adjuntado a voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Respuesta correcta : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Puntuación actual : ${score}/${MAX_SCORE_WITH_BONUS}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `¡Respuesta correcta! +${pointsEarned} puntos.`;
+        } else {
+            feedbackText = `Respuesta incorrecta. La respuesta correcta era: ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Lectura automática de la retroalimentación");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "es-ES", function() {
+            console.log("✅ Retroalimentación automática finalizada");
+        });
+    }
+
+    // ============================================
+    // =========== NEXT QUESTION ==================
+    // ============================================
+    function nextQuestion() {
+        console.log("🔍 nextQuestion() llamado");
+        stopSpeaking();
+        
+        if (!answerLocked) {
+            console.log("⚠️ Por favor, responda antes de continuar");
+            return;
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVEGACIÓN =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_es.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        console.log("🔍 endQuiz() llamado");
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        
+        saveScore(score, MAX_SCORE_WITH_BONUS);
+        
+        const isUnlocked = unlockLevel2(percentage);
+        
+        sauvegarderValidation('Implantologia_Dental', 'principiante1', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 ¡Quiz finalizado!</h1>
+                <div class="final-score">Puntuación : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Porcentaje : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ? 
+                        '<div class="unlock-badge">✅ ¡Nivel Principiante 2 desbloqueado! 🎊</div>' : 
+                        '<div class="locked-badge">⚠️ Puntuación insuficiente (mínimo 60% requerido para desbloquear el siguiente nivel)</div>'}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ? 
+                        '📚 Ve al menú para acceder al nivel 2.' : 
+                        `💪 Te falta un ${(60 - percentage).toFixed(1)}% para desbloquear el nivel 2. ¡Vuelve a intentarlo!`}
+                </div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Escuchar su resultado</button>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0;">
+                    <button class="share-btn" onclick="shareScore()">📤 Compartir mi puntuación</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Dar mi opinión</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Clasificación mundial</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Menú principal</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Mi progresión</button>
+                </div>
+            </div>
+        `;
+        
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Evento adjuntado a voiceResultBtn");
+        }
+        
+        setTimeout(() => {
+            speakFinalResult();
+        }, 1000);
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2000);
+    }
+
+    // ============================================
+    // =========== POPUP CLASIFICACIÓN MODAL =====
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No hay puntuaciones registradas para este nivel por el momento.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Su clasificación</div>
+                        <div class="rank-number">${userRank}ª posición</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} puntos (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Todavía no estás en la clasificación de este nivel</div>
+                        <div>¡Vuelve a hacer el quiz para aparecer!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Implantología Principiante 1</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anónimo"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            if (topScores.length === 0) {
+                html += '<div style="text-align:center; padding:20px;">📭 No hay puntuaciones para este nivel</div>';
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Error Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ No se puede cargar la clasificación.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Error desconocido'}</span></div>`;
+        }
+    }
+
+    function abandonQuiz() {
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        localStorage.setItem("implantologie_v1_debutant1_es", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE_WITH_BONUS, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel2(partialPercentage);
+        sauvegarderValidation('Implantologia_Dental', 'principiante1', score, MAX_SCORE_WITH_BONUS);
+        
+        sendScoreToFirebase(score, MAX_SCORE_WITH_BONUS, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>❌ Quiz abandonado</h1>
+                <div class="final-score">Puntuación parcial : ${score}/${MAX_SCORE_WITH_BONUS}</div>
+                <div>Porcentaje : ${partialPercentage.toFixed(1)}%</div>
+                <div style="margin:20px 0;">🏆 Esta puntuación ha sido registrada en la clasificación.</div>
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Volver al menú</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Mi progresión</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE_WITH_BONUS) * 100;
+        const text = `🎓 ETEO - Implantología\nMi puntuación en el nivel Principiante 1 : ${score}/${MAX_SCORE_WITH_BONUS} (${percentage.toFixed(1)}%)\n¡Desafíame en ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ ¡Puntuación copiada al portapapeles!");
+            }).catch(() => {
+                alert("📋 Para compartir, copia este texto :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        console.log("🚀 startQuiz() llamado");
+        saveUserInfo();
+        console.log("🔊 Activando voz...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Quiz iniciado");
+    }
+
+    // ============================================
+    // =========== INICIALIZACIÓN ==================
+    // ============================================
+    console.log("🚀 Página cargada - ETEO Quiz Implantología (ES)");
+    console.log("📱 window.Capacitor =", window.Capacitor);
+    
+    if (window.Capacitor) {
+        console.log("📱 Plataforma =", window.Capacitor.getPlatform());
+        console.log("📱 Plugins =", Object.keys(window.Capacitor.Plugins || {}));
+    }
+    
+    document.body.addEventListener('click', function firstClick() { 
+        console.log("🖱️ Primer clic - Activando voz");
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
