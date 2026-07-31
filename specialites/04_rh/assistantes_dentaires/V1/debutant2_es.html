@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ETEO - Asistente Dental - Principiante 2</title>
+    <link rel="manifest" href="../../../../manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- =========== IMPORT DEL PLUGIN VOZ ========== -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { TextToSpeech } from '@capacitor-community/text-to-speech';
+        window.TextToSpeech = TextToSpeech;
+        window.isMobile = window.hasOwnProperty('capacitor');
+        console.log('✅ Plugin TextToSpeech cargado!');
+        console.log('📱 Modo móvil:', window.isMobile);
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        body.dark .container { background: #1e1e2e; color: #eee; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; color: #667eea; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+        }
+        body.dark .progress-bar { background: #333; }
+        .progress-fill {
+            background: #4caf50;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-container { text-align: center; }
+        .question-text { font-size: 1.2rem; margin-bottom: 25px; font-weight: bold; }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.dark .option-btn { background: #2a2a3e; color: #eee; }
+        .option-btn:hover:not(.disabled) { background: #e0e0e0; }
+        .option-btn.correct { background: #4caf50; color: white; }
+        .option-btn.wrong { background: #f44336; color: white; }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.8; }
+        .explanation-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            display: none;
+        }
+        body.dark .explanation-box { background: #2a2a3e; }
+        .explanation-box.show { display: block; }
+        .explanation-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .correct-answer { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .timer { font-size: 1.2rem; font-weight: bold; color: #ff5722; margin: 15px 0; }
+        .score { font-size: 1rem; margin: 10px 0; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .nav-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .result-container { text-align: center; }
+        .final-score { font-size: 2rem; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .share-btn, .feedback-btn, .menu-btn, .ranking-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover, .feedback-btn:hover, .menu-btn:hover, .ranking-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* ===== NOUVEAUX STYLES AJOUTÉS ===== */
+        .btn-progression {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-progression:hover {
+            background: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .btn-menu {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-menu:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .voice-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 8px 0;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .voice-btn.feedback-btn-style { background: #4caf50; }
+        .voice-btn.feedback-btn-style:hover:not(:disabled) { background: #43a047; }
+        .voice-btn.explanation-btn-style { background: #2196F3; }
+        .voice-btn.explanation-btn-style:hover:not(:disabled) { background: #1976D2; }
+        .voice-btn.result-btn-style { background: #9C27B0; }
+        .voice-btn.result-btn-style:hover:not(:disabled) { background: #7B1FA2; }
+        .voice-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .feedback-container {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .feedback-container.wrong { background: rgba(244, 67, 54, 0.1); }
+        .feedback-container .points-badge { font-weight: bold; margin-left: 10px; }
+        .feedback-container .points-badge.correct { color: #4caf50; }
+        .feedback-container .points-badge.wrong { color: #888; font-size: 0.8rem; }
+        
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #888;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        .voice-indicator.inactive {
+            background: #888;
+            opacity: 0.5;
+        }
+        .voice-indicator.active {
+            background: #4caf50;
+            opacity: 1;
+        }
+        .voice-indicator.speaking {
+            background: #ff5722;
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .welcome-screen { text-align: center; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        body.dark .input-group input, body.dark .input-group select {
+            background: #2a2a3e;
+            color: #eee;
+            border-color: #444;
+        }
+        .start-quiz-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .start-quiz-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .locked-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .beta-info-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        /* ===== ESTILOS PARA POPUP BETA ===== */
+        .beta-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        }
+        .beta-popup-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            padding: 35px 25px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        body.dark .beta-popup-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        .beta-popup-content .big-icon { font-size: 4rem; }
+        .beta-popup-content h2 { color: #667eea; margin: 10px 0; }
+        body.dark .beta-popup-content h2 { color: #667eea; }
+        .beta-popup-content p { color: #555; margin: 5px 0; }
+        body.dark .beta-popup-content p { color: #ccc; }
+        .beta-popup-content .stars {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 3rem;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .beta-popup-content .stars span { color: #ccc; transition: color 0.3s; }
+        .beta-popup-content .stars span.active { color: #ffc107; }
+        .beta-popup-content .rating-message {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        body.dark .beta-popup-content .rating-message { color: #aaa; }
+        .beta-popup-content .beta-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        body.dark .beta-popup-content .beta-info { background: #2a2a3e; }
+        .beta-popup-content .beta-info p { color: #ff5722; font-weight: bold; margin: 0; }
+        .beta-popup-content .beta-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .beta-popup-content .beta-btn:hover {
+            background: #388e3c;
+            transform: scale(1.02);
+        }
+        
+        #rankingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #rankingModal .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        body.dark #rankingModal .modal-content {
+            background: #1e1e2e;
+            color: #eee;
+        }
+        #rankingModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #rankingModal .close-btn:hover {
+            transform: scale(1.1);
+        }
+        #rankingModal .modal-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        #rankingModal .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark #rankingModal .ranking-item { border-bottom-color: #444; }
+        .user-rank-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .user-rank-card .rank-number { font-size: 2rem; font-weight: bold; }
+        .user-rank-card .rank-label { font-size: 1.2rem; }
+        .modal-footer-btn {
+            display: block;
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-footer-btn:hover {
+            transform: scale(1.02);
+            background: #5a6fd6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="voice-indicator inactive" id="voiceIndicator">🔇 IA inactiva</div>
+
+<div class="container" id="app"></div>
+
+<!-- Modal de clasificación -->
+<div id="rankingModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRankingModal()">✕</button>
+        <h2 class="modal-title">🏆 SU POSICIÓN</h2>
+        <div id="modalRankingContent" style="text-align: center;">⏳ Cargando clasificación...</div>
+        <button class="modal-footer-btn" onclick="closeRankingModal()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // =========== CONFIGURACIÓN FIREBASE =========
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcIvbmmqiEqWbjNqTUwx1JGWkj6dxK-DE",
+        authDomain: "eteo-endo-to-every-one.firebaseapp.com",
+        projectId: "eteo-endo-to-every-one",
+        storageBucket: "eteo-endo-to-every-one.firebasestorage.app",
+        messagingSenderId: "511524282020",
+        appId: "1:511524282020:web:5a25c021fd84f026969031"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================
+    // LEVEL_ID PARA ESTE QUIZ
+    // ============================================
+    const LEVEL_ID = "assistantes_dentaires_v1_debutant2_es";
+
+    // ============================================
+    // =========== 1. SISTEMA DE VOZ AVANZADO =====
+    // ============================================
+    
+    let isSpeaking = false;
+    let voiceReady = false;
+    let voiceActivated = false;
+    let lastAnswerCorrect = false;
+    let lastCorrectAnswer = "";
+    let lastPointsEarned = 0;
+
+    // ============================================
+    // 🔥 FUNCIÓN : REINICIAR TODOS LOS BOTONES DE VOZ
+    // ============================================
+    function resetAllVoiceButtons() {
+        console.log("🔄 resetAllVoiceButtons() - Reactivando TODOS los botones");
+        
+        const qBtn = document.getElementById('voiceQuestionBtn');
+        if (qBtn) {
+            qBtn.disabled = false;
+            qBtn.textContent = '🔊 Leer la pregunta';
+            console.log("✅ voiceQuestionBtn reactivado");
+        }
+        
+        const fBtn = document.getElementById('voiceFeedbackBtn');
+        if (fBtn) {
+            fBtn.disabled = false;
+            fBtn.textContent = '🔊 Volver a escuchar feedback';
+            console.log("✅ voiceFeedbackBtn reactivado");
+        }
+        
+        const eBtn = document.getElementById('voiceExplanationBtn');
+        if (eBtn) {
+            eBtn.disabled = false;
+            eBtn.textContent = '🔊 Leer explicación';
+            console.log("✅ voiceExplanationBtn reactivado");
+        }
+        
+        const rBtn = document.getElementById('voiceResultBtn');
+        if (rBtn) {
+            rBtn.disabled = false;
+            rBtn.textContent = '🔊 Escuchar tu resultado';
+            console.log("✅ voiceResultBtn reactivado");
+        }
+        
+        isSpeaking = false;
+        updateVoiceIndicator('active');
+        console.log("✅ ¡Todos los botones de voz están ahora ACTIVOS!");
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN : DETENER LA VOZ
+    // ============================================
+    function stopSpeaking() {
+        console.log("🔊 stopSpeaking() llamado");
+        
+        try {
+            if (window.Capacitor?.Plugins?.TextToSpeech) {
+                window.Capacitor.Plugins.TextToSpeech.stop();
+                console.log("✅ Stop Android ejecutado");
+            }
+        } catch(e) { console.log("⚠️ Error al detener Android:", e); }
+        
+        try {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log("✅ Web Speech stop ejecutado");
+            }
+        } catch(e) { console.log("⚠️ Error al detener Web Speech:", e); }
+        
+        isSpeaking = false;
+        console.log("✅ isSpeaking reiniciado a false");
+        resetAllVoiceButtons();
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN : FALLBACK WEB SPEECH
+    // ============================================
+    function fallbackWebSpeech(text, lang, callback) {
+        console.log("🔊 fallbackWebSpeech() llamado");
+        
+        if (!window.speechSynthesis) {
+            console.error("❌ Web Speech no disponible");
+            if (callback) callback();
+            return;
+        }
+        
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang || 'es-ES';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+            if (spanishVoice) utterance.voice = spanishVoice;
+            
+            let callbackExecuted = false;
+            
+            const safeCallback = function() {
+                if (!callbackExecuted) {
+                    callbackExecuted = true;
+                    console.log("✅ Web Speech callback ejecutado");
+                    if (callback) callback();
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log("✅ Web Speech terminado (onend)");
+                safeCallback();
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("❌ Web Speech error:", e);
+                safeCallback();
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(function() {
+                if (!callbackExecuted) {
+                    console.warn("⚠️ TIMEOUT Web Speech - Forzando callback");
+                    safeCallback();
+                }
+            }, 5000);
+            
+        } catch (error) {
+            console.error("❌ Error en fallbackWebSpeech:", error);
+            if (callback) callback();
+        }
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN : CORREGIR TEXTO PARA ESPAÑOL
+    // ============================================
+    function corregirTextoParaEspanol(text) {
+        let corrected = text;
+        corrected = corrected.replace(/Dr\.?\s+/g, 'Doctor ');
+        corrected = corrected.replace(/Dra\.?\s+/g, 'Doctora ');
+        corrected = corrected.replace(/\bDr\b/g, 'Doctor');
+        corrected = corrected.replace(/\bDra\b/g, 'Doctora');
+        return corrected;
+    }
+
+    // ============================================
+    // 🔥 FUNCIÓN : SPEAK (con Capacitor + Web Speech)
+    // ============================================
+    function speak(text, lang, callback) {
+        console.log("🔊 speak() llamado con:", text.substring(0, 50) + '...');
+        
+        if (!text) { 
+            console.log("⚠️ Texto vacío, callback inmediato");
+            if (callback) callback(); 
+            return; 
+        }
+        
+        // Corregir texto para español
+        let correctedText = text;
+        if (lang === 'es-ES' || lang === 'es') {
+            correctedText = corregirTextoParaEspanol(text);
+        }
+        
+        const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+        
+        let callbackExecuted = false;
+        
+        const safeCallback = function() {
+            if (!callbackExecuted) {
+                callbackExecuted = true;
+                console.log("✅ safeCallback() ejecutado");
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        };
+        
+        try {
+            if (isAndroid && window.Capacitor?.Plugins?.TextToSpeech) {
+                console.log("🔊 Usando plugin Capacitor TTS en Android");
+                const TTS = window.Capacitor.Plugins.TextToSpeech;
+                
+                TTS.speak({ 
+                    text: correctedText, 
+                    lang: lang || 'es-ES', 
+                    rate: 0.9, 
+                    pitch: 1.0, 
+                    volume: 1.0 
+                }).then(() => {
+                    console.log("✅ Capacitor TTS completado");
+                    setTimeout(safeCallback, 300);
+                }).catch((error) => {
+                    console.error("❌ Error Capacitor TTS:", error);
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback a Web Speech");
+                        fallbackWebSpeech(correctedText, lang, safeCallback);
+                    } else {
+                        safeCallback();
+                    }
+                });
+                
+                setTimeout(function() {
+                    if (!callbackExecuted) {
+                        console.warn("⚠️ TIMEOUT Capacitor TTS - Forzando callback");
+                        safeCallback();
+                    }
+                }, 5000);
+                
+            } else if (window.speechSynthesis) {
+                console.log("🔊 Usando Web Speech API");
+                fallbackWebSpeech(correctedText, lang, safeCallback);
+            } else {
+                console.error("❌ No hay motor TTS disponible");
+                safeCallback();
+            }
+        } catch (error) {
+            console.error("❌ ERROR en speak():", error);
+            safeCallback();
+        }
+    }
+
+    // ============================================
+    // 🔥 ACTIVAR VOZ
+    // ============================================
+    function activateVoice() {
+        console.log("🔊 activateVoice() llamado");
+        if (!voiceActivated) {
+            const isAndroid = window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android';
+            console.log("🔊 isAndroid =", isAndroid);
+            
+            if (isAndroid) {
+                if (window.Capacitor?.Plugins?.TextToSpeech) {
+                    console.log("✅ Capacitor TTS disponible en Android");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    updateVoiceIndicator('active');
+                } else {
+                    console.warn("⚠️ Capacitor TTS no encontrado en Android");
+                    if (window.speechSynthesis) {
+                        console.log("⚠️ Fallback a Web Speech");
+                        voiceReady = true;
+                        voiceActivated = true;
+                        window.speechSynthesis.getVoices();
+                        updateVoiceIndicator('active');
+                    }
+                }
+            } else {
+                if (window.speechSynthesis) {
+                    console.log("✅ Web Speech disponible en PC");
+                    voiceReady = true;
+                    voiceActivated = true;
+                    window.speechSynthesis.getVoices();
+                    updateVoiceIndicator('active');
+                }
+            }
+            console.log("✅ Voz activada, voiceReady =", voiceReady);
+        } else {
+            console.log("ℹ️ Voz ya activada");
+        }
+    }
+
+    function updateVoiceIndicator(status) {
+        const indicator = document.getElementById('voiceIndicator');
+        if (indicator) {
+            if (status === 'active') {
+                indicator.textContent = '🎙️ IA activa';
+                indicator.className = 'voice-indicator active';
+            } else if (status === 'speaking') {
+                indicator.textContent = '🎙️ Hablando...';
+                indicator.className = 'voice-indicator speaking';
+            } else {
+                indicator.textContent = '🔇 IA inactiva';
+                indicator.className = 'voice-indicator inactive';
+            }
+        }
+    }
+
+    // ============================================
+    // =========== FUNCIONES DE VOZ ==============
+    // ============================================
+    
+    function speakQuestionOnly() {
+        console.log("🔊 speakQuestionOnly() llamado");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Pregunta ${currentQuestion + 1} de ${questions.length}: ${q.question}`;
+        const btn = document.getElementById('voiceQuestionBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceQuestionBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakQuestionOnly() completado");
+        });
+    }
+
+    function speakFeedback() {
+        console.log("🔊 speakFeedback() llamado");
+        stopSpeaking();
+        
+        let text = "";
+        if (lastAnswerCorrect) {
+            text = `¡Correcto! ¡Esa es la respuesta correcta! +${lastPointsEarned} puntos.`;
+        } else {
+            text = `Lo siento, esa no es la respuesta correcta. La respuesta correcta era: ${lastCorrectAnswer}.`;
+        }
+        
+        const btn = document.getElementById('voiceFeedbackBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceFeedbackBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakFeedback() completado");
+        });
+    }
+
+    function speakExplanation() {
+        console.log("🔊 speakExplanation() llamado");
+        stopSpeaking();
+        
+        const q = questions[currentQuestion];
+        const text = `Explicación: ${q.explanation}`;
+        const btn = document.getElementById('voiceExplanationBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceExplanationBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakExplanation() completado");
+        });
+    }
+
+    function speakFinalResult() {
+        console.log("🔊 speakFinalResult() llamado");
+        stopSpeaking();
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        const isUnlocked = percentage >= 60;
+        let text = `Tu puntuación final es ${score} de ${MAX_SCORE}, lo que es ${percentage.toFixed(1)} por ciento. `;
+        if (isUnlocked) {
+            text += "¡Felicitaciones! Has validado el Nivel Principiante 2. ¡Bien hecho!";
+        } else {
+            text += `Necesitas un ${(60 - percentage).toFixed(1)} por ciento más para validar el nivel. ¡Sigue intentándolo!`;
+        }
+        
+        const btn = document.getElementById('voiceResultBtn');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '🔊 Leyendo...';
+            console.log("🔇 voiceResultBtn desactivado");
+        }
+        
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(text, "es-ES", function() {
+            console.log("✅ speakFinalResult() completado");
+        });
+    }
+
+    // ============================================
+    // =========== ASIGNAR EVENTOS DE VOZ =========
+    // ============================================
+    function attachVoiceEvents() {
+        const voiceBtn = document.getElementById('voiceQuestionBtn');
+        if (voiceBtn) {
+            const newVoiceBtn = voiceBtn.cloneNode(true);
+            voiceBtn.parentNode.replaceChild(newVoiceBtn, voiceBtn);
+            newVoiceBtn.addEventListener('click', speakQuestionOnly);
+            console.log("✅ Evento asignado para voiceQuestionBtn");
+        }
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn && explBtn.style.display !== 'none') {
+            const newExplBtn = explBtn.cloneNode(true);
+            explBtn.parentNode.replaceChild(newExplBtn, explBtn);
+            newExplBtn.addEventListener('click', speakExplanation);
+            console.log("✅ Evento asignado para voiceExplanationBtn");
+        }
+    }
+
+    // ============================================
+    // =========== 2. INFORMACIÓN USUARIO ========
+    // ============================================
+    function getUserName() { return localStorage.getItem("eteo_userName") || ""; }
+    function getUserCountry() { return localStorage.getItem("eteo_userCountry") || "MA"; }
+
+    function saveUserInfo() {
+        const name = document.getElementById("userName").value.trim();
+        const select = document.getElementById("userCountry");
+        const otherInput = document.getElementById("otherCountry");
+        let country = select.value;
+        
+        if (otherInput.value.trim() !== "") {
+            country = otherInput.value.trim();
+        }
+        
+        localStorage.setItem("eteo_userName", name === "" ? "Anónimo" : name);
+        localStorage.setItem("eteo_userCountry", country);
+    }
+
+    function showWelcomeScreen() {
+        const app = document.getElementById("app");
+
+        app.innerHTML = `
+            <div class="welcome-screen">
+                <div class="header"><h1>🦷 Asistente Dental - Principiante Nivel 2</h1><p>¡Bienvenido Doctor!</p></div>
+                <div class="input-group">
+                    <label>👤 Su nombre (opcional) :</label>
+                    <input type="text" id="userName" placeholder="Ej: María" value="${getUserName()}">
+                </div>
+                <div class="input-group">
+                    <label>🌍 Su país (obligatorio) :</label>
+                    <select id="userCountry">
+                        <option value="ES">🇪🇸 España</option>
+                        <option value="MX">🇲🇽 México</option>
+                        <option value="AR">🇦🇷 Argentina</option>
+                        <option value="CO">🇨🇴 Colombia</option>
+                        <option value="PE">🇵🇪 Perú</option>
+                        <option value="CL">🇨🇱 Chile</option>
+                        <option value="VE">🇻🇪 Venezuela</option>
+                        <option value="EC">🇪🇨 Ecuador</option>
+                        <option value="GT">🇬🇹 Guatemala</option>
+                        <option value="CU">🇨🇺 Cuba</option>
+                        <option value="DO">🇩🇴 República Dominicana</option>
+                        <option value="PR">🇵🇷 Puerto Rico</option>
+                        <option value="US">🇺🇸 USA</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="FR">🇫🇷 France</option>
+                        <option value="DE">🇩🇪 Germany</option>
+                        <option value="IT">🇮🇹 Italy</option>
+                        <option value="PT">🇵🇹 Portugal</option>
+                        <option value="MA">🇲🇦 Marruecos</option>
+                        <option value="TR">🇹🇷 Turquía</option>
+                    </select>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">o</div>
+                    <input type="text" id="otherCountry" placeholder="Ingrese su país (ej: Brasil, Japón, ...)" style="margin-top:5px;">
+                </div>
+                <button class="start-quiz-btn" onclick="startQuiz()">🚀 Comenzar el quiz</button>
+                <div class="note">
+                    ⚠️ Regla: 60% mínimo (225/375 puntos) para desbloquear el nivel <strong>Intermedio 1</strong>.<br>
+                    🎁 Bono de rapidez: +5 puntos si responde antes del final del temporizador.<br>
+                    📊 Puntuación máxima posible con bono: 375 puntos (25 preguntas × 15 puntos)<br>
+                    🔒 <strong>Versión BETA</strong>: Los niveles Intermedio y Experto estarán disponibles en la versión final (6 meses).
+                </div>
+            </div>
+        `;
+        
+        const savedCountry = getUserCountry();
+        const countrySelect = document.getElementById("userCountry");
+        if (countrySelect) countrySelect.value = savedCountry;
+    }
+
+    // ============================================
+    // =========== 3. ENVÍO PUNTUACIÓN FIREBASE ==
+    // ============================================
+    async function sendScoreToFirebase(score, maxScore, percentage) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        const scoreData = {
+            nom: userName,
+            pays: userCountry,
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage,
+            levelId: LEVEL_ID,
+            date: new Date().toISOString(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await db.collection('scores').add(scoreData);
+            console.log("✅ Puntuación enviada a Firebase !");
+            return true;
+        } catch (error) {
+            console.error("❌ Error Firebase:", error);
+            return false;
+        }
+    }
+
+    // ============================================
+    // =========== 4. PREGUNTAS (25) =============
+    // ============================================
+   const questions = [
+    {
+        question: "El Doctor Tarik pidió a su asistente preparar una bandeja para una extracción, pero ella olvidó incluir un instrumento esencial. Durante la intervención, el Doctor Tarik debe interrumpir el cuidado para buscar el instrumento. Según la responsabilidad profesional, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable del error",
+            "El Doctor Tarik es responsable porque debería haber verificado la bandeja antes de empezar",
+            "La responsabilidad es compartida entre el dentista y la asistente",
+            "No hay falta porque el error es menor"
+        ],
+        correct: 2,
+        explanation: "La responsabilidad es compartida: la asistente cometió un error de preparación, pero el dentista tiene el deber de verificar que todo esté listo antes de comenzar un acto invasivo."
+    },
+    {
+        question: "El Doctor Sami confió a su asistente la tarea de esterilizar los instrumentos, pero ella olvidó iniciar el ciclo de esterilización. Un paciente fue tratado con instrumentos no esterilizados. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable porque olvidó iniciar el ciclo",
+            "El Doctor Sami es el único responsable porque delegó una tarea crítica",
+            "El Doctor Sami es responsable porque tiene la obligación de controlar el trabajo de su asistente",
+            "No hay responsabilidad porque el paciente no tuvo infección"
+        ],
+        correct: 2,
+        explanation: "El dentista es responsable de la calidad de los cuidados dispensados en su consultorio, incluyendo la esterilización. Tiene la obligación de controlar el trabajo de su asistente y asegurarse de que se respeten los protocolos."
+    },
+    {
+        question: "La asistente del Doctor Tarik registró mal los datos de un paciente, lo que provocó un retraso en la transmisión de los resultados de análisis. Según las obligaciones de la asistente, ¿cuál es la situación?",
+        options: [
+            "La asistente no es responsable porque el error es administrativo",
+            "La asistente es responsable de la calidad de la información ingresada",
+            "El Doctor Tarik es el único responsable porque delegó esta tarea",
+            "No hay falta porque los resultados llegaron"
+        ],
+        correct: 1,
+        explanation: "La asistente dental tiene el deber de ingresar correctamente la información de los pacientes, porque cualquier error puede tener consecuencias en la atención. El rigor administrativo es una obligación profesional."
+    },
+    {
+        question: "El Doctor Sami pidió a su asistente tomar una cita para un paciente, pero ella anotó mal la fecha, provocando un retraso en el tratamiento. Según la gestión de la relación con el paciente, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable del error de agenda",
+            "El Doctor Sami es responsable porque debería haber verificado la agenda",
+            "La responsabilidad es compartida, pero el dentista debe asumir la gestión de la queja del paciente",
+            "No hay falta porque el error es menor"
+        ],
+        correct: 2,
+        explanation: "La asistente cometió un error, pero es el dentista quien, como responsable del consultorio, debe gestionar la relación con el paciente y asegurarse de su satisfacción."
+    },
+    {
+        question: "La asistente del Doctor Tarik recibió una queja de un paciente sobre un exceso de honorarios no justificado. Recibió al paciente en la sala de espera sin informarle de la factura. Según las obligaciones de transparencia financiera, ¿cuál es la situación?",
+        options: [
+            "La asistente no es responsable de las cuestiones financieras",
+            "La asistente tiene el deber de informar al paciente sobre las tarifas antes del cuidado",
+            "El Doctor Tarik es el único responsable porque fija las tarifas",
+            "El paciente debe informarse él mismo sobre las tarifas"
+        ],
+        correct: 1,
+        explanation: "La asistente dental tiene un deber de información hacia los pacientes, especialmente en materia de tarifas. Debe asegurarse de que el paciente esté informado del coste de los cuidados antes de que se realicen."
+    },
+    {
+        question: "El Doctor Sami fue demandado por un paciente que tuvo una infección después de una extracción. La asistente firmó la ficha de esterilización sin haber realizado el control de los indicadores. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable porque falsificó el documento",
+            "El Doctor Sami es responsable porque delegó el control de esterilización",
+            "La responsabilidad es compartida, porque el dentista tiene el deber de controlar el proceso",
+            "No hay responsabilidad"
+        ],
+        correct: 2,
+        explanation: "La responsabilidad es compartida: la asistente firmó sin verificar, pero el dentista tiene la obligación de controlar el proceso de esterilización y asegurarse de que se respeten los protocolos antes de cualquier intervención."
+    },
+    {
+        question: "La asistente del Doctor Tarik se negó a realizar una tarea que consideraba peligrosa (preparación de un producto químico sin equipo de protección). Según la seguridad en el trabajo, ¿cuál es la situación?",
+        options: [
+            "La asistente está en falta porque debe obedecer al dentista",
+            "La asistente tiene derecho a negarse a una tarea peligrosa si no se dan las condiciones de seguridad",
+            "El Doctor Tarik puede despedirla por insubordinación",
+            "La tarea no es peligrosa"
+        ],
+        correct: 1,
+        explanation: "Todo asalariado tiene derecho a negarse a una tarea que considere peligrosa para su salud o seguridad si no se dan las condiciones de protección. El empleador tiene la obligación de proporcionar los equipos de protección necesarios."
+    },
+    {
+        question: "El Doctor Sami dio una instrucción a su asistente que va en contra de las buenas prácticas de higiene (no cambiar de guantes entre dos pacientes). Según la deontología, ¿cuál es la situación?",
+        options: [
+            "La asistente debe obedecer la instrucción del dentista",
+            "La asistente debe negarse a aplicar una instrucción contraria a las buenas prácticas",
+            "La asistente puede aplicar la instrucción pero informar al Colegio",
+            "La instrucción es válida"
+        ],
+        correct: 1,
+        explanation: "La asistente dental tiene un deber hacia la seguridad de los pacientes. Debe negarse a aplicar cualquier instrucción contraria a las buenas prácticas de higiene y seguridad, incluso si viene del dentista."
+    },
+    {
+        question: "La asistente del Doctor Tarik divulgó accidentalmente información médica confidencial de un paciente a un tercero. Según el secreto profesional, ¿cuál es la situación?",
+        options: [
+            "La asistente no está obligada al secreto profesional",
+            "La asistente está obligada al secreto profesional como el dentista",
+            "Solo el dentista es responsable del secreto profesional",
+            "La divulgación es excusable porque fue accidental"
+        ],
+        correct: 1,
+        explanation: "La asistente dental está obligada al secreto profesional, como todo el personal del consultorio. La divulgación accidental de información confidencial compromete la responsabilidad de la asistente y la del dentista."
+    },
+    {
+        question: "El Doctor Sami pidió a su asistente firmar un certificado de cuidados para un paciente al que no asistió. Según la deontología, ¿cuál es la situación?",
+        options: [
+            "La asistente puede firmar porque confía en el dentista",
+            "La asistente debe negarse a firmar un documento que no puede autentificar",
+            "La asistente puede firmar si el dentista se lo pide",
+            "La firma no es importante"
+        ],
+        correct: 1,
+        explanation: "La asistente dental nunca debe firmar un documento que no pueda autentificar personalmente. No debe participar en un fraude o una declaración falsa, bajo pena de comprometer su responsabilidad."
+    },
+    {
+        question: "La asistente del Doctor Tarik constató que faltaban instrumentos después de una intervención. No informó de la pérdida. Un paciente fue expuesto a un riesgo infeccioso. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente es responsable porque omitió informar de la pérdida",
+            "El Doctor Tarik es responsable porque no verificó el material",
+            "La responsabilidad es compartida, pero la omisión de informar es una falta grave",
+            "No hay falta"
+        ],
+        correct: 2,
+        explanation: "La asistente tiene el deber de informar cualquier anomalía (instrumentos faltantes) al dentista. La omisión de informar una pérdida que expone al paciente a un riesgo es una falta grave compartida con el dentista que debería haber controlado."
+    },
+    {
+        question: "El Doctor Sami fue cuestionado por un paciente que tuvo una complicación después de un cuidado. La asistente que asistió a la intervención afirma haber seguido todos los procedimientos. Según la responsabilidad en caso de litigio, ¿cuál es la situación?",
+        options: [
+            "La asistente no está concernida por el litigio",
+            "La asistente puede ser llamada como testigo pero no es responsable",
+            "La asistente puede ser implicada si se prueba su negligencia",
+            "Solo el dentista es responsable de las complicaciones"
+        ],
+        correct: 2,
+        explanation: "En caso de litigio, la asistente puede ser implicada si se prueba su negligencia (error de preparación, mala esterilización, etc.) y que contribuyó a la complicación."
+    },
+    {
+        question: "La asistente del Doctor Tarik se negó a realizar una tarea que no había aprendido, por miedo a hacerlo mal. Según las responsabilidades, ¿cuál es la situación?",
+        options: [
+            "La asistente está en falta porque debe aprender sobre la marcha",
+            "La asistente tiene razón en negarse porque no domina la tarea",
+            "El Doctor Tarik puede despedirla por negativa al trabajo",
+            "La tarea no es peligrosa"
+        ],
+        correct: 1,
+        explanation: "La asistente dental tiene derecho a negarse a realizar una tarea que no domina, porque compromete su responsabilidad. El dentista tiene la obligación de formar a su personal y asegurarse de sus competencias."
+    },
+    {
+        question: "El Doctor Sami constató que su asistente utilizó productos de desinfección caducados. Según las obligaciones de higiene, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable porque usó los productos",
+            "El Doctor Sami es responsable porque debe controlar los inventarios",
+            "La responsabilidad es compartida, porque el dentista debe asegurarse de la validez de los productos",
+            "Los productos caducados no son peligrosos"
+        ],
+        correct: 2,
+        explanation: "La asistente usó los productos, pero el dentista tiene la obligación de asegurarse de que los inventarios sean válidos y de que se respeten los protocolos. La responsabilidad es compartida."
+    },
+    {
+        question: "La asistente del Doctor Tarik colocó mal al paciente en el sillón, causándole dolor cervical. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable porque colocó al paciente",
+            "El Doctor Tarik es responsable porque debe supervisar el posicionamiento",
+            "La responsabilidad es compartida, porque el dentista debe verificar la posición del paciente antes de la intervención",
+            "No hay falta"
+        ],
+        correct: 2,
+        explanation: "El posicionamiento del paciente es una tarea importante que compromete la responsabilidad de la asistente, pero el dentista debe verificar la posición antes de comenzar la intervención. La responsabilidad es por tanto compartida."
+    },
+    {
+        question: "El Doctor Sami pidió a su asistente hacer una radiografía sin protección, porque 'era urgente'. Según la radioprotección, ¿cuál es la situación?",
+        options: [
+            "La asistente debe obedecer la instrucción del dentista",
+            "La asistente debe negarse y recordar las reglas de radioprotección",
+            "La asistente puede hacer la radiografía pero informar al Colegio",
+            "La radiografía urgente justifica la no protección"
+        ],
+        correct: 1,
+        explanation: "La radioprotección es una obligación legal. La asistente tiene el deber de negarse a hacer una radiografía sin protección, incluso en urgencia, porque pone en peligro la salud del paciente."
+    },
+    {
+        question: "La asistente del Doctor Tarik constató que el Doctor Tarik facturó un acto que no realizó. Según la deontología, ¿cuál es la situación?",
+        options: [
+            "La asistente debe guardar silencio",
+            "La asistente debe denunciar este fraude al Colegio o a las autoridades",
+            "La asistente puede participar en la facturación sin problema",
+            "La facturación no concierne a la asistente"
+        ],
+        correct: 1,
+        explanation: "La asistente dental tiene un deber de integridad. Si constata un fraude, debe denunciarlo a las autoridades competentes. La participación en un fraude compromete su responsabilidad."
+    },
+    {
+        question: "El Doctor Sami fue demandado por un paciente por un error de diagnóstico. La asistente afirma haber transmitido correctamente toda la información al dentista. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente no es responsable del diagnóstico",
+            "La asistente puede ser responsable si omitió transmitir una información",
+            "Solo el dentista es responsable del diagnóstico",
+            "El paciente es responsable de su propio diagnóstico"
+        ],
+        correct: 1,
+        explanation: "La asistente no es responsable del diagnóstico en sí mismo, pero puede ser responsable si omitió transmitir una información importante al dentista (ej: antecedente médico, alergia)."
+    },
+    {
+        question: "La asistente del Doctor Tarik perdió un expediente de paciente que contenía información médica. Según la protección de datos, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable de la pérdida",
+            "El Doctor Tarik es responsable porque delegó la gestión de los expedientes",
+            "La responsabilidad es compartida, pero la pérdida compromete la responsabilidad del consultorio",
+            "La pérdida de expediente no es grave"
+        ],
+        correct: 2,
+        explanation: "La pérdida de un expediente de paciente compromete la responsabilidad del consultorio. La asistente tiene una obligación de diligencia, pero el dentista es responsable de la gestión de los datos de su consultorio."
+    },
+    {
+        question: "El Doctor Sami pidió a su asistente falsificar un documento médico. Según la deontología, ¿cuál es la situación?",
+        options: [
+            "La asistente debe obedecer la petición del dentista",
+            "La asistente debe negarse y denunciar el intento de fraude",
+            "La asistente puede participar en la falsificación",
+            "La falsificación es aceptable en algunos casos"
+        ],
+        correct: 1,
+        explanation: "La asistente dental tiene un deber de integridad. Debe negarse a cualquier intento de falsificación de documentos y denunciar esta práctica a las autoridades competentes."
+    },
+    {
+        question: "La asistente del Doctor Tarik recibió a un paciente en urgencia cuando el Doctor Tarik llegaba tarde. Empezó a preparar al paciente sin esperar al dentista. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente puede comenzar los cuidados en urgencia",
+            "La asistente no debe comenzar los cuidados sin la presencia del dentista",
+            "La asistente puede hacer cuidados de primera urgencia",
+            "El paciente puede ser tratado sin el dentista"
+        ],
+        correct: 1,
+        explanation: "La asistente dental no puede realizar actos médicos sin la presencia del dentista. No puede tratar al paciente, incluso en urgencia, porque constituiría un ejercicio ilegal de la medicina."
+    },
+    {
+        question: "El Doctor Sami fue cuestionado por una falta de información al paciente. La asistente afirma haber entregado el folleto informativo al paciente. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente es responsable porque entregó el folleto",
+            "El Doctor Sami es responsable porque es él quien debe informar al paciente",
+            "La responsabilidad es compartida, pero es el dentista quien debe asegurarse de que la información fue comprendida",
+            "El paciente es responsable de la lectura del folleto"
+        ],
+        correct: 2,
+        explanation: "La asistente puede contribuir a la información, pero es el dentista quien debe asegurarse de que el paciente comprendió los riesgos y las alternativas antes de dar su consentimiento."
+    },
+    {
+        question: "La asistente del Doctor Tarik limpió mal el circuito de agua de la unidad dental, causando una contaminación bacteriana. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable porque limpió mal",
+            "El Doctor Tarik es responsable porque debe controlar el mantenimiento",
+            "La responsabilidad es compartida, porque el dentista debe asegurarse de la calidad del agua",
+            "La contaminación no es grave"
+        ],
+        correct: 2,
+        explanation: "La asistente tiene una obligación de diligencia, pero el dentista es responsable de la calidad del agua utilizada en su consultorio. Debe controlar el mantenimiento de los circuitos de agua."
+    },
+    {
+        question: "El Doctor Sami pidió a su asistente reemplazar un instrumento defectuoso, pero ella usó un instrumento de reemplazo no estéril. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable del uso del instrumento no estéril",
+            "El Doctor Sami es responsable porque dio la instrucción de reemplazar el instrumento",
+            "La responsabilidad es compartida, porque el dentista tiene el deber de verificar la esterilidad de los instrumentos",
+            "El instrumento no estéril es aceptable"
+        ],
+        correct: 2,
+        explanation: "La asistente debe verificar la esterilidad de los instrumentos antes de usarlos, pero el dentista tiene la obligación de asegurarse de que todos los instrumentos utilizados sean estériles. La responsabilidad es compartida."
+    },
+    {
+        question: "El Doctor Tarik fue demandado por un error de medicación. La asistente había preparado un producto de anestesia pero no verificó la fecha de caducidad. Según la responsabilidad, ¿cuál es la situación?",
+        options: [
+            "La asistente es la única responsable del error",
+            "El Doctor Tarik es responsable porque debe verificar antes de inyectar",
+            "La responsabilidad es compartida, porque el dentista tiene la obligación de verificar antes de la inyección",
+            "La fecha de caducidad no es importante"
+        ],
+        correct: 2,
+        explanation: "La asistente preparó el producto, pero el dentista tiene la obligación de verificar el producto antes de inyectarlo al paciente. La responsabilidad es por tanto compartida."
+    },
+    {
+        question: "La asistente del Doctor Sami fue testigo de un intercambio verbal violento entre el Doctor Sami y un paciente. Según la deontología, ¿cuál es la situación?",
+        options: [
+            "La asistente debe tomar partido por el Doctor Sami",
+            "La asistente puede intervenir para calmar el conflicto, sin tomar partido",
+            "La asistente debe guardar silencio",
+            "La asistente debe tomar partido por el paciente"
+        ],
+        correct: 1,
+        explanation: "La asistente puede jugar un papel de mediación en un conflicto, manteniéndose neutral y buscando calmar las tensiones. Sin embargo, no debe tomar partido ni entrometerse en decisiones clínicas."
+    }
+];
+
+    // ============================================
+    // =========== SCORE MAX CORREGIDO ============
+    // ============================================
+    const MAX_SCORE = questions.length * 15; // 375 puntos
+    
+    let currentQuestion = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answerLocked = false;
+    let currentCorrectIndex = 0;
+    let shuffledOptions = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function saveScore(finalScore, maxScore) {
+        const percentage = (finalScore / maxScore) * 100;
+        localStorage.setItem("assistantes_dentaires_v1_debutant2_es", JSON.stringify({ 
+            score: finalScore, 
+            maxScore: maxScore,
+            percentage: percentage,
+            date: new Date().toISOString() 
+        }));
+        return percentage;
+    }
+
+    // ============================================
+    // =========== DESBLOQUEAR NIVEL INTERMEDIO 1 ==
+    // ============================================
+    function unlockLevel3(percentage) {
+        const SEUIL_DEBLOCAGE = 60;
+        
+        if (percentage >= SEUIL_DEBLOCAGE) {
+            localStorage.setItem("assistantes_dentaires_v1_intermediaire1_es_unlocked", "true");
+            localStorage.setItem("assistantes_dentaires_v1_debutant2_es_score", percentage.toFixed(1));
+            console.log("✅ Nivel Intermedio 1 DESBLOQUEADO ! Puntuación: " + percentage.toFixed(1) + "%");
+            return true;
+        } else {
+            localStorage.setItem("assistantes_dentaires_v1_intermediaire1_es_unlocked", "false");
+            console.log("❌ Nivel Intermedio 1 BLOQUEADO. Puntuación: " + percentage.toFixed(1) + "% (mín " + SEUIL_DEBLOCAGE + "%)");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // 🔥 GUARDAR VALIDACIÓN PARA PROGRESION.HTML
+    // ================================================================
+    function guardarValidacion(specialite, niveau, score, total) {
+        const percentage = (score / total) * 100;
+        
+        if (percentage >= 60) {
+            localStorage.setItem('eteo_validation', JSON.stringify({
+                specialite: specialite,
+                niveau: niveau,
+                score: score,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            }));
+            
+            const progreso = JSON.parse(localStorage.getItem('eteo_progreso')) || {};
+            const key = specialite + '_' + niveau;
+            progreso[key] = true;
+            localStorage.setItem('eteo_progreso', JSON.stringify(progreso));
+            
+            console.log('✅ Validación guardada para progresion.html');
+        }
+    }
+
+    // ============================================
+    // 🔥 IR A PROGRESION - OPCIÓN 2
+    // ============================================
+    function goToProgression() {
+        console.log("🔍 goToProgression() llamado");
+        
+        const validationData = {
+            specialite: 'Asistentes_Dentales',
+            niveau: 'principiante2',
+            score: score,
+            total: MAX_SCORE,
+            percentage: (score / MAX_SCORE) * 100,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('eteo_validation', JSON.stringify(validationData));
+        console.log("✅ Validación guardada para progresion");
+        
+        const url = '../../../../progression_es.html?valider=Asistentes_Dentales_principiante2&score=' + score + '&total=' + MAX_SCORE;
+        console.log("🔀 Redirigiendo a:", url);
+        window.location.href = url;
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answerLocked) {
+                    currentQuestion++;
+                    timeLeft = 30;
+                    answerLocked = false;
+                    if (currentQuestion < questions.length) renderQuestion();
+                    else endQuiz();
+                }
+            } else {
+                timeLeft--;
+                const timerSpan = document.getElementById('timer');
+                if (timerSpan) timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // ============================================
+    // =========== RENDER QUESTION ================
+    // ============================================
+    function renderQuestion() {
+        console.log("🔍 renderQuestion() - Pregunta", currentQuestion + 1);
+        isSpeaking = false;
+        
+        const q = questions[currentQuestion];
+        const app = document.getElementById('app');
+
+        shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+        currentCorrectIndex = shuffledOptions.indexOf(q.options[q.correct]);
+
+        let optionsHtml = '';
+        shuffledOptions.forEach((opt, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${idx})">${letter}. ${opt}</button>`;
+        });
+
+        const progress = (currentQuestion / questions.length) * 100;
+
+        app.innerHTML = `
+            <div class="header"><h1>🦷 Asistente Dental - Principiante Nivel 2</h1><p>Pregunta ${currentQuestion + 1}/${questions.length}</p></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+            <div class="question-container">
+                <div class="question-text">${q.question}</div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn" id="voiceQuestionBtn">🔊 Leer la pregunta</button>
+                </div>
+                
+                <div class="options" id="optionsContainer">${optionsHtml}</div>
+                
+                <div id="feedbackContainer" style="display: none;"></div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <div class="explanation-title">📖 Explicación :</div>
+                    <div id="explanationText"></div>
+                    <div class="correct-answer" id="correctAnswerText"></div>
+                    <div class="voice-btn-row">
+                        <button class="voice-btn explanation-btn-style" id="voiceExplanationBtn" style="display: none;">🔊 Leer explicación</button>
+                    </div>
+                </div>
+                
+                <div class="timer">⏱️ Tiempo restante : <span id="timer">${timeLeft}</span> segundos</div>
+                <div class="score">🏆 Puntuación actual : ${score}/${MAX_SCORE}</div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="abandonQuiz()">❌ Abandonar</button>
+                    <button class="nav-btn" onclick="nextQuestion()">Siguiente →</button>
+                </div>
+            </div>
+        `;
+        
+        attachVoiceEvents();
+        answerLocked = false;
+        startTimer();
+        lastAnswerCorrect = false;
+        lastCorrectAnswer = "";
+        lastPointsEarned = 0;
+        
+        setTimeout(() => {
+            speakQuestionOnly();
+        }, 500);
+    }
+
+    // ============================================
+    // =========== CHECK ANSWER ===================
+    // ============================================
+    function checkAnswer(selectedIndex) {
+        console.log("🔍 checkAnswer() - Opción", String.fromCharCode(65 + selectedIndex));
+        
+        stopSpeaking();
+        
+        if (answerLocked) {
+            console.log("⏳ Respuesta ya bloqueada");
+            return;
+        }
+
+        const q = questions[currentQuestion];
+        const isCorrect = (selectedIndex === currentCorrectIndex);
+        let pointsEarned = 10;
+        if (timeLeft > 0) pointsEarned = 15;
+
+        lastAnswerCorrect = isCorrect;
+        lastCorrectAnswer = shuffledOptions[currentCorrectIndex];
+        lastPointsEarned = pointsEarned;
+
+        if (isCorrect) {
+            score += pointsEarned;
+            console.log("✅ ¡Respuesta correcta! +", pointsEarned, "puntos");
+        } else {
+            console.log("❌ Respuesta incorrecta. Respuesta correcta:", shuffledOptions[currentCorrectIndex]);
+        }
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === currentCorrectIndex) btn.classList.add('correct');
+            if (idx === selectedIndex && idx !== currentCorrectIndex) btn.classList.add('wrong');
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            const feedbackClass = isCorrect ? 'feedback-container' : 'feedback-container wrong';
+            feedbackContainer.style.display = 'block';
+            feedbackContainer.className = feedbackClass;
+            
+            let pointsDisplay = '';
+            if (isCorrect) {
+                pointsDisplay = `<span class="points-badge correct">+${pointsEarned} puntos</span>`;
+            } else {
+                pointsDisplay = `<span class="points-badge wrong">(0 puntos)</span>`;
+            }
+            
+            feedbackContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        ${isCorrect ? '✅ ¡Respuesta correcta!' : '❌ Respuesta incorrecta'}
+                        ${pointsDisplay}
+                    </div>
+                    <button class="voice-btn feedback-btn-style" id="voiceFeedbackBtn">🔊 Volver a escuchar feedback</button>
+                </div>
+            `;
+            
+            const feedbackBtn = document.getElementById('voiceFeedbackBtn');
+            if (feedbackBtn) {
+                const newFeedbackBtn = feedbackBtn.cloneNode(true);
+                feedbackBtn.parentNode.replaceChild(newFeedbackBtn, feedbackBtn);
+                newFeedbackBtn.addEventListener('click', speakFeedback);
+                console.log("✅ Evento asignado para voiceFeedbackBtn");
+            }
+        }
+
+        document.getElementById('explanationText').innerHTML = q.explanation;
+        document.getElementById('correctAnswerText').innerHTML = `✅ Respuesta correcta : ${shuffledOptions[currentCorrectIndex]}`;
+        document.getElementById('explanationBox').classList.add('show');
+        
+        const explBtn = document.getElementById('voiceExplanationBtn');
+        if (explBtn) {
+            explBtn.style.display = 'inline-block';
+            attachVoiceEvents();
+        }
+        
+        document.querySelector('.score').innerHTML = `🏆 Puntuación actual : ${score}/${MAX_SCORE}`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        answerLocked = true;
+        
+        let feedbackText = "";
+        if (isCorrect) {
+            feedbackText = `¡Respuesta correcta! +${pointsEarned} puntos.`;
+        } else {
+            feedbackText = `Respuesta incorrecta. La respuesta correcta era: ${shuffledOptions[currentCorrectIndex]}.`;
+        }
+        
+        console.log("🔊 Auto-lectura del feedback");
+        isSpeaking = true;
+        updateVoiceIndicator('speaking');
+        speak(feedbackText, "es-ES", function() {
+            console.log("✅ Auto-feedback completado");
+        });
+    }
+
+    // ============================================
+    // =========== NEXT QUESTION ==================
+    // ============================================
+    function nextQuestion() {
+        console.log("🔍 nextQuestion() llamado");
+        
+        stopSpeaking();
+        
+        if (!answerLocked) {
+            console.log("⚠️ Por favor, seleccione una respuesta antes de continuar");
+            return;
+        }
+        currentQuestion++;
+        timeLeft = 30;
+        answerLocked = false;
+        if (currentQuestion < questions.length) renderQuestion();
+        else endQuiz();
+    }
+
+    // ============================================
+    // =========== NAVEGACIÓN =====================
+    // ============================================
+    
+    function goToMenu() {
+        window.location.href = "menu_es.html?t=" + Date.now();
+    }
+
+    function goToDashboard() {
+        window.location.href = "../../../../classements_dashboard.html";
+    }
+
+    function goToRanking() {
+        goToDashboard();
+    }
+
+    // ============================================
+    // =========== endQuiz ========================
+    // ============================================
+    function endQuiz() {
+        console.log("🔍 endQuiz() llamado");
+        
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const percentage = (score / MAX_SCORE) * 100;
+        
+        saveScore(score, MAX_SCORE);
+        
+        const isUnlocked = unlockLevel3(percentage);
+        
+        guardarValidacion('Asistentes_Dentales', 'principiante2', score, MAX_SCORE);
+        
+        sendScoreToFirebase(score, MAX_SCORE, percentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>🎉 ¡Quiz finalizado!</h1>
+                <div class="final-score">Puntuación : ${score}/${MAX_SCORE}</div>
+                <div style="font-size: 1.2rem; margin: 10px 0;">
+                    Porcentaje : <strong>${percentage.toFixed(1)}%</strong>
+                </div>
+                <div style="margin:20px 0;">
+                    ${isUnlocked ?
+                        `<div class="unlock-badge">✅ ¡Nivel Intermedio 1 desbloqueado! 🎊</div>
+                         <div class="beta-info-badge">🔒 BETA: El nivel Experto llegará tras 6 meses de evaluación.</div>` :
+                        `<div class="locked-badge">⚠️ Puntuación insuficiente (mínimo 60% requerido para desbloquear el siguiente nivel)</div>`}
+                </div>
+                <div style="margin:10px 0; font-size:0.9rem; color:#888;">
+                    ${isUnlocked ?
+                        '📚 Ve al menú para acceder al Nivel Intermedio 1.' :
+                        `💪 Te falta un ${(60 - percentage).toFixed(1)}% más para desbloquear el siguiente nivel. ¡Vuelve a intentarlo!`}
+                </div>
+                
+                <div class="voice-btn-row">
+                    <button class="voice-btn result-btn-style" id="voiceResultBtn">🔊 Escuchar tu resultado</button>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0;">
+                    <button class="share-btn" onclick="shareScore()">📤 Compartir mi puntuación</button>
+                    <button class="feedback-btn" onclick="giveFeedback()">📝 Dar mi opinión</button>
+                    <button class="ranking-btn" onclick="goToDashboard()">🏆 Clasificación mundial</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Menú principal</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Ver mi progresión</button>
+                </div>
+            </div>
+        `;
+        
+        const resultBtn = document.getElementById('voiceResultBtn');
+        if (resultBtn) {
+            const newResultBtn = resultBtn.cloneNode(true);
+            resultBtn.parentNode.replaceChild(newResultBtn, resultBtn);
+            newResultBtn.addEventListener('click', speakFinalResult);
+            console.log("✅ Evento asignado para voiceResultBtn");
+        }
+        
+        if (isUnlocked) {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+            
+            setTimeout(() => {
+                openBetaEvaluationPopup();
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                speakFinalResult();
+            }, 1000);
+        }
+        
+        setTimeout(() => {
+            openRankingModal();
+        }, 2000);
+    }
+
+    // ============================================
+    // =========== POPUP CLASIFICACIÓN MODAL =====
+    // ============================================
+    function openRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            loadRankingInModal();
+        }
+    }
+
+    function closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // =========== loadRankingInModal ============
+    // ============================================
+    async function loadRankingInModal() {
+        const container = document.getElementById('modalRankingContent');
+        if (!container) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        
+        try {
+            const snapshot = await db.collection('scores')
+                .where('levelId', '==', LEVEL_ID)
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">📭 No hay puntuaciones registradas para este nivel por el momento.</div>';
+                return;
+            }
+            
+            const scores = [];
+            snapshot.forEach(doc => {
+                scores.push(doc.data());
+            });
+            
+            scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+            
+            const topScores = scores.slice(0, 20);
+            
+            let userRank = -1;
+            let userScore = null;
+            for (let i = 0; i < scores.length; i++) {
+                if (scores[i].nom === userName) {
+                    userRank = i + 1;
+                    userScore = scores[i];
+                    break;
+                }
+            }
+            
+            let html = '';
+            
+            html += `
+                <div class="user-rank-card">
+                    ${userRank > 0 ? `
+                        <div>🏅</div>
+                        <div class="rank-label">Su clasificación</div>
+                        <div class="rank-number">${userRank}${userRank === 1 ? 'ª' : userRank === 2 ? 'ª' : userRank === 3 ? 'ª' : 'ª'} posición</div>
+                        <div>${userScore ? `${userScore.score}/${userScore.maxScore} puntos (${(userScore.percentage || 0).toFixed(1)}%)` : ''}</div>
+                    ` : `
+                        <div style="font-size: 1.2rem;">📊 Todavía no estás en la clasificación de este nivel</div>
+                        <div>¡Vuelve a hacer el quiz para aparecer!</div>
+                    `}
+                </div>
+            `;
+            
+            html += `<h3 style="margin: 15px 0 10px 0; color: #667eea;">🏆 TOP 20 - Asistentes Dentales Principiante 2</h3>`;
+            
+            for (let i = 0; i < topScores.length; i++) {
+                const s = topScores[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`;
+                const isUser = s.nom === userName;
+                html += `
+                    <div class="ranking-item" style="${isUser ? 'background: rgba(102,126,234,0.2); border-radius: 5px;' : ''}">
+                        <div><strong>${medal}</strong></div>
+                        <div>${s.nom || "Anónimo"} ${isUser ? '👈' : ''}</div>
+                        <div><strong>${(s.percentage || 0).toFixed(1)}%</strong></div>
+                        <div>${s.score}/${s.maxScore}</div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            
+        } catch (err) {
+            console.error("Error Firestore:", err);
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">❌ No se puede cargar la clasificación.<br><span style="font-size:0.7rem; color:#888;">${err.message || 'Error desconocido'}</span></div>`;
+        }
+    }
+
+    // ============================================
+    // =========== POPUP BETA - OPCIÓN 2 (ES) ====
+    // ============================================
+    function openBetaEvaluationPopup() {
+        if (document.getElementById('betaPopup')) return;
+        
+        const userName = localStorage.getItem("eteo_userName") || "Doctor";
+        
+        const modal = document.createElement('div');
+        modal.id = 'betaPopup';
+        modal.className = 'beta-popup-overlay';
+        modal.innerHTML = `
+            <div class="beta-popup-content">
+                <div class="big-icon">🎉🏆🎉</div>
+                <h2>¡Felicidades ${userName}!</h2>
+                <p>Has validado los <strong>dos niveles Principiantes</strong> con éxito.<br>¡Qué recorrido tan impresionante!</p>
+                
+                <div style="margin: 25px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">🌟 Evalúa la versión BETA 🌟</p>
+                    <div class="stars" id="starRating">
+                        <span data-rating="1" style="color: #ccc;">☆</span>
+                        <span data-rating="2" style="color: #ccc;">☆</span>
+                        <span data-rating="3" style="color: #ccc;">☆</span>
+                        <span data-rating="4" style="color: #ccc;">☆</span>
+                        <span data-rating="5" style="color: #ccc;">☆</span>
+                    </div>
+                    <p class="rating-message" id="ratingMessage"></p>
+                </div>
+                
+                <div class="beta-info">
+                    <p>🚀 <strong>La continuación (Intermedio & Experto)</strong> llegará tras <strong>6 meses de evaluación</strong> de esta versión Beta.<br><br>
+                    Tu opinión nos ayuda a mejorar ETEO. ¡Gracias por tu confianza, <strong>${userName}</strong>!</p>
+                </div>
+                
+                <button class="beta-btn" onclick="closeBetaPopup()">Volver al menú</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // ✅ OPCIÓN 2 : Lectura automática del mensaje (en español)
+        stopSpeaking();
+        
+        setTimeout(() => {
+            const fullMessage = `¡Felicidades ${userName}! Has validado los dos niveles Principiantes con éxito. ` +
+                               `Por favor, evalúa la versión BETA haciendo clic en las estrellas. ` +
+                               `La continuación, Intermedio y Experto, llegará tras seis meses de evaluación. ` +
+                               `Gracias por tu confianza.`;
+            
+            isSpeaking = true;
+            updateVoiceIndicator('speaking');
+            speak(fullMessage, "es-ES", function() {
+                console.log("✅ Mensaje BETA leído automáticamente");
+                isSpeaking = false;
+                updateVoiceIndicator('active');
+            });
+        }, 600);
+        
+        // Gestión de estrellas
+        const stars = modal.querySelectorAll('#starRating span');
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                sendBetaEvaluation(rating);
+                
+                stars.forEach(function(s, idx) {
+                    if (idx < rating) {
+                        s.innerHTML = '★';
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.innerHTML = '☆';
+                        s.style.color = '#ccc';
+                    }
+                });
+                
+                const messageDiv = document.getElementById('ratingMessage');
+                messageDiv.innerHTML = '✅ ¡Gracias por tu evaluación! Tu opinión ha sido registrada.';
+                messageDiv.style.color = '#4caf50';
+                messageDiv.style.fontWeight = 'bold';
+                
+                // ✅ Confirmación vocal de la evaluación (en español)
+                const confirmationMessage = `Gracias por tu evaluación de ${rating} sobre 5. Tu opinión ha sido registrada.`;
+                
+                stopSpeaking();
+                isSpeaking = true;
+                updateVoiceIndicator('speaking');
+                speak(confirmationMessage, "es-ES", function() {
+                    console.log("✅ Confirmación de evaluación leída");
+                    isSpeaking = false;
+                    updateVoiceIndicator('active');
+                });
+            });
+        });
+    }
+
+    function closeBetaPopup() {
+        var modal = document.getElementById('betaPopup');
+        if (modal) modal.remove();
+        goToMenu();
+    }
+
+    async function sendBetaEvaluation(rating) {
+        const userName = localStorage.getItem("eteo_userName") || "Anónimo";
+        const userCountry = localStorage.getItem("eteo_userCountry") || "MA";
+        
+        try {
+            await db.collection('evaluations_beta').add({
+                nom: userName,
+                pays: userCountry,
+                note: rating,
+                langue: 'es',
+                nivel: 'principiante2',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("✅ Evaluación Beta enviada !");
+        } catch (error) {
+            console.error("❌ Error evaluación Beta:", error);
+        }
+    }
+
+    // ============================================
+    // =========== OTRAS FUNCIONES ===============
+    // ============================================
+    function abandonQuiz() {
+        stopSpeaking();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        const partialPercentage = (score / MAX_SCORE) * 100;
+        localStorage.setItem("assistantes_dentaires_v1_debutant2_es", JSON.stringify({ 
+            score, 
+            maxScore: MAX_SCORE, 
+            percentage: partialPercentage, 
+            date: new Date().toISOString(), 
+            abandoned: true 
+        }));
+        
+        unlockLevel3(partialPercentage);
+        
+        guardarValidacion('Asistentes_Dentales', 'principiante2', score, MAX_SCORE);
+        
+        sendScoreToFirebase(score, MAX_SCORE, partialPercentage);
+        
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="result-container">
+                <h1>❌ Quiz abandonado</h1>
+                <div class="final-score">Puntuación parcial : ${score}/${MAX_SCORE}</div>
+                <div>Porcentaje : ${partialPercentage.toFixed(1)}%</div>
+                <div style="margin:20px 0;">🏆 Esta puntuación ha sido registrada en la clasificación.</div>
+                <div class="btn-group">
+                    <button class="btn-menu" onclick="goToMenu()">🏠 Volver al menú</button>
+                    <button class="btn-progression" onclick="goToProgression()">📊 Ver mi progresión</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function shareScore() {
+        const percentage = (score / MAX_SCORE) * 100;
+        const text = `🎓 ETEO - Asistentes Dentales\nMi puntuación en el nivel Principiante 2 : ${score}/${MAX_SCORE} (${percentage.toFixed(1)}%)\n¡Desafíame en ETEO!`;
+        if (navigator.share) {
+            navigator.share({ title: 'ETEO Score', text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ ¡Puntuación copiada al portapapeles!");
+            }).catch(() => {
+                alert("📋 Para compartir, copia este texto :\n\n" + text);
+            });
+        }
+    }
+
+    function giveFeedback() { 
+        window.open('https://docs.google.com/forms/d/e/1FAIpQLSca6J-wmsp7Ci9-Y_LEyhyvj4BrazhHZpLhmB3YcDgckzya6Q/viewform', '_blank'); 
+    }
+
+    function startQuiz() {
+        console.log("🚀 startQuiz() llamado");
+        saveUserInfo();
+        console.log("🔊 Activando voz...");
+        activateVoice();
+        currentQuestion = 0;
+        score = 0;
+        answerLocked = false;
+        renderQuestion();
+        console.log("✅ Quiz iniciado");
+    }
+
+    // ============================================
+    // =========== INICIALIZACIÓN =================
+    // ============================================
+    console.log("🚀 Página cargada - ETEO Quiz Asistentes Dentales (ES) - Principiante 2");
+    console.log("📱 window.Capacitor =", window.Capacitor);
+    
+    if (window.Capacitor) {
+        console.log("📱 Plataforma =", window.Capacitor.getPlatform());
+        console.log("📱 Plugins =", Object.keys(window.Capacitor.Plugins || {}));
+    }
+    
+    document.body.addEventListener('click', function firstClick() { 
+        console.log("🖱️ Primer clic - Activando voz");
+        activateVoice(); 
+        document.body.removeEventListener('click', firstClick); 
+    });
+    
+    showWelcomeScreen();
+</script>
+</body>
+</html>
